@@ -1,11 +1,12 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
-.Random.seed|object|8f1a76172ae9a183|||||||||||||||
+.Random.seed|object|2a6c395f52ca28f1|||||||||||||||
 exp1_2p_ml|stem|24567455ad75c7d6|2f12705dd5bf1401|ffa040247416a905|263149486||t19849.1728399147s|fe2586ca9a714825|9447|rds|local|vector|||4.086||
 exp1_2p_ss_bmm|stem|ead8f7681d13b8da|c42b1660c4bf72db|31717bc69a579625|-800637334||t19849.2235600849s|fad12d95a04677b6|15688571|rds|local|vector|||2080.952||
 exp1_2p_time_bmm|stem|3049ec71f0b63f14|c3a67a08494901aa|b959208f69dec448|12959389||t19849.2210182065s|c0abe8b0d05e87ae|16915982|rds|local|vector|||1860.05||
 exp1_data|stem|c3c4e52d5a4d23fd|19c297987c0b627d|c389b1c01c89d73a|-1079929147||t19849.0520631834s|d8a0732e7aaea66e|2471642|rds|local|vector|||2.421||
 exp1_data_file|stem|a7709e06eee0558c|06f236352047bb41|2c530c1562a7fbd1|-2055253181|data-raw/exp1_2021_data.csv|t18779.589525463s|d5c4147ddca702a0|15491872|file|local|vector|||0.028||
-exp1_sdm_ss_ss_bmm|stem|54c23c9aa01ddb06|ec1ca20575b8480b|86a331efa6861d79|1873056940||t19849.5279919869s|b932c2278e29b395|6191060|rds|local|vector|||13003.07||
+exp1_sdm_ss_ss_bmm|stem|952281e5395993c9|ec1ca20575b8480b|2766307829965fb0|1873056940||t19850.146127342s|d3ee80bf847f87f9|12116349|rds|local|vector|||1524.647||
+exp1_sdm_time_time_bmm|stem|a58ce29af1d7d380|a9e3d42dadcf8c59|66632a4b9975cdb2|-2022002467||t19850.149929723s|4ff42ba078bdb518|13203542|rds|local|vector|||1854.706||
 fit_2p_ml|function|e9113aa8e34a8405|||||||||||||||
 fit_2p_ss_bmm1|function|ad8d94899b78970b|||||||||||||||
 fit_2p_time_bmm1|function|7ed9bd6c331873c6|||||||||||||||
@@ -15,8 +16,8 @@ fit_bmm1|function|ff1f664bada2caf4|||||||||||||||
 fit_bmm2|function|2ed88e296a556eb3|||||||||||||||
 fit_bmm3|function|3eb540ab8f52fd87|||||||||||||||
 fit_honig_bmm|function|ff1f664bada2caf4|||||||||||||||
-fit_sdm_ss_ss_bmm1|function|2a3439fa1c8d6855|||||||||||||||
-fit_sdm_time_time_bmm1|function|b738b469c2f6f1f8|||||||||||||||
+fit_sdm_ss_ss_bmm1|function|f181ed553634c1ac|||||||||||||||
+fit_sdm_time_time_bmm1|function|a3c3f6825b0e3cff|||||||||||||||
 get_subject_parameters|function|9b5588049b8a77c8|||||||||||||||
 honig_bmm_fit|stem|d30ebd846b30e625|93434f03cddee8d3|3fb5b5d50fe7c794|1313966733||t19848.9022614509s|61b4bb361399a084|1946281|rds|local|vector|||110.567||
 honig_bmm_fit_by_subject|stem|c97386110d8b7b65|ba294f6833266a44|0485b95863c346e7|744543528||t19849.0022906372s|723d5fdec51e549e|1945944|rds|local|vector|||106.291||

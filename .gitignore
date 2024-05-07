@@ -9,3 +9,4 @@ docs
 dev
 _freeze
 .vscode
+output/logs

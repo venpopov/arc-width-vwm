@@ -1,11 +1,12 @@
 library(targets)
+library(tarchetypes)
 library(crew)
 
 
 # Set target options:
 tar_option_set(
   error = "null", packages = c("dplyr", "cmdstanr"),
-  controller = crew_controller_local(workers = 2)
+  controller = crew_controller_local(workers = 2, local_log_directory = "output/logs")
 )
 
 # Run the R scripts in the R/ folder with your custom functions:
@@ -21,7 +22,7 @@ options(
 )
 
 # Targetst pipeline
-list(
+tar_plan(
   # process the raw data
   tar_target(honig_data_folder, "data-raw/honig2020raw/", format = "file"),
   tar_target(honig_data, preprocess_honig_data(honig_data_folder, "output/honig_data.csv")),
@@ -50,7 +51,7 @@ list(
 
   # fit bmm sdm to exp1 data
   tar_target(exp1_sdm_ss_ss_bmm, fit_sdm_ss_ss_bmm1(exp1_data)),
+  tar_target(exp1_sdm_time_time_bmm, fit_sdm_time_time_bmm1(exp1_data))
   # tar_target(exp1_sdm_ss_time_bmm, fit_sdm_ss_time_bmm1(exp1_data)),
   # tar_target(exp1_sdm_time_ss_bmm, fit_sdm_time_ss_bmm1(exp1_data)),
-  tar_target(exp1_sdm_time_time_bmm, fit_sdm_time_time_bmm1(exp1_data))
 )
