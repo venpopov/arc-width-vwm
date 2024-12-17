@@ -1,0 +1,500 @@
+---
+title: "exp1: sdm fit"
+format: html
+---
+
+Tasks:
+- [ ] Fit a new model in which kappa does not vary over conditions.
+
+```{r setup}
+#| message: FALSE
+#| include: false
+knitr::opts_chunk$set(message = FALSE)
+```
+
+```{r initialize, message=FALSE, warning=FALSE, echo=FALSE}
+library(targets)
+library(tidyverse)
+library(patchwork)
+library(mixtur)
+tar_source()
+```
+
+```{r}
+tar_load(starts_with("exp1"))
+```
+
+These are the model summaries:
+
+```{r}
+summary(exp1_sdm_ss_ss_bmm)
+```
+
+and for the time experiments
+
+```{r}
+summary(exp1_sdm_time_time_bmm)
+```
+
+
+```{r}
+bmm_ss_pars <- exp1_sdm_ss_ss_bmm  |> 
+  get_subject_parameters() |>
+  rownames_to_column("subject") |> 
+    pivot_longer(
+    cols = -subject, 
+    names_to = c(".value", "exporder", "setsize"), 
+    names_pattern = "(.*)_experimentorder(.*).setsize(.*)"
+  )
+
+ bmm_time_pars <- exp1_sdm_time_time_bmm  |> 
+  get_subject_parameters() |>
+  rownames_to_column("subject") |> 
+    pivot_longer(
+    cols = -subject, 
+    names_to = c(".value", "exporder", "encodingtime", "delay"), 
+    names_pattern = "(.*)_experimentorder(.*).encodingtime(.*).delay(.*)"
+  ) 
+```
+
+
+just plot sdm parameters as a function of conditions
+
+first for set size
+
+```{r}
+bmm_ss_pars |> 
+  pivot_longer(cols = c("c", "kappa"), names_to = "parameter") |>
+  ggplot(aes(setsize, value, group = 1)) +
+  stat_summary() +
+  stat_summary(geom = "line") +
+  facet_wrap(~parameter)
+```
+
+and then for time
+
+```{r}
+bmm_time_pars |> 
+  pivot_longer(cols = c("c", "kappa"), names_to = "parameter") |>
+  ggplot(aes(encodingtime, value, color = delay, group = delay)) +
+  stat_summary() +
+  stat_summary(geom = "line") +
+  facet_wrap(~parameter)
+```
+
+
+Ok, now we are talking. Kappa is affected by the delay, but not by the encoding time. C is affected more by encoding time, and not much by delay.
+
+Could this be due to parameter tradeoff?
+
+
+```{r}
+bmm_time_pars |> 
+  pivot_longer(cols = c("c", "kappa"), names_to = "parameter") |>
+  ggplot(aes(encodingtime, value, color = delay, group = delay)) +
+  stat_summary() +
+  stat_summary(geom = "line") +
+  facet_grid(exporder~parameter)
+```
+
+## Combined models
+
+The models above were fit to separate sessions. Now we fit a model to all sessions at once.
+
+```{r}
+summary(exp1_sdm_ss_bmm_combined)
+```
+
+```{r}
+summary(exp1_sdm_time_bmm_combined)
+```
+
+```{r}
+bmm_ss_pars_combined <- exp1_sdm_ss_bmm_combined  |> 
+  get_subject_parameters() |>
+  rownames_to_column("subject") |> 
+  mutate(subject = as.numeric(subject)) |>
+  pivot_longer(
+    cols = -subject, 
+    names_to = c(".value", "setsize"), 
+    names_pattern = "(.*)_setsize(.*)"
+  ) |> 
+  mutate(setsize = as.numeric(setsize))
+
+ bmm_time_pars_combined <- exp1_sdm_time_bmm_combined  |> 
+  get_subject_parameters() |>
+  rownames_to_column("subject") |> 
+  mutate(subject = as.numeric(subject)) |>
+  pivot_longer(
+    cols = -subject, 
+    names_to = c(".value", "encodingtime", "delay"), 
+    names_pattern = "(.*)_encodingtime(.*).delay(.*)"
+  ) |>
+  mutate(encodingtime = as.numeric(encodingtime), delay = as.numeric(delay))
+```
+
+
+just plot sdm parameters as a function of conditions
+
+first for set size
+
+```{r}
+bmm_ss_pars_combined |> 
+  pivot_longer(cols = c("c", "kappa"), names_to = "parameter") |>
+  ggplot(aes(setsize, value, group = 1)) +
+  stat_summary() +
+  stat_summary(geom = "line") +
+  facet_wrap(~parameter)
+```
+
+(the low value for setsize 7 appears to be due to just some participants):
+
+```{r}
+filter(bmm_ss_pars_combined, setsize == 7)$c  |> hist()
+```
+
+
+and then for time
+
+```{r}
+bmm_time_pars_combined |> 
+  pivot_longer(cols = c("c", "kappa"), names_to = "parameter") |>
+  ggplot(aes(encodingtime, value, color = delay, group = delay)) +
+  stat_summary() +
+  stat_summary(geom = "line") +
+  facet_wrap(~parameter)
+```
+
+
+## Relation of c to arc width (setsize experiment)
+
+Combined arc width data with the model parameters
+
+```{r}
+arc <- exp1_data |> 
+  group_by(subject, exp_type, setsize, encodingtime, delay) |>
+  summarize(arc_mean = mean(arc)) 
+
+arc_ss <- arc |> 
+  filter(exp_type == "SetS") |> 
+  left_join(bmm_ss_pars_combined)
+
+arc_time <- arc |> 
+  filter(exp_type == "Time") |> 
+  left_join(bmm_time_pars_combined)
+```
+
+
+As c increases, the mean arc decreases. This shows it overall with setsize in different colors. Each dot is a subject:setsize combination.
+
+```{r}
+arc_ss |> 
+  ggplot(aes(c, arc_mean, color = as.factor(setsize))) +
+  geom_point(size = 3)
+```
+
+There is a clear effect of setsize. Within each setsize, does it decrease for participants with higher c? It seems so.
+
+TODO: I want to figure out a way to save insights like this as single documents/notes that I can use later and don't forget. Like atomic notes, but during analysis. How best to do that?
+
+```{r}
+arc_ss |> 
+  ggplot(aes(c, arc_mean, color = as.factor(setsize))) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = F)
+```
+
+TODO: the relationship between c and arc width is more appropriate on the log scale. E.g. same slope across the setsizes:
+
+```{r}
+arc_ss |> 
+  ggplot(aes(log(c), arc_mean, color = as.factor(setsize))) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = F)
+```
+
+```{r}
+arc_ss |> 
+  ggplot(aes(c, arc_mean, color = as.factor(setsize))) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = F) +
+  facet_wrap(~setsize, scales = "free")
+```
+
+color by subject instead:
+
+```{r}
+arc_ss |> 
+  ggplot(aes(c, arc_mean, color = as.factor(subject))) +
+  geom_point(size = 3) +
+  geom_line()
+
+arc_ss |> 
+  filter(setsize != 7) |>
+  ggplot(aes(log(c), arc_mean, color = as.factor(subject))) +
+  geom_point(size = 3) +
+  geom_line()
+
+```
+
+what if we aggregate over setsizes?
+
+```{r}
+arc_ss |> 
+  group_by(subject) |> 
+  summarize(c = mean(c), arc_mean = mean(arc_mean)) |> 
+  ggplot(aes(c, arc_mean)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = F)
+```
+
+and over subjects?
+
+```{r}
+arc_ss |> 
+  group_by(setsize) |> 
+  summarize(c = mean(c), arc_mean = mean(arc_mean)) |> 
+  ggplot(aes(c, arc_mean)) +
+  geom_point(size = 3, aes(color = as.factor(setsize))) +
+  geom_line()
+```
+
+```{r}
+lmdat <- arc_ss |> 
+  group_by(subject) |> 
+  summarize(c = mean(c), kappa = mean(kappa), arc_mean = mean(arc_mean))
+
+summary(lm(arc_mean ~ c, data = lmdat))
+```
+
+## Relation of kappa to arc width (setsize experiment)
+
+```{r}
+arc_ss |> 
+  ggplot(aes(kappa, arc_mean, color = as.factor(setsize))) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = F)
+```
+
+```{r}
+arc_ss |> 
+  ggplot(aes(kappa, arc_mean, color = as.factor(subject))) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = F)
+```
+
+```{r}
+arc_ss |> 
+  group_by(subject) |> 
+  summarize(kappa = mean(kappa), arc_mean = mean(arc_mean)) |> 
+  ggplot(aes(kappa, arc_mean)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = F)
+```
+
+Interesting. Setsize does not affect kappa and kappa does not affect arc width *within subjects*. But participants with higher kappa provide narrower arc widths:
+
+```{r}
+summary(lm(arc_mean ~ kappa, data = lmdat))
+```
+
+However, this seems to be due to a correlation with c. When including both in the model, kappa is not a significant predictor of arc width over subjects:
+
+```{r}
+cor(lmdat$kappa, lmdat$c)
+summary(lm(arc_mean ~ c + kappa, data = lmdat))
+```
+
+So the conclusion is that c is the main predictor of arc width, and kappa is not related to it (althought that seems to be different than the honnig dataset? see other notebook). This is interesting for several reasons:
+
+- since there is parameter tradeoff between c and kappa, we can potentially use arc width to constrain the parameter estimation
+
+
+## Relation of c to arc width (time experiment)
+
+```{r}
+arc_time |> 
+  ggplot(aes(c, arc_mean, color = as.factor(interaction(delay, encodingtime)))) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = F)
+```
+
+```{r}
+arc_time |> 
+  ggplot(aes(c, arc_mean, color = as.factor(subject))) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = F)
+```
+
+```{r}
+time_smry <- arc_time |> 
+  group_by(subject) |> 
+  summarize(c = mean(c), kappa = mean(kappa), arc_mean = mean(arc_mean))
+  
+time_smry |> ggplot(aes(c, arc_mean)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = F)
+```
+
+Interesting, the correlation between c and arc mean over subjects is much stronger in the time experiment. Even though the range of arc_means is smallerWhy? 
+- One possibility is that with better performance the c estimates are more reliable (can check the posterior variance)
+- Another possibility is that participants provide more accurate estimates of their arc for higher c's. This might have implications about the mechanism
+
+```{r}
+summary(lm(arc_mean ~ c, data = time_smry))
+summary(lm(arc_mean ~ kappa, data = time_smry))
+summary(lm(arc_mean ~ c + kappa, data = time_smry))
+```
+
+
+Check the continuity
+
+```{r}
+ss_smry <- lmdat  |> 
+  mutate(exp = "ss")
+
+time_smry <- time_smry |> 
+  mutate(exp = "time")
+
+subj_smry <- bind_rows(ss_smry, time_smry)  |> 
+  arrange(subject)
+```
+
+Consistent with a single function (unlike the two parameter model)
+
+```{r}
+subj_smry |> 
+  ggplot(aes(c, arc_mean, color = exp)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm", aes(c, arc_mean, color = NULL), se = F)
+```
+
+
+```{r}
+summary(lm(arc_mean ~ c, data = subj_smry))
+summary(lm(arc_mean ~ c + kappa, data = subj_smry))
+```
+
+Correlation between c and arcwidth over both experiments over subjects is really high!:
+
+TODO: how does this compare with the 2p estimates?
+
+```{r}
+cor(subj_smry$c, subj_smry$arc_mean)
+cor(subj_smry$kappa, subj_smry$arc_mean)
+cor(subj_smry$c, subj_smry$kappa)
+```
+
+This suggests we might not need to estimate mapping parameters! It would be amazing if true - subjects use the same mapping between subjective memory strength and arc width response!
+
+TODO: based on the above, I can already estimate the mapping parameters from arc width to c. Then I can use this to estimate c for individual trials!
+
+PS: the coef of c is quite similar between this experiment and honnig et al's dataset (see other notebook). Virtually identical:
+
+```{r}
+fit <- lm(arc_mean ~ c, data = subj_smry)
+coef(fit)
+```
+
+and from honig:
+
+(Intercept)           c 
+   3.427131   -0.273029 
+
+This is remarkable! (the strange thing is that kappa is not related to arc width in this dataset, but it is in the honnig dataset. I wonder why?)
+
+reverse mapping:
+
+```{r}
+fit_rev <- lm(c ~ arc_mean, data = subj_smry)
+arc_coef <- coef(fit_rev)
+print(arc_coef)
+```
+
+```{r}
+exp1_data$arc_mean <- exp1_data$arc
+exp1_data$c_pred <- predict(fit_rev, newdata = exp1_data)
+```
+
+```{r}
+hist(exp1_data$c_pred)
+```
+
+OH! There are negative c values (not good!). But of course, the relationship cannot be linear
+
+```{r}
+ggplot(exp1_data, aes(c_pred, abs(resperr))) +
+  stat_summary()
+ggplot(exp1_data, aes(round(arc_mean, 1), abs(resperr))) +
+  stat_summary()
+```
+
+```{r}
+fit_rev <- lm(log(c) ~ arc_mean, data = subj_smry)
+summary(fit_rev)
+arc_coef <- coef(fit_rev)
+print(arc_coef)
+```
+
+```{r}
+exp1_data$c_pred2 <- exp(predict(fit_rev, newdata = exp1_data))
+hist(exp1_data$c_pred2)
+```
+
+```{r}
+ggplot(exp1_data, aes(setsize, c_pred2)) +
+  stat_summary(fun = median)
+ggplot(exp1_data, aes(setsize, log(c_pred2))) +
+  stat_summary(fun = median)
+
+exp1_data  |> 
+  filter(exp_type == "SetS") |>
+  ggplot(aes(setsize, log(c_pred2))) +
+  stat_summary(fun = median) +
+  stat_summary(fun = median, geom = "line")
+```
+
+But there is still quite some variability in the mapping between subjects, as evident from this plot:
+
+```{r}
+arc_ss |> 
+  filter(setsize != 7) |>
+  ggplot(aes(log(c), arc_mean, color = as.factor(subject))) +
+  geom_point(size = 3) +
+  geom_line()
+```
+
+
+
+
+## Misc
+
+```{r}
+lm(arc_mean ~ c * kappa, data = bind_rows(arc_ss, arc_time)) |> summary()
+lm(arc_mean ~ c + kappa, data = bind_rows(arc_ss, arc_time)) |> summary()
+lm(arc_mean ~ c, data = bind_rows(arc_ss, arc_time)) |> summary()
+```
+
+
+```{r}
+lm(arc_mean ~ log(c), data = subj_smry) |> summary()
+lm(log(arc_mean) ~ log(c), data = subj_smry) |> summary()
+
+AIC(lm(arc_mean ~ c, data = subj_smry), 
+    lm(arc_mean ~ log(c), data = subj_smry))
+```
+
+```{r}
+subj_smry |> 
+  ggplot(aes(log(c), log(arc_mean), color = exp)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm", aes(log(c), log(arc_mean), color = NULL), se = F)
+```
+
+
+```{r}
+preds <- lm(log(arc_mean) ~ log(c), data = subj_smry) |> predict()
+sqrt(mean((subj_smry$arc_mean-exp(preds))^2))
+```

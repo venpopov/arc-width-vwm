@@ -22,7 +22,7 @@ options(
 )
 
 # Targetst pipeline
-tar_plan(
+list(
   # process the raw data
   tar_target(honig_data_folder, "data-raw/honig2020raw/", format = "file"),
   tar_target(honig_data, preprocess_honig_data(honig_data_folder, "output/honig_data.csv")),
@@ -51,7 +51,9 @@ tar_plan(
 
   # fit bmm sdm to exp1 data
   tar_target(exp1_sdm_ss_ss_bmm, fit_sdm_ss_ss_bmm1(exp1_data)),
-  tar_target(exp1_sdm_time_time_bmm, fit_sdm_time_time_bmm1(exp1_data))
-  # tar_target(exp1_sdm_ss_time_bmm, fit_sdm_ss_time_bmm1(exp1_data)),
-  # tar_target(exp1_sdm_time_ss_bmm, fit_sdm_time_ss_bmm1(exp1_data)),
+  tar_target(exp1_sdm_time_time_bmm, fit_sdm_time_time_bmm1(exp1_data)),
+
+  # fit bmm without experimentorder, collapsing sessions
+  tar_target(exp1_sdm_ss_bmm_combined, fit_sdm_ss_bmm_combined(exp1_data)),
+  tar_target(exp1_sdm_time_bmm_combined, fit_sdm_time_bmm_combined(exp1_data))
 )

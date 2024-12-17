@@ -116,3 +116,40 @@ fit_sdm_time_time_bmm1 <- function(data) {
   model <- bmm::sdm("resperr")
   bmm::bmm(formula, data, model, backend = "cmdstanr", cores = 4, sort_data = TRUE)
 }
+
+fit_sdm_ss_bmm_combined <- function(data) {
+  # additional data preprocessing
+  data <- data |>
+    dplyr::mutate(
+      setsize = as.factor(setsize),
+    ) |>
+    dplyr::filter(exp_type == "SetS")
+
+  # estimate separate effects for each set size and experiment order
+  formula <- bmm::bmf(
+    c ~ 0 + setsize + (0 + setsize || subject),
+    kappa ~ 0 + setsize + (0 + setsize || subject)
+  )
+
+  # fit the sdm model
+  model <- bmm::sdm("resperr")
+  bmm::bmm(formula, data, model, backend = "cmdstanr", cores = 4, sort_data = TRUE)
+}
+
+fit_sdm_time_bmm_combined <- function(data) {
+  # additional data preprocessing
+  data <- data |>
+    dplyr::mutate(
+      encodingtime = as.factor(encodingtime),
+      delay = as.factor(delay)
+    ) |>
+    dplyr::filter(exp_type == "Time")
+
+  # estimate separate main effects for each encoding time and delay and experimentorder
+  formula <- bmm::bmf(
+    c ~ 0 + encodingtime:delay + (0 + encodingtime:delay || subject),
+    kappa ~ 0 + encodingtime:delay + (0 + encodingtime:delay || subject)
+  )
+  model <- bmm::sdm("resperr")
+  bmm::bmm(formula, data, model, backend = "cmdstanr", cores = 4, sort_data = TRUE)
+}

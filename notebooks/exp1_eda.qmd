@@ -15,7 +15,6 @@ library(tidyverse)
 library(patchwork)
 library(mixtur)
 tar_source()
-theme_set(theme_Publication())
 ```
 
 load the preprocessed data
@@ -24,7 +23,6 @@ load the preprocessed data
 tar_load("exp1_data")
 head(exp1_data)
 ```
-
 
 ### Arc width is affected by set size, encoding duration and retention interval
 
@@ -111,6 +109,7 @@ pb1+pb2
 ```
 
 
+
 ```{r, fig.width=3, fig.height=3}
 ss_arc <- exp1_data |>
   filter(exp_type == "SetS") |>
@@ -147,7 +146,6 @@ pc1 <- ss_joint |>
 
 pc1
 ```
-
 
 ### Plot the effect of time on sd(angle error) and the mean(arcwidth)
 
@@ -261,7 +259,6 @@ pe1
 ggsave('img/fig3.1.png', units='in', width=10, height=11)
 ```
 
-
 ```{r}
 time_joint <- mutate(time_joint, procedure="Time")
 ss_joint <- mutate(ss_joint, procedure="Set Size")
@@ -271,4 +268,3 @@ ggplot(both, aes(sd, arc_mean, color=procedure)) +
   geom_point() +
   geom_smooth(method="lm", se=F)
 ```
-

@@ -50,7 +50,8 @@ bmm_params <- fit1 |>
     names_pattern = "(.*)_(.*)"
   ) |> 
   mutate(session = stringr::str_remove(session, "session"),
-         session = as.numeric(session))
+         session = as.numeric(session),
+         subject = as.numeric(subject))
 ```
 
 Merge the arc-width and bmm parameters:
@@ -121,7 +122,8 @@ bmm_params2 <- fit2 |>
     names_pattern = "(.*)_(.*)"
   ) |> 
   mutate(session = stringr::str_remove(session, "session"),
-         session = as.numeric(session))  |> 
+         session = as.numeric(session),
+         subject = as.numeric(subject))  |> 
   rename(kappa = kappa_Intercept)
 ```
 
@@ -170,4 +172,26 @@ R squared:
 summary(lm(arc_mean ~ c, data = results2))
 summary(lm(arc_mean ~ kappa, data = results2))
 summary(lm(arc_mean ~ c + kappa, data = results2))
+```
+
+
+## aggregate over sessions
+
+```{r}
+results_agg <- results |> 
+  group_by(subject) |> 
+  summarize(arc_mean = mean(arc_mean),
+            arc_med = mean(arc_med),
+            c = mean(c),
+            kappa = mean(kappa))
+```
+
+```{r}
+summary(lm(arc_mean ~ c+kappa, data = results_agg))
+```
+
+
+```{r}
+fit_honig <- lm(arc_mean ~ c, data = results_agg)
+coef(fit_honig)
 ```
