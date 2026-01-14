@@ -3,12 +3,12 @@ project:
   output-dir: docs
   execute-dir: project
 
-execute: 
+execute:
   freeze: auto
 
 website:
   title: "Arc width and continuous reproduction"
-  repo-url: https://github.com/venpopov/guilty-goose/
+  repo-url: https://github.com/venpopov/arc-width-vwm
   navbar:
     left:
       - href: index.qmd
