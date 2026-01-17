@@ -13,6 +13,11 @@ log_posterior <- sdm_ko$Posterior$logposteriors
 true_log_params <- sdm_ko$True$TrueLogParms
 true_params <- exp(true_log_params)
 
+true_params <- as.data.frame(true_params)
+colnames(true_params) <- c("c", "kappa")
+write.csv(true_params, "output/ko_params.csv", row.names = F)
+
+
 # inspect
 str(simulated_data)
 table(simulated_data$id)
