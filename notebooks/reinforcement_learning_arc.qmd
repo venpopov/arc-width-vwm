@@ -1,0 +1,209 @@
+---
+title: "Explore reinforcement learning algorithms"
+format: html
+editor: visual
+execute: 
+  cache: true
+---
+
+```{r}
+#| include: false
+#| message: false
+library(bmm)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+
+# the optimum alpha is the root of this equation
+# it can be used with any distribution by providing the cdf and pdf functions
+optimum_equation <- function(alpha, cdf, pdf) {
+  (pi - alpha)*pdf(alpha) - cdf(alpha) + 0.5
+}
+
+# returns a data.frame with one row and two columns with the optimal alpha and phit
+find_optimum_sdm <- function(c, kappa) {
+  solution <- uniroot(
+    optimum_equation, 
+    cdf = \(x) psdm(x, c = c, kappa = kappa), 
+    pdf = \(x) dsdm(x, c = c, kappa = kappa), 
+    lower = 0, upper = pi-0.0001
+    )
+  data.frame(alpha = solution$root, phit = 2*psdm(solution$root, c = c, kappa = kappa)-1)
+}
+```
+
+The analyses so far show that subject arc behavior is near optimal, if we assume perfect knowledge about the response error distribution. This doesn't mean that subjects have such knowledge. It might be possible to learn from the feedback on each trial and to adjust the arc width in a way that reaches optimal behavior.
+
+For such an algorithm to work it would have to:
+
+-   find the theoretical optimum or approximate it well enough to capture the empirical observation that optimal arc width increases with setsize and hit rate decreases with setsize
+
+-   converge on the optimum fast enough (within the number of trials in the experiment; likely much earlier, so that the overall measure matches)
+
+Below we explored some initial algorithms. We generate data from the SDM for a range of $c$ parameter values, and apply the learning algorithms to the trial-by-trial data generated from the model.
+
+First we make a generic harness to run a trial-by-trial algorithm that updates the arc based on the function given in the first argument.
+
+```{r}
+run_arc_algorithm <- function(arc_update_fun, c = 4, kappa = 3, init_arc = pi/2, n_trials = 1e5) {
+  y <- rsdm(n_trials, 0, c = c, kappa = kappa)
+
+  a <- rep(0, n_trials)
+  a[1] <- init_arc
+  
+  for (i in seq_len(n_trials-1)) {
+    hit <- sign((abs(y[i]) <= a[i]) - 0.5)  # 1 if hit, -1 if miss
+    a[i+1] <- arc_update_fun(a = a[i], hit = hit, y = y[i])
+  }
+  list(phit = mean(abs(y) <= a), y = y, a = a)  
+}
+
+# a convenience function to show how the algorithm performs on a single run
+plot_algorithm_run <- function(out) {
+  par(mfrow = c(1,2))
+  plot(out$a, type = "l", xlab = "trial", ylab = "Arc half-width")
+  plot(cummean(abs(out$y) <= out$a), type = "l", xlab = "trial", ylab = "Cummulative hit rate")
+}
+```
+
+### Algorithm 1: Decrease/increase arc by delta depending on hit or not
+
+If target is within arc, decrease arc by a proportion $\delta$ of the arc; otherwise increase by the same proportion
+
+$$
+a_{n+1} = a_n \pm \delta a_n = a_n (1 \pm \delta)
+$$
+
+```{r}
+algo1 <- function(delta) \(a, hit, ...) a * (1 - hit*delta)
+
+algo1(delta = 0.1) |> 
+  run_arc_algorithm(n_trials = 1000) |>
+  plot_algorithm_run()
+```
+
+Run for different c parameters
+
+```{r}
+cs <- seq(0, 10, 0.5)
+out <- lapply(cs, \(c) run_arc_algorithm(algo1(delta = 0.1), c = c))
+
+```
+
+Distribution of arc widths for different $c$ values of the SDM parameter:
+
+::: panel-tabset
+```{r}
+#| results: asis
+for (i in seq_along(cs)) {
+  cat("## c = ", cs[i], '\n\n')
+  hist(out[[i]]$a, main = "", xlab = "Arcs chosen by algorithm", breaks = 60)
+  cat("\n\n")
+}
+```
+:::
+
+Hit rate as a function of $c$ doesn't change.
+
+```{r}
+plot(cs, sapply(out, \(x) x$phit), ylim = c(0,1))
+```
+
+As a function of the step size $\delta$:
+
+```{r}
+deltas <- seq(0.01, 1, 0.01)
+phit <- lapply(deltas, \(x) run_arc_algorithm(algo1(delta = x), c = 4)$phit)
+plot(deltas, phit)
+```
+
+### Algorithm 2: Logarithmic decrease/increase arc by delta depending on hit or not
+
+$$
+a_{n+1} = a_n \left(1-\delta\right)^{\pm1}
+$$
+
+multiply by $(1-\delta)$ if hit, otherwise divide by it.
+
+```{r}
+algo2 <- function(delta) \(a, hit, ...) a * (1 - delta)^hit
+```
+
+One run of the algorithm:
+
+```{r}
+algo2(delta = 0.1) |> 
+  run_arc_algorithm(n_trials = 1000) |>
+  plot_algorithm_run()
+```
+
+```{r}
+out <- lapply(cs, \(c) run_arc_algorithm(algo2(delta = 0.1), c = c))
+plot(cs, sapply(out, \(x) x$phit), ylab = "Hit rate")
+
+deltas <- seq(0.01, 0.5, 0.01)
+phits <- lapply(deltas, \(x) run_arc_algorithm(algo2(delta = x), c = 4)$phit)
+plot(deltas, phits)
+```
+
+### Algorithm 3: Change delta proportionally to the distance to the target
+
+$$
+a_{n+1} = a_n + \delta \, (|y_n|-a_n)
+$$
+
+```{r}
+algo3 <- function(delta) \(a, hit, y, ...) a * (1 - delta) + delta * abs(y)
+
+algo3(delta = 0.05) |> 
+  run_arc_algorithm(n_trials = 1000) |> 
+  plot_algorithm_run()
+```
+
+```{r}
+phits <- lapply(cs, \(c) run_arc_algorithm(algo3(delta = 0.05), c = c)$phit)
+plot(cs, phits)
+```
+
+With delta = 1 we get the case where you set the arc to be the same as the error:
+
+```{r}
+phits <- sapply(cs, \(c) run_arc_algorithm(algo3(delta = 1))$phit)
+plot(cs, phits)
+```
+
+### Algorithm 4: Increase/decrease proportionally by arc remaining / arc used
+
+$$
+a_{n+1} = \cases{ 
+   a_n - \delta a_n = a_n \left(1 - \delta \right) & if hit, \\
+   a_n + \delta \left(\pi-a_n\right) = a_n \left(1 - \delta \right) + \delta \pi & otherwise
+}
+$$
+
+```{r}
+algo4 <- function(delta) \(a, y, ...) a * (1 - delta) + (abs(y) > a) * pi * delta
+
+algo4(delta = 0.01) |> 
+  run_arc_algorithm(n_trials = 1000) |> 
+  plot_algorithm_run()
+```
+
+```{r}
+cs1 <- seq(0, 10, 0.1)
+deltas <- c(0.001, 0.05, 0.1, 0.2, 0.5)
+pars <- expand.grid(c = cs1, delta = deltas)
+
+phits <- purrr::pmap(pars, \(c, delta) run_arc_algorithm(algo4(delta), c = c)$phit)
+pars$phits <- unlist(phits)
+
+sdm_optim <- lapply(cs1, \(c) find_optimum_sdm(c, kappa = 3))
+sdm_optim <- do.call(rbind, sdm_optim)
+
+plot(cs1, sdm_optim$phit, type = "l", lty = "dashed", ylab = "Hit rate")
+for (i in seq_along(deltas)) {
+  lines(cs1, filter(pars, delta == deltas[i])$phit, col = i+1)
+}
+legend("topleft", legend = c("sdm optimal", deltas), col = seq_len(length(deltas)+1), lty = 1)
+
+```

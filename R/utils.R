@@ -8,8 +8,8 @@ theme_Publication <- function(base_size = 14) {
         size = rel(1.2)
       ),
       text = element_text(),
-      panel.background = element_rect(colour = NA),
-      plot.background = element_rect(colour = NA),
+      panel.background = element_rect(fill = "white"),
+      plot.background = element_rect(fill = "white"),
       panel.border = element_rect(colour = NA),
       axis.title = element_text(face = "bold", size = rel(1)),
       axis.title.y = element_text(angle = 90, vjust = 2),
@@ -24,7 +24,7 @@ theme_Publication <- function(base_size = 14) {
       legend.margin = unit(0, "cm"),
       legend.title = element_text(face = "italic"),
       plot.margin = unit(c(10, 5, 5, 5), "mm"),
-      strip.background = element_rect(colour = "#f0f0f0", fill = "#f0f0f0"),
+      strip.background = element_rect(colour = "white", fill = "white"),
       strip.text = element_text(face = "bold")
     ))
 }

@@ -2,6 +2,6 @@
 title: "Arc width and continuous reproduction"
 ---
 
-This website presents results of analyses and simulations for the arc width project. Will be updated as we go. This is my first attempt to fully using Quarto to create a website-based documentation of an ongoing project.
+This website presents results of analyses and simulations for the arc width project. Will be updated as we go.
 
-The links in the left navigation bar present results from notebooks stored in the notebooks folder of the [github repository](https://github.com/venpopov/guilty-goose)
+The links in the left navigation bar present results from notebooks stored in the notebooks folder of the [github repository](https://github.com/venpopov/arc-width-vwm)

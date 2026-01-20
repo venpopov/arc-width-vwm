@@ -10,19 +10,18 @@ knitr::opts_chunk$set(message = FALSE)
 ```
 
 ```{r initialize, message=FALSE, warning=FALSE}
-library(targets)
 library(tidyverse)
 library(patchwork)
 library(mixtur)
-tar_source()
+source("R/data-functions.R")
+source("R/utils.R")
 theme_set(theme_Publication())
 ```
 
 load the preprocessed data
 
 ```{r}
-tar_load("exp1_data")
-head(exp1_data)
+exp1_data <- read.csv("output/exp1_data.csv")
 ```
 
 ### Arc width is affected by set size, encoding duration and retention interval

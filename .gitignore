@@ -9,3 +9,5 @@ docs
 dev
 _freeze
 .vscode
+*_files/
+*_cache/

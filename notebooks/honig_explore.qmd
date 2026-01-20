@@ -5,14 +5,12 @@ author: "Ven Popov"
 
 ```{r setup, warning=FALSE, message=FALSE}
 library(tidyverse)
-library(targets)
 ```
 
 This is what the data looks like:
 
 ```{r}
-tar_load("honig_data")
-head(honig_data)
+honig_data <- read.csv("output/honig_data.csv")
 ```
 
 Number of observations per subject and session:
@@ -35,4 +33,3 @@ ggplot(honig_data, aes(resperr)) +
   facet_wrap(~subject) +
   theme_classic()
 ```
-
