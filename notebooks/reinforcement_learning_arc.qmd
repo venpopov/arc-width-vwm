@@ -53,7 +53,7 @@ run_arc_algorithm <- function(arc_update_fun, c = 4, kappa = 3, init_arc = pi/2,
   
   for (i in seq_len(n_trials-1)) {
     hit <- sign((abs(y[i]) <= a[i]) - 0.5)  # 1 if hit, -1 if miss
-    a[i+1] <- arc_update_fun(a = a[i], hit = hit, y = y[i])
+    a[i+1] <- arc_update_fun(a = a[i], hit = hit, y = y[i], i = i)
   }
   list(phit = mean(abs(y) <= a), y = y, a = a)  
 }
@@ -153,7 +153,7 @@ a_{n+1} = a_n + \delta \, (|y_n|-a_n)
 $$
 
 ```{r}
-algo3 <- function(delta) \(a, hit, y, ...) a * (1 - delta) + delta * abs(y)
+algo3 <- function(delta) \(a, hit, y, ...) a + delta * (abs(y) - a)
 
 algo3(delta = 0.05) |> 
   run_arc_algorithm(n_trials = 1000) |> 
@@ -176,7 +176,7 @@ plot(cs, phits)
 
 $$
 a_{n+1} = \cases{ 
-   a_n - \delta a_n = a_n \left(1 - \delta \right) & if hit, \\
+   a_n - \delta \, a_n = a_n \left(1 - \delta \right) & if hit, \\
    a_n + \delta \left(\pi-a_n\right) = a_n \left(1 - \delta \right) + \delta \pi & otherwise
 }
 $$
@@ -194,11 +194,13 @@ cs1 <- seq(0, 10, 0.1)
 deltas <- c(0.001, 0.05, 0.1, 0.2, 0.5)
 pars <- expand.grid(c = cs1, delta = deltas)
 
-phits <- purrr::pmap(pars, \(c, delta) run_arc_algorithm(algo4(delta), c = c)$phit)
-pars$phits <- unlist(phits)
+out <- purrr::pmap(pars, \(c, delta) run_arc_algorithm(algo4(delta), c = c))
+pars$phits <- sapply(out, \(x) x$phit)
+pars$reward <- sapply(out, \(x) mean((pi - x$a)*(abs(x$y) <= x$a)))
 
 sdm_optim <- lapply(cs1, \(c) find_optimum_sdm(c, kappa = 3))
 sdm_optim <- do.call(rbind, sdm_optim)
+sdm_optim$reward <- sdm_optim$phit * (pi - sdm_optim$alpha)
 
 plot(cs1, sdm_optim$phit, type = "l", lty = "dashed", ylab = "Hit rate")
 for (i in seq_along(deltas)) {
@@ -207,3 +209,24 @@ for (i in seq_along(deltas)) {
 legend("topleft", legend = c("sdm optimal", deltas), col = seq_len(length(deltas)+1), lty = 1)
 
 ```
+
+What this algorithm is doing is optimizing for the arc width a that satisfies:
+
+$$
+a = \pi (1 - F(a))
+$$\
+where F is the cdf of the sdm.\
+\
+This is similar to our objective but not exactly. That said, I decided to plot the achieved reward by the algorithm, rather than the hit rate, and compare it to the reward you get from the theoretical optimum:
+
+```{r}
+plot(cs1, sdm_optim$reward, type = "l", lty = "dashed", ylab = "Mean reward")
+for (i in seq_along(deltas)) {
+  lines(cs1, filter(pars, delta == deltas[i])$reward, col = i+1)
+}
+legend("topleft", legend = c("sdm optimal", deltas), col = seq_len(length(deltas)+1), lty = 1)
+```
+
+Despite the mismatching hit rate, it gets really close to the optimum reward, and only starts diverging more as c increases. This suggests that the gradient of the reward function might be gentle enough so that near the optimum point it can accomodate trade-offs between the arc and the hit rate with a huge decrement in the reward achieved.\
+\
+This will need more exploration but at least it seems like a plausible candidate (and/or with some modifications).
