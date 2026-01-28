@@ -237,145 +237,7 @@ window.Quarto = {
   
 
 
-</header><div class="cell">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># --- Helpers ---</span></span>
-<span><span class="va">cummean</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/cumsum.html">cumsum</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># reward per trial: (pi - a_t) if hit else 0</span></span>
-<span><span class="va">trial_reward</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">y</span>, <span class="va">a</span><span class="op">)</span> <span class="op">(</span><span class="va">pi</span> <span class="op">-</span> <span class="va">a</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="va">a</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Default, pleasant palettes without extra deps</span></span>
-<span><span class="va">pal_runs</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html">hcl.colors</a></span><span class="op">(</span><span class="va">n</span>, palette <span class="op">=</span> <span class="st">"Spectral"</span>, rev <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">pal_algs</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html">hcl.colors</a></span><span class="op">(</span><span class="va">n</span>, palette <span class="op">=</span> <span class="st">"Dark 3"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># --- Spaghetti plotting for single runs ---</span></span>
-<span><span class="co"># ugly overly-complicated function written by ChatGPT which I'm too lazy to simplify</span></span>
-<span><span class="va">spaghetti_single_runs</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span></span>
-<span>  <span class="va">alg_list</span>,                 <span class="co"># named list of update functions, e.g. list(simple=algo4(...), boundary=..., smooth=...)</span></span>
-<span>  <span class="va">cs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">8</span>, <span class="fl">16</span><span class="op">)</span>,</span>
-<span>  <span class="va">kappa</span> <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  <span class="va">n_trials</span> <span class="op">=</span> <span class="fl">800</span>,</span>
-<span>  <span class="va">n_runs</span> <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  <span class="va">init_arc</span> <span class="op">=</span> <span class="va">pi</span><span class="op">/</span><span class="fl">2</span>,</span>
-<span>  <span class="va">plot_what</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"hit"</span>, <span class="st">"reward"</span><span class="op">)</span>,   <span class="co"># any subset</span></span>
-<span>  <span class="va">add_oracle</span> <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  <span class="va">oracle_fun</span> <span class="op">=</span> <span class="cn">NULL</span>,  </span>
-<span>  <span class="va">seed</span> <span class="op">=</span> <span class="fl">1</span></span>
-<span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">plot_what</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/match.arg.html">match.arg</a></span><span class="op">(</span><span class="va">plot_what</span>, several.ok <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">is.list</a></span><span class="op">(</span><span class="va">alg_list</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">alg_list</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="va">oldpar</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>no.readonly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/on.exit.html">on.exit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># layout: rows = cs, cols = metrics</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">cs</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">plot_what</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>      mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">3.2</span>, <span class="fl">3.2</span>, <span class="fl">2.0</span>, <span class="fl">0.8</span><span class="op">)</span>, mgp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2.0</span>, <span class="fl">0.7</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="va">alg_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">alg_list</span><span class="op">)</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">alg_names</span><span class="op">)</span> <span class="op">||</span> <span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="va">alg_names</span> <span class="op">==</span> <span class="st">""</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">alg_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"alg"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">alg_list</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">alg_list</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">alg_names</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="va">cols_runs</span> <span class="op">&lt;-</span> <span class="fu">pal_runs</span><span class="op">(</span><span class="va">n_runs</span><span class="op">)</span></span>
-<span>  <span class="va">cols_algs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html">setNames</a></span><span class="op">(</span><span class="fu">pal_algs</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">alg_list</span><span class="op">)</span><span class="op">)</span>, <span class="va">alg_names</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="va">seed</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">c</span> <span class="kw">in</span> <span class="va">cs</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="kw">for</span> <span class="op">(</span><span class="va">metric</span> <span class="kw">in</span> <span class="va">plot_what</span><span class="op">)</span> <span class="op">{</span></span>
-<span></span>
-<span>      <span class="co"># Prepare plot canvas with sane y-limits by doing one cheap pre-run</span></span>
-<span>      <span class="co"># (We’ll compute dynamic limits while collecting, but need a first plot call.)</span></span>
-<span>      <span class="co"># We'll collect all series in a list first.</span></span>
-<span>      <span class="va">series</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span>      <span class="kw">for</span> <span class="op">(</span><span class="va">alg_nm</span> <span class="kw">in</span> <span class="va">alg_names</span><span class="op">)</span> <span class="op">{</span></span>
-<span>        <span class="va">alg_fun</span> <span class="op">&lt;-</span> <span class="va">alg_list</span><span class="op">[[</span><span class="va">alg_nm</span><span class="op">]</span><span class="op">]</span></span>
-<span></span>
-<span>        <span class="kw">for</span> <span class="op">(</span><span class="va">r</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">n_runs</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>          <span class="co"># vary seed per run</span></span>
-<span>          <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span></span>
-<span>            arc_update_fun <span class="op">=</span> <span class="va">alg_fun</span>,</span>
-<span>            c <span class="op">=</span> <span class="va">c</span>, kappa <span class="op">=</span> <span class="va">kappa</span>,</span>
-<span>            init_arc <span class="op">=</span> <span class="va">init_arc</span>,</span>
-<span>            n_trials <span class="op">=</span> <span class="va">n_trials</span></span>
-<span>          <span class="op">)</span></span>
-<span></span>
-<span>          <span class="va">y</span> <span class="op">&lt;-</span> <span class="va">out</span><span class="op">$</span><span class="va">y</span></span>
-<span>          <span class="va">a</span> <span class="op">&lt;-</span> <span class="va">out</span><span class="op">$</span><span class="va">a</span></span>
-<span></span>
-<span>          <span class="va">v</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/switch.html">switch</a></span><span class="op">(</span><span class="va">metric</span>,</span>
-<span>            a <span class="op">=</span> <span class="va">a</span>,</span>
-<span>            hit <span class="op">=</span> <span class="fu">cummean</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="va">a</span><span class="op">)</span>,</span>
-<span>            reward <span class="op">=</span> <span class="fu">cummean</span><span class="op">(</span><span class="fu">trial_reward</span><span class="op">(</span><span class="va">y</span>, <span class="va">a</span><span class="op">)</span><span class="op">)</span></span>
-<span>          <span class="op">)</span></span>
-<span></span>
-<span>          <span class="va">series</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">series</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
-<span>            alg <span class="op">=</span> <span class="va">alg_nm</span>,</span>
-<span>            run <span class="op">=</span> <span class="va">r</span>,</span>
-<span>            v <span class="op">=</span> <span class="va">v</span></span>
-<span>          <span class="op">)</span></span>
-<span>        <span class="op">}</span></span>
-<span>      <span class="op">}</span></span>
-<span></span>
-<span>      <span class="co"># Determine y-limits across all series for this panel</span></span>
-<span>      <span class="va">allv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">series</span>, <span class="va">`[[`</span>, <span class="st">"v"</span><span class="op">)</span>, use.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span>      <span class="va">ylim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html">range</a></span><span class="op">(</span><span class="va">allv</span>, finite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span>      <span class="co"># Title + axis labels</span></span>
-<span>      <span class="va">main</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"c="</span>, <span class="va">c</span>, <span class="st">" | "</span>, <span class="va">metric</span><span class="op">)</span></span>
-<span>      <span class="va">ylab</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/switch.html">switch</a></span><span class="op">(</span><span class="va">metric</span>,</span>
-<span>        a <span class="op">=</span> <span class="st">"a(t) [rad]"</span>,</span>
-<span>        hit <span class="op">=</span> <span class="st">"cum hit rate"</span>,</span>
-<span>        reward <span class="op">=</span> <span class="st">"cum avg reward"</span></span>
-<span>      <span class="op">)</span></span>
-<span></span>
-<span>      <span class="co"># Initialize empty plot</span></span>
-<span>      <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">n_trials</span><span class="op">)</span>, <span class="va">series</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">v</span>,</span>
-<span>           type <span class="op">=</span> <span class="st">"n"</span>, ylim <span class="op">=</span> <span class="va">ylim</span>,</span>
-<span>           xlab <span class="op">=</span> <span class="st">"trial"</span>, ylab <span class="op">=</span> <span class="va">ylab</span>, main <span class="op">=</span> <span class="va">main</span><span class="op">)</span></span>
-<span></span>
-<span>      <span class="co"># Draw spaghetti: color by run, line type by algorithm</span></span>
-<span>      <span class="co"># (Run colors repeat across algorithms; alg distinguished by lty + optional legend)</span></span>
-<span>      <span class="va">ltys</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">alg_names</span><span class="op">)</span></span>
-<span>      <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">ltys</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">alg_names</span></span>
-<span></span>
-<span>      <span class="kw">for</span> <span class="op">(</span><span class="va">s</span> <span class="kw">in</span> <span class="va">series</span><span class="op">)</span> <span class="op">{</span></span>
-<span>        <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">n_trials</span><span class="op">)</span>, <span class="va">s</span><span class="op">$</span><span class="va">v</span>,</span>
-<span>              col <span class="op">=</span> <span class="va">cols_runs</span><span class="op">[</span><span class="va">s</span><span class="op">$</span><span class="va">run</span><span class="op">]</span>,</span>
-<span>              lty <span class="op">=</span> <span class="va">ltys</span><span class="op">[</span><span class="va">s</span><span class="op">$</span><span class="va">alg</span><span class="op">]</span>,</span>
-<span>              lwd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span>      <span class="op">}</span></span>
-<span></span>
-<span>      <span class="co"># Optional oracle reference line</span></span>
-<span>      <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Logic.html">isTRUE</a></span><span class="op">(</span><span class="va">add_oracle</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>        <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">oracle_fun</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/stop.html">stop</a></span><span class="op">(</span><span class="st">"add_oracle=TRUE but oracle_fun is NULL"</span><span class="op">)</span></span>
-<span>        <span class="va">o</span> <span class="op">&lt;-</span> <span class="fu">oracle_fun</span><span class="op">(</span><span class="va">c</span><span class="op">)</span></span>
-<span>        <span class="va">y_oracle</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/switch.html">switch</a></span><span class="op">(</span><span class="va">metric</span>,</span>
-<span>          a <span class="op">=</span> <span class="va">o</span><span class="op">$</span><span class="va">alpha</span>,</span>
-<span>          hit <span class="op">=</span> <span class="va">o</span><span class="op">$</span><span class="va">phit</span>,</span>
-<span>          reward <span class="op">=</span> <span class="op">(</span><span class="va">pi</span> <span class="op">-</span> <span class="va">o</span><span class="op">$</span><span class="va">alpha</span><span class="op">)</span><span class="op">*</span><span class="va">o</span><span class="op">$</span><span class="va">phit</span></span>
-<span>        <span class="op">)</span></span>
-<span>        <span class="fu"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span><span class="op">(</span>h <span class="op">=</span> <span class="va">y_oracle</span>, lty <span class="op">=</span> <span class="fl">2</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span>      <span class="op">}</span></span>
-<span></span>
-<span>      <span class="co"># Legend only in top-left panel (keeps clutter down)</span></span>
-<span>      <span class="kw">if</span> <span class="op">(</span><span class="va">c</span> <span class="op">==</span> <span class="va">cs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&amp;&amp;</span> <span class="va">metric</span> <span class="op">==</span> <span class="va">plot_what</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span> <span class="op">{</span></span>
-<span>        <span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topright"</span>,</span>
-<span>               legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"runs (color)"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">alg_names</span>, <span class="st">" (lty)"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>               col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="va">cols_algs</span><span class="op">[</span><span class="va">alg_names</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>               lty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">ltys</span><span class="op">[</span><span class="va">alg_names</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>               lwd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">alg_names</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>               pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">alg_names</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>               bty <span class="op">=</span> <span class="st">"n"</span>, cex <span class="op">=</span> <span class="fl">0.85</span><span class="op">)</span></span>
-<span>      <span class="op">}</span></span>
-<span>    <span class="op">}</span></span>
-<span>  <span class="op">}</span></span>
-<span><span class="op">}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>The analyses so far show that subject arc behavior is near optimal, if we assume perfect knowledge about the response error distribution. This doesn’t mean that subjects have such knowledge. It might be possible to learn from the feedback on each trial and to adjust the arc width in a way that reaches optimal behavior.</p>
+</header><p>The analyses so far <a href="optimal-arc-response.html">show that subject arc behavior is near optimal</a>, if we assume perfect knowledge about the response error distribution. This doesn’t mean that subjects have such knowledge. It might be possible to learn from the feedback on each trial and to adjust the arc width in a way that reaches optimal behavior.</p>
 <p>For such an algorithm to work it would have to:</p>
 <ul>
 <li><p>find the theoretical optimum or approximate it well enough to capture the empirical observation that optimal arc width increases with setsize and hit rate decreases with setsize</p></li>
@@ -384,7 +246,7 @@ window.Quarto = {
 <p>Below we explored some initial algorithms. We generate data from the SDM for a range of <span class="math inline">\(c\)</span> parameter values, and apply the learning algorithms to the trial-by-trial data generated from the model.</p>
 <p>First we make a generic harness to run a trial-by-trial algorithm that updates the arc based on the function given in the first argument.</p>
 <div class="cell">
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">run_arc_algorithm</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">arc_update_fun</span>, <span class="va">c</span> <span class="op">=</span> <span class="fl">4</span>, <span class="va">kappa</span> <span class="op">=</span> <span class="fl">3</span>, <span class="va">init_arc</span> <span class="op">=</span> <span class="va">pi</span><span class="op">/</span><span class="fl">2</span>, <span class="va">n_trials</span> <span class="op">=</span> <span class="fl">1e5</span><span class="op">)</span> <span class="op">{</span></span>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">run_arc_algorithm</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">arc_update_fun</span>, <span class="va">c</span> <span class="op">=</span> <span class="fl">4</span>, <span class="va">kappa</span> <span class="op">=</span> <span class="fl">3</span>, <span class="va">init_arc</span> <span class="op">=</span> <span class="va">pi</span><span class="op">/</span><span class="fl">2</span>, <span class="va">n_trials</span> <span class="op">=</span> <span class="fl">1e5</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">y</span> <span class="op">&lt;-</span> <span class="fu">rsdm</span><span class="op">(</span><span class="va">n_trials</span>, <span class="fl">0</span>, c <span class="op">=</span> <span class="va">c</span>, kappa <span class="op">=</span> <span class="va">kappa</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">n_trials</span><span class="op">)</span></span>
@@ -410,7 +272,7 @@ window.Quarto = {
 a_{n+1} = a_n \pm \delta a_n = a_n (1 \pm \delta)
 \]</span></p>
 <div class="cell">
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">algo1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">delta</span><span class="op">)</span> \<span class="op">(</span><span class="va">a</span>, <span class="va">hit</span>, <span class="va">...</span><span class="op">)</span> <span class="va">a</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">hit</span><span class="op">*</span><span class="va">delta</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">algo1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">delta</span><span class="op">)</span> \<span class="op">(</span><span class="va">a</span>, <span class="va">hit</span>, <span class="va">...</span><span class="op">)</span> <span class="va">a</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">hit</span><span class="op">*</span><span class="va">delta</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">algo1</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">run_arc_algorithm</span><span class="op">(</span>n_trials <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -424,7 +286,7 @@ a_{n+1} = a_n \pm \delta a_n = a_n (1 \pm \delta)
 </div>
 <p>Run for different c parameters</p>
 <div class="cell">
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">0.5</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">cs</span>, \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span><span class="fu">algo1</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, c <span class="op">=</span> <span class="va">c</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Distribution of arc widths for different <span class="math inline">\(c\)</span> values of the SDM parameter:</p>
@@ -520,7 +382,7 @@ a_{n+1} = a_n \pm \delta a_n = a_n (1 \pm \delta)
 </div>
 <p>Hit rate as a function of <span class="math inline">\(c\)</span> doesn’t change.</p>
 <div class="cell">
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">cs</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">out</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">phit</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">cs</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">out</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">phit</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="reinforcement_learning_arc_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
@@ -530,7 +392,7 @@ a_{n+1} = a_n \pm \delta a_n = a_n (1 \pm \delta)
 </div>
 <p>As a function of the step size <span class="math inline">\(\delta\)</span>:</p>
 <div class="cell">
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">deltas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">1</span>, <span class="fl">0.01</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">deltas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">1</span>, <span class="fl">0.01</span><span class="op">)</span></span>
 <span><span class="va">phit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">deltas</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span><span class="fu">algo1</span><span class="op">(</span>delta <span class="op">=</span> <span class="va">x</span><span class="op">)</span>, c <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">$</span><span class="va">phit</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">deltas</span>, <span class="va">phit</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -546,11 +408,11 @@ a_{n+1} = a_n \left(1-\delta\right)^{\pm1}
 \]</span></p>
 <p>multiply by <span class="math inline">\((1-\delta)\)</span> if hit, otherwise divide by it.</p>
 <div class="cell">
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">algo2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">delta</span><span class="op">)</span> \<span class="op">(</span><span class="va">a</span>, <span class="va">hit</span>, <span class="va">...</span><span class="op">)</span> <span class="va">a</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">delta</span><span class="op">)</span><span class="op">^</span><span class="va">hit</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">algo2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">delta</span><span class="op">)</span> \<span class="op">(</span><span class="va">a</span>, <span class="va">hit</span>, <span class="va">...</span><span class="op">)</span> <span class="va">a</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">delta</span><span class="op">)</span><span class="op">^</span><span class="va">hit</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>One run of the algorithm:</p>
 <div class="cell">
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">algo2</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">algo2</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">run_arc_algorithm</span><span class="op">(</span>n_trials <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">plot_algorithm_run</span><span class="op">(</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -561,7 +423,7 @@ a_{n+1} = a_n \left(1-\delta\right)^{\pm1}
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">cs</span>, \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span><span class="fu">algo2</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, c <span class="op">=</span> <span class="va">c</span><span class="op">)</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">cs</span>, \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span><span class="fu">algo2</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, c <span class="op">=</span> <span class="va">c</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">cs</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">out</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">phit</span><span class="op">)</span>, ylab <span class="op">=</span> <span class="st">"Hit rate"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
@@ -569,7 +431,7 @@ a_{n+1} = a_n \left(1-\delta\right)^{\pm1}
 </figure>
 </div>
 </div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">deltas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.5</span>, <span class="fl">0.01</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">deltas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.5</span>, <span class="fl">0.01</span><span class="op">)</span></span>
 <span><span class="va">phits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">deltas</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span><span class="fu">algo2</span><span class="op">(</span>delta <span class="op">=</span> <span class="va">x</span><span class="op">)</span>, c <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">$</span><span class="va">phit</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">deltas</span>, <span class="va">phits</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -584,7 +446,7 @@ a_{n+1} = a_n \left(1-\delta\right)^{\pm1}
 a_{n+1} = a_n + \delta \, (|y_n|-a_n)
 \]</span></p>
 <div class="cell">
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">algo3</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">delta</span><span class="op">)</span> \<span class="op">(</span><span class="va">a</span>, <span class="va">hit</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span> <span class="va">a</span> <span class="op">+</span> <span class="va">delta</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">algo3</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">delta</span><span class="op">)</span> \<span class="op">(</span><span class="va">a</span>, <span class="va">hit</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span> <span class="va">a</span> <span class="op">+</span> <span class="va">delta</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">algo3</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">run_arc_algorithm</span><span class="op">(</span>n_trials <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -597,7 +459,7 @@ a_{n+1} = a_n + \delta \, (|y_n|-a_n)
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">phits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">cs</span>, \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span><span class="fu">algo3</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span>, c <span class="op">=</span> <span class="va">c</span><span class="op">)</span><span class="op">$</span><span class="va">phit</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">phits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">cs</span>, \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span><span class="fu">algo3</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span>, c <span class="op">=</span> <span class="va">c</span><span class="op">)</span><span class="op">$</span><span class="va">phit</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">cs</span>, <span class="va">phits</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
@@ -608,7 +470,7 @@ a_{n+1} = a_n + \delta \, (|y_n|-a_n)
 </div>
 <p>With delta = 1 we get the case where you set the arc to be the same as the error:</p>
 <div class="cell">
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">phits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">cs</span>, \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span><span class="fu">algo3</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">phit</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">phits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">cs</span>, \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span><span class="fu">algo3</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">phit</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">cs</span>, <span class="va">phits</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
@@ -625,7 +487,7 @@ a_{n+1} = \cases{
 }
 \]</span></p>
 <div class="cell">
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">algo4</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">delta</span><span class="op">)</span> \<span class="op">(</span><span class="va">a</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span> <span class="va">a</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">delta</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">&gt;</span> <span class="va">a</span><span class="op">)</span> <span class="op">*</span> <span class="va">pi</span> <span class="op">*</span> <span class="va">delta</span></span>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">algo4</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">delta</span><span class="op">)</span> \<span class="op">(</span><span class="va">a</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span> <span class="va">a</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">delta</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">&gt;</span> <span class="va">a</span><span class="op">)</span> <span class="op">*</span> <span class="va">pi</span> <span class="op">*</span> <span class="va">delta</span></span>
 <span></span>
 <span><span class="fu">algo4</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">run_arc_algorithm</span><span class="op">(</span>n_trials <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -638,7 +500,7 @@ a_{n+1} = \cases{
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">0.1</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">0.1</span><span class="op">)</span></span>
 <span><span class="va">deltas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.001</span>, <span class="fl">0.05</span>, <span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html">expand.grid</a></span><span class="op">(</span>c <span class="op">=</span> <span class="va">cs1</span>, delta <span class="op">=</span> <span class="va">deltas</span><span class="op">)</span></span>
 <span></span>
@@ -669,7 +531,7 @@ a = \pi (1 - F(a))
 where F is the cdf of the sdm.<br><br>
 This is similar to our objective but not exactly. That said, I decided to plot the achieved reward by the algorithm, rather than the hit rate, and compare it to the reward you get from the theoretical optimum:</p>
 <div class="cell">
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">cs1</span>, <span class="va">sdm_optim</span><span class="op">$</span><span class="va">reward</span>, type <span class="op">=</span> <span class="st">"l"</span>, lty <span class="op">=</span> <span class="st">"dashed"</span>, ylab <span class="op">=</span> <span class="st">"Mean reward"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">cs1</span>, <span class="va">sdm_optim</span><span class="op">$</span><span class="va">reward</span>, type <span class="op">=</span> <span class="st">"l"</span>, lty <span class="op">=</span> <span class="st">"dashed"</span>, ylab <span class="op">=</span> <span class="st">"Mean reward"</span><span class="op">)</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">deltas</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">cs1</span>, <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">pars</span>, <span class="va">delta</span> <span class="op">==</span> <span class="va">deltas</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span><span class="op">$</span><span class="va">reward</span>, col <span class="op">=</span> <span class="va">i</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
@@ -685,7 +547,7 @@ This is similar to our objective but not exactly. That said, I decided to plot t
 This will need more exploration but at least it seems like a plausible candidate (and/or with some modifications).</p>
 <p>Here are more detailed individual runs:</p>
 <div class="cell">
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">spaghetti_single_runs</span><span class="op">(</span></span>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">spaghetti_single_runs</span><span class="op">(</span></span>
 <span>  alg_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>algorithm4 <span class="op">=</span> <span class="fu">algo4</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">8</span>, <span class="fl">16</span><span class="op">)</span>,</span>
 <span>  n_trials <span class="op">=</span> <span class="fl">800</span>,</span>
@@ -713,7 +575,7 @@ s = \frac{1}{1 + \exp\Bigl(-\frac{a-|y|}{\tau}\Bigr)}
 a_{n+1} = a_n + \delta_i\Big[-s + (\pi-a)\frac{s(1-s)}{\tau}\Big]
 \]</span></p>
 <div class="cell">
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Boundary-aware arc update (observe y, uses distance to boundary)</span></span>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Boundary-aware arc update (observe y, uses distance to boundary)</span></span>
 <span><span class="va">algo5</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">tau</span> <span class="op">=</span> <span class="fl">0.05</span>, <span class="va">delta0</span> <span class="op">=</span> <span class="fl">0.12</span>, <span class="va">delta_pow</span> <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/force.html">force</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/base/force.html">force</a></span><span class="op">(</span><span class="va">delta0</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/base/force.html">force</a></span><span class="op">(</span><span class="va">delta_pow</span><span class="op">)</span></span>
 <span></span>
@@ -740,7 +602,7 @@ a_{n+1} = a_n + \delta_i\Big[-s + (\pi-a)\frac{s(1-s)}{\tau}\Big]
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">taus</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.02</span>, <span class="fl">0.05</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">taus</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.02</span>, <span class="fl">0.05</span><span class="op">)</span></span>
 <span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html">expand.grid</a></span><span class="op">(</span>c <span class="op">=</span> <span class="va">cs1</span>, tau <span class="op">=</span> <span class="va">taus</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/pmap.html">pmap</a></span><span class="op">(</span><span class="va">pars</span>, \<span class="op">(</span><span class="va">c</span>, <span class="va">tau</span><span class="op">)</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span><span class="fu">algo5</span><span class="op">(</span>tau <span class="op">=</span> <span class="va">tau</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, delta_pow <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>, c <span class="op">=</span> <span class="va">c</span><span class="op">)</span><span class="op">)</span></span>
@@ -762,7 +624,7 @@ a_{n+1} = a_n + \delta_i\Big[-s + (\pi-a)\frac{s(1-s)}{\tau}\Big]
 </div>
 <p>More detailed individual runs:</p>
 <div class="cell">
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">spaghetti_single_runs</span><span class="op">(</span></span>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">spaghetti_single_runs</span><span class="op">(</span></span>
 <span>  alg_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>algorithm5 <span class="op">=</span> <span class="fu">algo5</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">8</span>, <span class="fl">16</span><span class="op">)</span>,</span>
 <span>  n_trials <span class="op">=</span> <span class="fl">800</span>,</span>
