@@ -32,7 +32,149 @@ find_optimum_sdm <- function(c, kappa) {
 }
 ```
 
-The analyses so far show that subject arc behavior is near optimal, if we assume perfect knowledge about the response error distribution. This doesn't mean that subjects have such knowledge. It might be possible to learn from the feedback on each trial and to adjust the arc width in a way that reaches optimal behavior.
+```{r}
+#| collapse: true
+#| include: false
+#| message: false
+# --- Helpers ---
+cummean <- function(x) cumsum(x) / seq_along(x)
+
+# reward per trial: (pi - a_t) if hit else 0
+trial_reward <- function(y, a) (pi - a) * (abs(y) <= a)
+
+# Default, pleasant palettes without extra deps
+pal_runs <- function(n) grDevices::hcl.colors(n, palette = "Spectral", rev = TRUE)
+pal_algs <- function(n) grDevices::hcl.colors(n, palette = "Dark 3")
+
+# --- Spaghetti plotting for single runs ---
+# ugly overly-complicated function written by ChatGPT which I'm too lazy to simplify
+spaghetti_single_runs <- function(
+  alg_list,                 # named list of update functions, e.g. list(simple=algo4(...), boundary=..., smooth=...)
+  cs = c(0, 2, 8, 16),
+  kappa = 3,
+  n_trials = 800,
+  n_runs = 20,
+  init_arc = pi/2,
+  plot_what = c("a", "hit", "reward"),   # any subset
+  add_oracle = FALSE,
+  oracle_fun = NULL,  
+  seed = 1
+) {
+  plot_what <- match.arg(plot_what, several.ok = TRUE)
+  stopifnot(is.list(alg_list), length(alg_list) >= 1)
+
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar), add = TRUE)
+
+  # layout: rows = cs, cols = metrics
+  par(mfrow = c(length(cs), length(plot_what)),
+      mar = c(3.2, 3.2, 2.0, 0.8), mgp = c(2.0, 0.7, 0))
+
+  alg_names <- names(alg_list)
+  if (is.null(alg_names) || any(alg_names == "")) {
+    alg_names <- paste0("alg", seq_along(alg_list))
+    names(alg_list) <- alg_names
+  }
+
+  cols_runs <- pal_runs(n_runs)
+  cols_algs <- setNames(pal_algs(length(alg_list)), alg_names)
+
+  set.seed(seed)
+
+  for (c in cs) {
+    for (metric in plot_what) {
+
+      # Prepare plot canvas with sane y-limits by doing one cheap pre-run
+      # (We’ll compute dynamic limits while collecting, but need a first plot call.)
+      # We'll collect all series in a list first.
+      series <- list()
+
+      for (alg_nm in alg_names) {
+        alg_fun <- alg_list[[alg_nm]]
+
+        for (r in seq_len(n_runs)) {
+          # vary seed per run
+          out <- run_arc_algorithm(
+            arc_update_fun = alg_fun,
+            c = c, kappa = kappa,
+            init_arc = init_arc,
+            n_trials = n_trials
+          )
+
+          y <- out$y
+          a <- out$a
+
+          v <- switch(metric,
+            a = a,
+            hit = cummean(abs(y) <= a),
+            reward = cummean(trial_reward(y, a))
+          )
+
+          series[[length(series) + 1]] <- list(
+            alg = alg_nm,
+            run = r,
+            v = v
+          )
+        }
+      }
+
+      # Determine y-limits across all series for this panel
+      allv <- unlist(lapply(series, `[[`, "v"), use.names = FALSE)
+      ylim <- range(allv, finite = TRUE)
+
+      # Title + axis labels
+      main <- paste0("c=", c, " | ", metric)
+      ylab <- switch(metric,
+        a = "a(t) [rad]",
+        hit = "cum hit rate",
+        reward = "cum avg reward"
+      )
+
+      # Initialize empty plot
+      plot(seq_len(n_trials), series[[1]]$v,
+           type = "n", ylim = ylim,
+           xlab = "trial", ylab = ylab, main = main)
+
+      # Draw spaghetti: color by run, line type by algorithm
+      # (Run colors repeat across algorithms; alg distinguished by lty + optional legend)
+      ltys <- seq_along(alg_names)
+      names(ltys) <- alg_names
+
+      for (s in series) {
+        lines(seq_len(n_trials), s$v,
+              col = cols_runs[s$run],
+              lty = ltys[s$alg],
+              lwd = 1)
+      }
+
+      # Optional oracle reference line
+      if (isTRUE(add_oracle)) {
+        if (is.null(oracle_fun)) stop("add_oracle=TRUE but oracle_fun is NULL")
+        o <- oracle_fun(c)
+        y_oracle <- switch(metric,
+          a = o$alpha,
+          hit = o$phit,
+          reward = (pi - o$alpha)*o$phit
+        )
+        abline(h = y_oracle, lty = 2, lwd = 2)
+      }
+
+      # Legend only in top-left panel (keeps clutter down)
+      if (c == cs[1] && metric == plot_what[1]) {
+        legend("topright",
+               legend = c(paste0("runs (color)"), paste0(alg_names, " (lty)")),
+               col = c("black", cols_algs[alg_names]),
+               lty = c(NA, ltys[alg_names]),
+               lwd = c(NA, rep(2, length(alg_names))),
+               pch = c(15, rep(NA, length(alg_names))),
+               bty = "n", cex = 0.85)
+      }
+    }
+  }
+}
+```
+
+The analyses so far [show that subject arc behavior is near optimal](optimal-arc-response.html), if we assume perfect knowledge about the response error distribution. This doesn't mean that subjects have such knowledge. It might be possible to learn from the feedback on each trial and to adjust the arc width in a way that reaches optimal behavior.
 
 For such an algorithm to work it would have to:
 
@@ -230,3 +372,92 @@ legend("topleft", legend = c("sdm optimal", deltas), col = seq_len(length(deltas
 Despite the mismatching hit rate, it gets really close to the optimum reward, and only starts diverging more as c increases. This suggests that the gradient of the reward function might be gentle enough so that near the optimum point it can accomodate trade-offs between the arc and the hit rate with a huge decrement in the reward achieved.\
 \
 This will need more exploration but at least it seems like a plausible candidate (and/or with some modifications).
+
+Here are more detailed individual runs:
+
+```{r}
+#| fig-width: 9
+#| fig-height: 15
+spaghetti_single_runs(
+  alg_list = list(algorithm4 = algo4(delta = 0.01)),
+  c = c(0, 2, 4, 8, 16),
+  n_trials = 800,
+  n_runs = 10,
+  init_arc = pi/2,
+  plot_what = c("reward", "hit", "a"),
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 1
+)
+```
+
+## Algorithm 5: stochastic gradient ascent via smooth learner
+
+Smooth approximation to hits to allow for gradient climbing (with $\tau$ being a tuning parameter:
+
+$$
+s = \frac{1}{1 + \exp\Bigl(-\frac{a-|y|}{\tau}\Bigr)}
+$$
+
+$s = 0.5$ if your arc response was right at the boundary; $s$ approaches 1 for hits further away from the boundary, and 0 for misses further away from the boundary.
+
+Then you can get stochastic gradient ascent via the update rule:\
+$$
+a_{n+1} = a_n + \delta_i\Big[-s + (\pi-a)\frac{s(1-s)}{\tau}\Big]
+$$
+
+```{r}
+# Boundary-aware arc update (observe y, uses distance to boundary)
+algo5 <- function(tau = 0.05, delta0 = 0.12, delta_pow = 0.5) {
+  force(tau); force(delta0); force(delta_pow)
+
+  function(a, y, i, ...) {
+    # learning rate schedule
+    delta <- delta0 / (i + 1) ^ delta_pow
+
+    z <- (a - abs(y)) / tau
+    s <- 1 / (1 + exp(-z))        
+
+    grad <- -s + (pi - a) * s * (1 - s) / tau
+    a + delta * grad
+  }
+}
+
+algo5(tau = 0.05, delta0 = 0.1, delta_pow = 0.5) |>
+  run_arc_algorithm(n_trials = 1000, init_arc = pi/2) |>
+  plot_algorithm_run()
+```
+
+```{r}
+taus <- c(0.01, 0.02, 0.05)
+pars <- expand.grid(c = cs1, tau = taus)
+
+out <- purrr::pmap(pars, \(c, tau) run_arc_algorithm(algo5(tau = tau, delta0 = 0.1, delta_pow = 0.5), c = c))
+pars$phits <- sapply(out, \(x) x$phit)
+pars$reward <- sapply(out, \(x) mean((pi - x$a)*(abs(x$y) <= x$a)))
+
+
+plot(cs1, sdm_optim$phit, type = "l", lty = "dashed", ylab = "Hit rate")
+for (i in seq_along(taus)) {
+  lines(cs1, filter(pars, tau == taus[i])$phit, col = i+1)
+}
+legend("topleft", legend = c("sdm optimal", taus), col = seq_len(length(taus)+1), lty = 1)
+```
+
+More detailed individual runs:
+
+```{r}
+#| fig-width: 9
+#| fig-height: 15
+spaghetti_single_runs(
+  alg_list = list(algorithm5 = algo5(tau = 0.05)),
+  c = c(0, 2, 4, 8, 16),
+  n_trials = 800,
+  n_runs = 10,
+  init_arc = 1.0,
+  plot_what = c("reward", "hit", "a"),
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 123
+)
+```
