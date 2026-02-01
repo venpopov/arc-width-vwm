@@ -24,6 +24,76 @@
     ]
   },
   {
+    "objectID": "notebooks/sequential-dependencies.html",
+    "href": "notebooks/sequential-dependencies.html",
+    "title": "Sequential dependencies",
+    "section": "",
+    "text": "We saw that some reinforcement learning algorithms can find the optimal reward point. They do this by generally contracting the arc if the previous trial was a hit, and expanding it if it was a miss. Do we see this in the data? We know there are some sequential dependencies, although they are of a different kind.\nWe see that if the arc given on the previous trial is bigger, so is the arc on the current trial:\n\nexp1 &lt;- read.csv(\"output/exp1_data.csv\")\ndat &lt;- exp1 |&gt; \n  select(subject, experimentorder,blocknumber,trialnumber,setsize,resperr,arc,points) |&gt; \n  group_by(subject, experimentorder, blocknumber) |&gt; \n  mutate(prior_arc = shift_vector(arc, by = 1),\n         prior_resperr = shift_vector(resperr, by = 1))\n\ndat |&gt; \n  ggplot(aes(prior_arc, arc)) + \n  stat_summary(size = 0.1) +\n  geom_abline(slope = 1)\n\n\n\n\n\n\n\nThis might be because we are collapsing over participants - even if there is no sequential dependency within participants, the above plot might show one if participants have much different average arcs. We can standardize the arc responses within participants to account for this. For each arc we get its percentile rank such that 0 represents the smallest arc within participant, and 1 represents the highest. We see that there is still sequential dependencies, although a big part of it was accounted for due to between-subject variability.\n\ndat &lt;- dat |&gt; \n  group_by(subject, experimentorder) |&gt; \n  mutate(arcp = ecdf(arc)(arc),\n         arcp = round(arcp, 2)) |&gt; \n  group_by(subject, experimentorder, blocknumber) |&gt; \n  mutate(prior_arcp = shift_vector(arcp, by = 1))\n\ndat |&gt; \n  ggplot(aes(prior_arcp, arcp)) + \n  stat_summary(size = 0.1) +\n  geom_abline(slope = 1)\n\n\n\n\n\n\n\nThe lag 1 correlation, computed within participants, has the following distribution:\n\nlag1_cors &lt;- dat |&gt; \n  group_by(subject, experimentorder) |&gt; \n  summarize(r = cor(arc, prior_arc, use = \"pairwise.complete.obs\"))\nhist(lag1_cors$r)",
+    "crumbs": [
+      "Home",
+      "Notebooks",
+      "Sequential dependencies"
+    ]
+  },
+  {
+    "objectID": "notebooks/sequential-dependencies.html#raw-sequential-dependencies",
+    "href": "notebooks/sequential-dependencies.html#raw-sequential-dependencies",
+    "title": "Sequential dependencies",
+    "section": "",
+    "text": "We saw that some reinforcement learning algorithms can find the optimal reward point. They do this by generally contracting the arc if the previous trial was a hit, and expanding it if it was a miss. Do we see this in the data? We know there are some sequential dependencies, although they are of a different kind.\nWe see that if the arc given on the previous trial is bigger, so is the arc on the current trial:\n\nexp1 &lt;- read.csv(\"output/exp1_data.csv\")\ndat &lt;- exp1 |&gt; \n  select(subject, experimentorder,blocknumber,trialnumber,setsize,resperr,arc,points) |&gt; \n  group_by(subject, experimentorder, blocknumber) |&gt; \n  mutate(prior_arc = shift_vector(arc, by = 1),\n         prior_resperr = shift_vector(resperr, by = 1))\n\ndat |&gt; \n  ggplot(aes(prior_arc, arc)) + \n  stat_summary(size = 0.1) +\n  geom_abline(slope = 1)\n\n\n\n\n\n\n\nThis might be because we are collapsing over participants - even if there is no sequential dependency within participants, the above plot might show one if participants have much different average arcs. We can standardize the arc responses within participants to account for this. For each arc we get its percentile rank such that 0 represents the smallest arc within participant, and 1 represents the highest. We see that there is still sequential dependencies, although a big part of it was accounted for due to between-subject variability.\n\ndat &lt;- dat |&gt; \n  group_by(subject, experimentorder) |&gt; \n  mutate(arcp = ecdf(arc)(arc),\n         arcp = round(arcp, 2)) |&gt; \n  group_by(subject, experimentorder, blocknumber) |&gt; \n  mutate(prior_arcp = shift_vector(arcp, by = 1))\n\ndat |&gt; \n  ggplot(aes(prior_arcp, arcp)) + \n  stat_summary(size = 0.1) +\n  geom_abline(slope = 1)\n\n\n\n\n\n\n\nThe lag 1 correlation, computed within participants, has the following distribution:\n\nlag1_cors &lt;- dat |&gt; \n  group_by(subject, experimentorder) |&gt; \n  summarize(r = cor(arc, prior_arc, use = \"pairwise.complete.obs\"))\nhist(lag1_cors$r)",
+    "crumbs": [
+      "Home",
+      "Notebooks",
+      "Sequential dependencies"
+    ]
+  },
+  {
+    "objectID": "notebooks/sequential-dependencies.html#contraction-vs-expansion",
+    "href": "notebooks/sequential-dependencies.html#contraction-vs-expansion",
+    "title": "Sequential dependencies",
+    "section": "Contraction vs expansion",
+    "text": "Contraction vs expansion\nThe above analyses do not tell us whether participants adapt their for the next trial depending on whether it currently contained the target or not. To see this, we want to measure the proportion of expanding vs contracting arcs conditional on whether the previous trial was a hit or not. For a single metric, we can calculate the likelihood ratio of expanding vs contracting conditional on hit or not\n\\[\n\\frac{Pr(a_{n+1} &gt; a_n \\,|\\, a_n \\geq abs(y_n))}{Pr(a_{n+1} \\leq a_n \\,|\\, a_n \\geq abs(y_n))}\n\\]\n\nsmry1 &lt;- dat |&gt;\n  mutate(resp_type = if_else(prior_arc &gt;= 2*abs(prior_resperr), \"hit\", \"miss\"),\n         change_type = if_else(arc &gt; prior_arc, \"expanding\", \"contracting\")) |&gt; \n  ungroup() |&gt; \n  count(subject, experimentorder, resp_type, change_type) |&gt; \n  filter(!is.na(change_type)) |&gt; \n  complete(subject, experimentorder, resp_type, change_type, fill = list(n = 0)) |&gt; \n  group_by(subject, experimentorder) |&gt; \n  mutate(p = n / sum(n))\n\nhead(smry1)\n\n# A tibble: 6 × 6\n# Groups:   subject, experimentorder [2]\n  subject experimentorder resp_type change_type     n      p\n    &lt;int&gt;           &lt;int&gt; &lt;chr&gt;     &lt;chr&gt;       &lt;int&gt;  &lt;dbl&gt;\n1       1               1 hit       contracting   374 0.468 \n2       1               1 hit       expanding     282 0.352 \n3       1               1 miss      contracting    42 0.0525\n4       1               1 miss      expanding     102 0.128 \n5       1               2 hit       contracting   253 0.321 \n6       1               2 hit       expanding     231 0.293 \n\n\n\nsmry1 &lt;- smry1 |&gt; \n  select(-n) |&gt; \n  spread(change_type, p) |&gt; \n  mutate(likelihood_ratio_expand = expanding / contracting)\n\nsmry1 |&gt; \n  ggplot(aes(resp_type, likelihood_ratio_expand)) +\n  geom_point(position = position_jitter(0.1), alpha = 0.3) +\n  stat_summary(fun.data = \\(x) mean_se(x, 2), color = \"red\") +\n  geom_abline(intercept = 1, slope = 0, linetype = \"dashed\")\n\n\n\n\n\n\n\nEach point is a single subject, and each subject has as point for hits and a point after misses. First, we see that the likelihood ratio is much more variable after a miss. This is partly due to the low level of misses overall. We see a tendency for contraction after hits (likelihood ratio &lt; 1) and tendency for expansion after misses (likelihood ratio &gt; 1). This is supported by one sample t-tests:\n\nt.test(filter(smry1, resp_type == \"hit\")$likelihood_ratio_expand, mu = 1, alternative = \"less\")\n\n\n    One Sample t-test\n\ndata:  filter(smry1, resp_type == \"hit\")$likelihood_ratio_expand\nt = -6.6297, df = 79, p-value = 1.89e-09\nalternative hypothesis: true mean is less than 1\n95 percent confidence interval:\n      -Inf 0.9466686\nsample estimates:\nmean of x \n0.9287921 \n\n\n\nt.test(filter(smry1, resp_type == \"miss\")$likelihood_ratio_expand, mu = 1, alternative = \"greater\")\n\n\n    One Sample t-test\n\ndata:  filter(smry1, resp_type == \"miss\")$likelihood_ratio_expand\nt = 7.6396, df = 79, p-value = 2.187e-11\nalternative hypothesis: true mean is greater than 1\n95 percent confidence interval:\n 1.451953      Inf\nsample estimates:\nmean of x \n 1.577842 \n\n\nThe experiment uses an interleaved design where the set size varies on each trial. Since arc responses vary strongly with set-size, what we are interested in is how their response changes not only from the previous trial but from what it would have been given the set size that they see. We can check if we compare the change direction with the previous time they encountered the same set size, depending on that previous time was a hit or miss. There can be any number of intervening trials and we only care about the last time that the same setsize occurred. We get a similar dependency:\n\nsmry2 &lt;- exp1 |&gt; \n  filter(exp_type == \"SetS\") |&gt; \n  select(subject, experimentorder, setsize, arc, resperr, points) |&gt; \n  group_by(subject, experimentorder, setsize) |&gt; \n  mutate(\n    prior_setsize_arc = shift_vector(arc, by = 1),\n    prior_setsize_resperr = shift_vector(resperr, by = 1),\n    resp_type = if_else(prior_setsize_arc &gt;= 2*abs(prior_setsize_resperr), \"hit\", \"miss\"),\n    change_type = if_else(arc &gt; prior_setsize_arc, \"expanding\", \"contracting\")\n  ) |&gt; \n  ungroup() |&gt;\n  count(subject, experimentorder, resp_type, change_type) |&gt; \n  filter(!is.na(change_type)) |&gt; \n  complete(subject, resp_type, change_type, fill = list(n = 0)) |&gt; \n  group_by(subject, experimentorder) |&gt; \n  mutate(p = n / sum(n))\n\nsmry2 &lt;- smry2 |&gt; \n  select(-n) |&gt; \n  spread(change_type, p) |&gt; \n  mutate(likelihood_ratio_expand = expanding / contracting)\n\nsmry2 |&gt; \n  ggplot(aes(resp_type, likelihood_ratio_expand)) +\n  geom_point(position = position_jitter(0.1), alpha = 0.3)+\n  stat_summary(fun.data = \\(x) mean_se(x, mult = 2), color = \"red\") +\n  xlab(\"Response type during the last trial with the same set size\") +\n  geom_abline(intercept = 1, slope = 0, linetype = \"dashed\")\n\n\n\n\n\n\n\n\nt.test(filter(smry2, resp_type == \"hit\")$likelihood_ratio_expand, mu = 1, alternative = \"less\")\n\n\n    One Sample t-test\n\ndata:  filter(smry2, resp_type == \"hit\")$likelihood_ratio_expand\nt = -6.3314, df = 39, p-value = 8.976e-08\nalternative hypothesis: true mean is less than 1\n95 percent confidence interval:\n     -Inf 0.955214\nsample estimates:\nmean of x \n0.9389742 \n\nt.test(filter(smry2, resp_type == \"miss\")$likelihood_ratio_expand, mu = 1, alternative = \"greater\")\n\n\n    One Sample t-test\n\ndata:  filter(smry2, resp_type == \"miss\")$likelihood_ratio_expand\nt = 7.9252, df = 39, p-value = 5.957e-10\nalternative hypothesis: true mean is greater than 1\n95 percent confidence interval:\n 1.175497      Inf\nsample estimates:\nmean of x \n 1.222881 \n\n\nThe graph and stats look like before but they tell us something different - people remember what arc they gave the previous time they encountered a given setsize and whether they hit or missed. When they encounter the same setsize condition, they tend to expand their arc relative to the one they gave to the previous trial of the same set size, not just the immediately previous trial, specifically if they missed last time with that set size.\nSo from the two analyses combined we know that people adapt their arc (expand or contract) based on at least two sources of information - the immediately preceding trial, and the last trial that had the same setsize condition.",
+    "crumbs": [
+      "Home",
+      "Notebooks",
+      "Sequential dependencies"
+    ]
+  },
+  {
+    "objectID": "notebooks/sequential-dependencies.html#contraction-vs-expansion-in-honig-et-als-data",
+    "href": "notebooks/sequential-dependencies.html#contraction-vs-expansion-in-honig-et-als-data",
+    "title": "Sequential dependencies",
+    "section": "Contraction vs expansion in Honig et al’s data",
+    "text": "Contraction vs expansion in Honig et al’s data\nWe can do the same analysis for Honig et al’s (2020) data, where each of 12 participants did four sessions. There is no setsize manipulation (always 4), and each session is blocked with identical (with respect to any task parameters) trials.\n\nhonig_data &lt;- read_csv(\"output/honig_data.csv\")\nhonig_data\n\n# A tibble: 14,473 × 21\n   subject session trial   resp    rt   arc probedid probedcol probeddist\n     &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;\n 1       1       1     1 -2.43   9.68  1.24        3    -0.681      2.97 \n 2       1       1     2  3.03   4.18  1.52        3    -1.55       2.09 \n 3       1       1     3  0.846  4.31  1.71        2     1.10      -1.54 \n 4       1       1     4 -2.51   5.28  2.35        3     2.97       0.332\n 5       1       1     5  0.702  3.25  1.56        3     1.33      -1.31 \n 6       1       1     6  3.08   4.05  3.44        1     1.19      -1.45 \n 7       1       1     7 -2.19   2.90  1.32        2     1.17      -1.47 \n 8       1       1     8  2.35   5.06  2.84        2    -1.87       1.78 \n 9       1       1     9  2.93   3.56  3.04        1    -2.90       0.750\n10       1       1    10 -2.23   4.05  1.72        2    -2.67       0.977\n# ℹ 14,463 more rows\n# ℹ 12 more variables: resperr &lt;dbl&gt;, col1 &lt;dbl&gt;, col2 &lt;dbl&gt;, col3 &lt;dbl&gt;,\n#   col4 &lt;dbl&gt;, dist1 &lt;dbl&gt;, dist2 &lt;dbl&gt;, dist3 &lt;dbl&gt;, dist4 &lt;dbl&gt;,\n#   nt1col &lt;dbl&gt;, nt2col &lt;dbl&gt;, nt3col &lt;dbl&gt;\n\n\n\nsmry1_honig &lt;- honig_data |&gt; \n  group_by(subject, session) |&gt; \n  mutate(prior_arc = shift_vector(arc, by = 1),\n         prior_resperr = shift_vector(resperr, by = 1)) |&gt; \n  mutate(resp_type = if_else(prior_arc &gt;= 2*abs(prior_resperr), \"hit\", \"miss\"),\n         change_type = if_else(arc &gt; prior_arc, \"expanding\", \"contracting\")) |&gt; \n  ungroup() |&gt; \n  count(subject, session, resp_type, change_type) |&gt; \n  filter(!is.na(change_type)) |&gt; \n  complete(subject, session, resp_type, change_type, fill = list(n = 0)) |&gt; \n  group_by(subject, session) |&gt; \n  mutate(p = n / sum(n)) |&gt; \n  select(-n) |&gt; \n  spread(change_type, p) |&gt; \n  mutate(likelihood_ratio_expand = expanding / contracting)\n\nsmry1_honig |&gt; \n  ggplot(aes(resp_type, likelihood_ratio_expand)) +\n  geom_point(position = position_jitter(0.1), alpha = 0.3) +\n  stat_summary(fun.data = \\(x) mean_se(x, 2), color = \"red\") +\n  geom_abline(intercept = 1, slope = 0, linetype = \"dashed\")\n\n\n\n\n\n\n\nWe see essentially the same results.\n\nt.test(filter(smry1_honig, resp_type == \"hit\")$likelihood_ratio_expand, mu = 1, alternative = \"less\")\n\n\n    One Sample t-test\n\ndata:  filter(smry1_honig, resp_type == \"hit\")$likelihood_ratio_expand\nt = -4.8408, df = 47, p-value = 7.19e-06\nalternative hypothesis: true mean is less than 1\n95 percent confidence interval:\n      -Inf 0.9538594\nsample estimates:\nmean of x \n0.9293816 \n\nt.test(filter(smry1_honig, resp_type == \"miss\")$likelihood_ratio_expand, mu = 1, alternative = \"greater\")\n\n\n    One Sample t-test\n\ndata:  filter(smry1_honig, resp_type == \"miss\")$likelihood_ratio_expand\nt = 4.8846, df = 47, p-value = 6.206e-06\nalternative hypothesis: true mean is greater than 1\n95 percent confidence interval:\n 1.22337     Inf\nsample estimates:\nmean of x \n 1.340249",
+    "crumbs": [
+      "Home",
+      "Notebooks",
+      "Sequential dependencies"
+    ]
+  },
+  {
+    "objectID": "notebooks/honig_explore.html",
+    "href": "notebooks/honig_explore.html",
+    "title": "Explore Honig et al. data",
+    "section": "",
+    "text": "library(tidyverse)\n\nThis is what the data looks like:\n\nhonig_data &lt;- read.csv(\"output/honig_data.csv\")\n\nNumber of observations per subject and session:\n\nhonig_data |&gt; \n  group_by(subject, session) |&gt; \n  summarise(n = n(),\n  b = 1) |&gt; \n  pivot_wider(names_from = session, values_from = n)\n\n# A tibble: 12 × 6\n# Groups:   subject [12]\n   subject     b   `1`   `2`   `3`   `4`\n     &lt;int&gt; &lt;dbl&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;\n 1       1     1   369   295   287   289\n 2       2     1   326   283   278   315\n 3       3     1   423   343   323   372\n 4       4     1   321   296   292   284\n 5       5     1   381   261   285   280\n 6       6     1   351   317   288   297\n 7       7     1   375   275   267   266\n 8       8     1   299   256   254   280\n 9       9     1   296   278   281   276\n10      10     1   363   287   289   293\n11      11     1   214   151   197   342\n12      12     1   400   338   310   330\n\n\nnote that sessions 1 and 4 use uniformly distributed stimuli, while sessions 2 and 3 use normally distributed stimuli.\nResponse error by subject\n\nggplot(honig_data, aes(resperr)) +\n  geom_histogram() +\n  facet_wrap(~subject) +\n  theme_classic()\n\n`stat_bin()` using `bins = 30`. Pick better value `binwidth`.",
+    "crumbs": [
+      "Home",
+      "Notebooks",
+      "Explore Honig et al. data"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Arc width and continuous reproduction",
+    "section": "",
+    "text": "This website presents results of analyses and simulations for the arc width project. Will be updated as we go.\nThe links in the left navigation bar present results from notebooks stored in the notebooks folder of the github repository",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
     "objectID": "notebooks/optimal-arc-response.html",
     "href": "notebooks/optimal-arc-response.html",
     "title": "Optimal arc to maximize reward",
@@ -69,28 +139,6 @@
       "Home",
       "Notebooks",
       "Optimal arc to maximize reward"
-    ]
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Arc width and continuous reproduction",
-    "section": "",
-    "text": "This website presents results of analyses and simulations for the arc width project. Will be updated as we go.\nThe links in the left navigation bar present results from notebooks stored in the notebooks folder of the github repository",
-    "crumbs": [
-      "Home"
-    ]
-  },
-  {
-    "objectID": "notebooks/honig_explore.html",
-    "href": "notebooks/honig_explore.html",
-    "title": "Explore Honig et al. data",
-    "section": "",
-    "text": "library(tidyverse)\n\nThis is what the data looks like:\n\nhonig_data &lt;- read.csv(\"output/honig_data.csv\")\n\nNumber of observations per subject and session:\n\nhonig_data |&gt; \n  group_by(subject, session) |&gt; \n  summarise(n = n(),\n  b = 1) |&gt; \n  pivot_wider(names_from = session, values_from = n)\n\n# A tibble: 12 × 6\n# Groups:   subject [12]\n   subject     b   `1`   `2`   `3`   `4`\n     &lt;int&gt; &lt;dbl&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;\n 1       1     1   369   295   287   289\n 2       2     1   326   283   278   315\n 3       3     1   423   343   323   372\n 4       4     1   321   296   292   284\n 5       5     1   381   261   285   280\n 6       6     1   351   317   288   297\n 7       7     1   375   275   267   266\n 8       8     1   299   256   254   280\n 9       9     1   296   278   281   276\n10      10     1   363   287   289   293\n11      11     1   214   151   197   342\n12      12     1   400   338   310   330\n\n\nnote that sessions 1 and 4 use uniformly distributed stimuli, while sessions 2 and 3 use normally distributed stimuli.\nResponse error by subject\n\nggplot(honig_data, aes(resperr)) +\n  geom_histogram() +\n  facet_wrap(~subject) +\n  theme_classic()\n\n`stat_bin()` using `bins = 30`. Pick better value `binwidth`.",
-    "crumbs": [
-      "Home",
-      "Notebooks",
-      "Explore Honig et al. data"
     ]
   },
   {
