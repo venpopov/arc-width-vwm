@@ -5,3 +5,11 @@ title: "Arc width and continuous reproduction"
 This website presents results of analyses and simulations for the arc width project. Will be updated as we go.
 
 The links in the left navigation bar present results from notebooks stored in the notebooks folder of the [github repository](https://github.com/venpopov/arc-width-vwm)
+
+Initial empirical results from this project were presented at Psychonomics 2021 and the video is available here:
+
+```{=html}
+<iframe width="560" height="315" src="https://www.youtube.com/embed/t-rtxVRyI_4?si=k7c7Bgb8KCFcyXq-" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+```
+
+Most of the results reported in the video can be found in the notebooks in the left sidebar.
