@@ -7,8 +7,10 @@ title: "Sequential dependencies"
 We saw that some reinforcement learning algorithms can find the optimal reward point. They do this by generally contracting the arc if the previous trial was a hit, and expanding it if it was a miss. Do we see this in the data? We know there are some sequential dependencies, although they are of a different kind.
 
 ```{r}
-#| include: false
 #| label: setup
+#| code-overflow: wrap
+#| code-fold: true
+#| code-summary: "Load packages and define helper functions"
 
 library(tidyverse)
 
@@ -34,6 +36,78 @@ shift_vector <- function(x, by = 1) {
     c(x[-(1:abs(by))], nas)
   }
 }
+
+
+#' Calculate Likelihood Ratio for Expanding vs Contracting Arcs
+#'
+#' This function calculates the likelihood ratio of expanding arcs
+#'   versus contracting arcs based on response accuracy data.
+#'
+#' @param dat A data frame containing columns 'arc' (full width of the arc) and
+#'   'resperr' (response error).
+#' @param count_by <[`tidy-select`][dplyr::dplyr_tidy_select]> Optional
+#'   column(s) to group the counts by. Can be a single column, multiple columns
+#'   using `c()`, or tidyselect helpers like `starts_with()`. Default is `NULL`,
+#'   which uses existing grouping variables if the data is grouped.
+#' @return A data frame with the likelihood ratio of expanding to contracting
+#'   arcs. If `count_by` is specified or the data is grouped, results are 
+#'   returned for each combination of the grouping variables.
+#'
+#' @examples
+#' # Basic usage
+#' calculate_expand_likelihood_ratio(trial_data)
+#'
+#' # Group by a single column
+#' calculate_expand_likelihood_ratio(trial_data, count_by = subject_id)
+#'
+#' # Group by multiple columns
+#' calculate_expand_likelihood_ratio(trial_data, count_by = c(subject_id, condition))
+#'
+#' # Use existing grouping
+#' trial_data |> 
+#'   group_by(subject_id) |> 
+#'   calculate_expand_likelihood_ratio()
+#'
+calculate_expand_likelihood_ratio <- function(dat, count_by = NULL) {
+  # Capture the count_by expression
+  count_by_quo <- rlang::enquo(count_by)
+  
+  dat <- dat |> 
+    mutate(
+      prior_arc = shift_vector(arc, by = 1),
+      prior_resperr = shift_vector(resperr, by = 1),
+      resp_type = if_else(prior_arc >= 2*abs(prior_resperr), "hit", "miss"),
+      change_type = if_else(arc > prior_arc, "expanding", "contracting")
+    )
+  
+  # Get the column names for count_by, or use grouping variables if NULL
+
+  if (!rlang::quo_is_null(count_by_quo)) {
+    count_by_names <- names(tidyselect::eval_select(count_by_quo, dat))
+  } else {
+    count_by_names <- dplyr::group_vars(dat)
+  }
+  count_by_syms <- rlang::syms(count_by_names)
+  
+  dat |> 
+    ungroup() |> 
+    count(resp_type, change_type, !!!count_by_syms) |> 
+    filter(!is.na(change_type)) |> 
+    complete(resp_type, change_type, !!!count_by_syms, fill = list(n = 0)) |> 
+    mutate(n = n / sum(n)) |> 
+    spread(change_type, n) |> 
+    mutate(likelihood_ratio_expand = expanding / contracting)
+}
+
+plot_likelihood_ratio <- function(data) {
+  data |> 
+    ggplot(aes(resp_type, likelihood_ratio_expand)) +
+    geom_point(position = position_jitter(0.1), alpha = 0.3) +
+    stat_summary(fun.data = \(x) mean_se(x, 2), color = "red") +
+    geom_abline(intercept = 1, slope = 0, linetype = "dashed")
+}
+  
+
 ```
 
 We see that if the arc given on the previous trial is bigger, so is the arc on the current trial:
@@ -60,14 +134,12 @@ This might be because we are collapsing over participants - even if there is no 
 ```{r}
 #| warning: false
 #| message: false
-dat <- dat |> 
+dat |> 
   group_by(subject, experimentorder) |> 
   mutate(arcp = ecdf(arc)(arc),
          arcp = round(arcp, 2)) |> 
   group_by(subject, experimentorder, blocknumber) |> 
-  mutate(prior_arcp = shift_vector(arcp, by = 1))
-
-dat |> 
+  mutate(prior_arcp = shift_vector(arcp, by = 1)) |> 
   ggplot(aes(prior_arcp, arcp)) + 
   stat_summary(size = 0.1) +
   geom_abline(slope = 1)
@@ -76,13 +148,14 @@ dat |>
 The lag 1 correlation, computed within participants, has the following distribution:
 
 ```{r}
-lag1_cors <- dat |> 
+dat |> 
   group_by(subject, experimentorder) |> 
-  summarize(r = cor(arc, prior_arc, use = "pairwise.complete.obs"))
-hist(lag1_cors$r)
+  summarize(r = cor(arc, prior_arc, use = "pairwise.complete.obs")) |> 
+  pluck("r") |> 
+  hist(xlab = "Lag 1 correlation", main = "")
 ```
 
-## Contraction vs expansion 
+## Contraction vs expansion
 
 The above analyses do not tell us whether participants adapt their for the next trial depending on whether it currently contained the target or not. To see this, we want to measure the proportion of expanding vs contracting arcs conditional on whether the previous trial was a hit or not. For a single metric, we can calculate the likelihood ratio of expanding vs contracting conditional on hit or not
 
@@ -91,73 +164,33 @@ $$
 $$
 
 ```{r}
-smry1 <- dat |>
-  mutate(resp_type = if_else(prior_arc >= 2*abs(prior_resperr), "hit", "miss"),
-         change_type = if_else(arc > prior_arc, "expanding", "contracting")) |> 
-  ungroup() |> 
-  count(subject, experimentorder, resp_type, change_type) |> 
-  filter(!is.na(change_type)) |> 
-  complete(subject, experimentorder, resp_type, change_type, fill = list(n = 0)) |> 
+smry1 <- exp1 |> 
   group_by(subject, experimentorder) |> 
-  mutate(p = n / sum(n))
-
-head(smry1)
-```
-
-```{r}
-smry1 <- smry1 |> 
-  select(-n) |> 
-  spread(change_type, p) |> 
-  mutate(likelihood_ratio_expand = expanding / contracting)
+  calculate_expand_likelihood_ratio()
 
 smry1 |> 
-  ggplot(aes(resp_type, likelihood_ratio_expand)) +
-  geom_point(position = position_jitter(0.1), alpha = 0.3) +
-  stat_summary(fun.data = \(x) mean_se(x, 2), color = "red") +
-  geom_abline(intercept = 1, slope = 0, linetype = "dashed")
+  plot_likelihood_ratio()
 ```
 
 Each point is a single subject, and each subject has as point for hits and a point after misses. First, we see that the likelihood ratio is much more variable after a miss. This is partly due to the low level of misses overall. We see a tendency for contraction after hits (likelihood ratio \< 1) and tendency for expansion after misses (likelihood ratio \> 1). This is supported by one sample t-tests:
 
 ```{r}
 t.test(filter(smry1, resp_type == "hit")$likelihood_ratio_expand, mu = 1, alternative = "less")
-```
-
-```{r}
 t.test(filter(smry1, resp_type == "miss")$likelihood_ratio_expand, mu = 1, alternative = "greater")
 ```
 
 The experiment uses an interleaved design where the set size varies on each trial. Since arc responses vary strongly with set-size, what we are interested in is how their response changes not only from the previous trial but from what it would have been given the set size that they see. We can check if we compare the change direction with the previous time they encountered the same set size, depending on that previous time was a hit or miss. There can be any number of intervening trials and we only care about the last time that the same setsize occurred. We get a similar dependency:
 
 ```{r}
+#| warning: false
 smry2 <- exp1 |> 
   filter(exp_type == "SetS") |> 
-  select(subject, experimentorder, setsize, arc, resperr, points) |> 
   group_by(subject, experimentorder, setsize) |> 
-  mutate(
-    prior_setsize_arc = shift_vector(arc, by = 1),
-    prior_setsize_resperr = shift_vector(resperr, by = 1),
-    resp_type = if_else(prior_setsize_arc >= 2*abs(prior_setsize_resperr), "hit", "miss"),
-    change_type = if_else(arc > prior_setsize_arc, "expanding", "contracting")
-  ) |> 
-  ungroup() |>
-  count(subject, experimentorder, resp_type, change_type) |> 
-  filter(!is.na(change_type)) |> 
-  complete(subject, resp_type, change_type, fill = list(n = 0)) |> 
-  group_by(subject, experimentorder) |> 
-  mutate(p = n / sum(n))
-
-smry2 <- smry2 |> 
-  select(-n) |> 
-  spread(change_type, p) |> 
-  mutate(likelihood_ratio_expand = expanding / contracting)
+  calculate_expand_likelihood_ratio(count_by = c("subject", "experimentorder"))
 
 smry2 |> 
-  ggplot(aes(resp_type, likelihood_ratio_expand)) +
-  geom_point(position = position_jitter(0.1), alpha = 0.3)+
-  stat_summary(fun.data = \(x) mean_se(x, mult = 2), color = "red") +
-  xlab("Response type during the last trial with the same set size") +
-  geom_abline(intercept = 1, slope = 0, linetype = "dashed")
+  plot_likelihood_ratio() +
+  xlab("Response type during the last trial with the same set size") 
 ```
 
 ```{r}
@@ -182,25 +215,10 @@ honig_data
 ```{r}
 smry1_honig <- honig_data |> 
   group_by(subject, session) |> 
-  mutate(prior_arc = shift_vector(arc, by = 1),
-         prior_resperr = shift_vector(resperr, by = 1)) |> 
-  mutate(resp_type = if_else(prior_arc >= 2*abs(prior_resperr), "hit", "miss"),
-         change_type = if_else(arc > prior_arc, "expanding", "contracting")) |> 
-  ungroup() |> 
-  count(subject, session, resp_type, change_type) |> 
-  filter(!is.na(change_type)) |> 
-  complete(subject, session, resp_type, change_type, fill = list(n = 0)) |> 
-  group_by(subject, session) |> 
-  mutate(p = n / sum(n)) |> 
-  select(-n) |> 
-  spread(change_type, p) |> 
-  mutate(likelihood_ratio_expand = expanding / contracting)
+  calculate_expand_likelihood_ratio()
 
 smry1_honig |> 
-  ggplot(aes(resp_type, likelihood_ratio_expand)) +
-  geom_point(position = position_jitter(0.1), alpha = 0.3) +
-  stat_summary(fun.data = \(x) mean_se(x, 2), color = "red") +
-  geom_abline(intercept = 1, slope = 0, linetype = "dashed")
+  plot_likelihood_ratio()
 ```
 
 We see essentially the same results.
@@ -210,3 +228,151 @@ t.test(filter(smry1_honig, resp_type == "hit")$likelihood_ratio_expand, mu = 1, 
 t.test(filter(smry1_honig, resp_type == "miss")$likelihood_ratio_expand, mu = 1, alternative = "greater")
 ```
 
+## Is it regression to the mean?
+
+Klaus wrote:
+
+> I wonder how much this effect is due to *regression to the mean*: Once people settle on an approximately optimal arc width for each experimental condition, random deviations from it towards the narrower end are likely to produce a miss, and deviations to the wider end are likely to produce a hit. The next time the same condition comes around, random deviations towards the narrower end on the last trial of that condition are likely to now be followed by expansions, and vice versa. One way to gauge how much that contributes to the effect could be to shuffle the order of trials.
+
+This is fair, so let's test it. The potential confound applies not only to the long-range set-size dependency, but also to the original immediate trial dependency.
+
+### Check simulated data
+
+First, let's support that intuition by simulating some data which has to no adaptive arc change but only samples from a distribution. Then we can apply the analysis above to see if we see expansion after misses and contraction after hits as a confound of regression to the mean.
+
+I will simulate data for response errors from the sdm:
+
+$$
+y \sim \text{sdm}(c = 4, \kappa = 3.5)
+$$
+
+and arcs from a gamma distribution:
+
+$$
+a \sim \text{Gamma}(\alpha = 3, \lambda = 2)
+$$
+
+```{r}
+#| message: false
+library(bmm)
+simulate_data <- function(n) {
+  data.frame(
+    resperr = rsdm(n, c = 4, kappa = 3.5),
+    arc = rgamma(n, shape = 3, rate = 2)
+  ) |> 
+    calculate_expand_likelihood_ratio()
+}
+
+replicates <- 1000
+trials <- 1000
+out <- replicate(replicates, simulate_data(trials), simplify = FALSE)
+out <- do.call(rbind, out)
+```
+
+```{r}
+out |> 
+  plot_likelihood_ratio()
+```
+
+So Klaus is correct in principle - this simulated data had response error and arc width sampled independently and shows an almost identical effect as with the real data. Thus this finding alone does not indicate real adaptive expansion or contraction in response to hits / misses.
+
+Now that we know this can happen as a byproduct of regression to the mean, let's see if we can control for it in the real data. To do that, we will do a bootstrap test. We will shuffle the arc widths within participants many times, and find the expected distribution of likelihood ratios under the no-adaptation regression to the mean scenario. Then we can repeat our t-tests against this expected distribution instead of against 1.
+
+### Bootstrap test via shuffling trials
+
+First, here's how the results look after a single shuffling. Almost indistinguishable from the real deal.
+
+```{r}
+exp1 |> 
+  group_by(subject, experimentorder) |> 
+  mutate(arc = sample(arc)) |> 
+  calculate_expand_likelihood_ratio() |> 
+  plot_likelihood_ratio()
+```
+
+Here is the bootstrap distribution for the mean likelihood ratios (corresponding to the red points in the plot above. The vertical lines represent the observed mean without the shuffling.
+
+```{r}
+bootstrap_lr_shuffled_arcs <- function(dat) {
+  dat |> 
+    mutate(arc = sample(arc)) |> 
+    calculate_expand_likelihood_ratio() |> 
+    group_by(resp_type) |> 
+    summarise(mean_ratio = mean(likelihood_ratio_expand))
+}
+out <- replicate(1000, bootstrap_lr_shuffled_arcs(group_by(exp1, subject, experimentorder)), simplify = FALSE)
+out <- do.call(rbind, out)
+```
+
+```{r}
+observed_ratios <- smry1 |> 
+  group_by(resp_type) |> 
+  summarise(mean_ratio = mean(likelihood_ratio_expand))
+
+out |> 
+  ggplot(aes(mean_ratio)) +
+  geom_histogram(bins = 60) +
+  facet_wrap(~resp_type, scales = "free") +
+  geom_vline(data = observed_ratios, aes(xintercept = mean_ratio), linetype = "dashed", color = "red") +
+  ggtitle("Bootstrap distribution of mean likelihood ratios (after shuffling arcs)")
+```
+
+That is strange. In the real data participants contract less after hit and expand less after miss, than what would be predicted from regression to the mean. But the effect is in the opposite direction of what we would expect... If there was real contraction after hit and expansion after miss over and above the regression to the mean, they should have done more of it, not less, than predicted by regression only.
+
+That doesn't make any sense. Maybe some sort of Simpson's paradox? Let's get a separate bootstrap estimate for each subject under shuffling. Long plot coming:
+
+```{r}
+#| fig-width: 6
+#| fig-height: 50
+bootstrap_lr_shuffled_arcs_by_subj <- function(dat) {
+  dat |> 
+    mutate(arc = sample(arc)) |> 
+    calculate_expand_likelihood_ratio() |> 
+    group_by(resp_type, subject, experimentorder) |> 
+    summarise(mean_ratio = mean(likelihood_ratio_expand))
+}
+out <- replicate(1000, bootstrap_lr_shuffled_arcs_by_subj(group_by(exp1, subject, experimentorder)), simplify = FALSE)
+out <- do.call(rbind, out)
+
+out |> 
+  mutate(subj_exp = glue::glue("S{subject}_E{experimentorder}")) |> 
+  ggplot(aes(mean_ratio)) +
+  geom_histogram(bins = 60) +
+  facet_grid(subj_exp~resp_type, scales = "free") +
+  geom_vline(data = mutate(smry1, subj_exp = glue::glue("S{subject}_E{experimentorder}")), aes(xintercept = likelihood_ratio_expand), linetype = "dashed", color = "red") +
+  ggtitle("Bootstrap distribution of mean likelihood ratios (after shuffling arcs)")
+```
+
+It's not a Simpson's paradox. While there are many subject whose likelihood ratios are as expected under random suffling, there is a subset that consistently deviates in the wrong direction (as explained above). I compared this to the overall performance per subject [here](exp1-by-subject.qmd), and there doesn't seem to be any obvious relation.
+
+Let's summarize this by calculating for each subject the percentile of their observed likelihood ratio for expansion relative to the shuffled bootstrap estimates.
+
+```{r}
+boot_percentiles <- out |> 
+  left_join(smry1, by = c("resp_type", "subject", "experimentorder")) |> 
+  group_by(subject, resp_type, experimentorder) |> 
+  summarize(percentile = ecdf(mean_ratio)(unique(likelihood_ratio_expand)))
+
+boot_percentiles |> 
+  ggplot(aes(resp_type, percentile)) +
+  geom_violin(bw = 0.03) +
+  geom_point(position = position_jitter(0.1), alpha = 0.4)
+```
+
+We can get a joint score by multiplying the percentile ranks of hit \* (1-miss). Values close to 1 means that participants have the weird data where they deviate in the wrong direction from the shuffled expectations. We seem to indeed have two types of participants - about a quarter deviate strongly (percentile rank \>= 0.99)
+
+```{r}
+boot_percentiles |> 
+  spread(resp_type, percentile) |> 
+  mutate(joint = hit * (1-miss)) |> 
+  ggplot(aes(joint)) +
+  geom_histogram(bins = 100)
+```
+
+```{r}
+boot_percentiles |> 
+  spread(resp_type, percentile) |> 
+  ungroup() |> 
+  mutate(joint = hit * (1-miss)) |> 
+  summarise(weird_prop = mean(joint >= 0.99))
+```

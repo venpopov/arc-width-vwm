@@ -5,6 +5,7 @@ project:
 
 execute:
   freeze: auto
+  cache: true
 
 website:
   title: "Arc width and continuous reproduction"
@@ -29,7 +30,7 @@ format:
     toc: true
     code-link: true
     code-copy: true
-    code-overflow: wrap
+    code-overflow: scroll
 
 editor: visual
 

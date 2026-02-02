@@ -1,0 +1,49 @@
+---
+title: "By subject performance"
+---
+
+```{r}
+#| message: false
+library(tidyverse)
+exp1 <- read.csv("output/exp1_data.csv")
+```
+
+## Point response error
+
+```{r}
+#| fig-width: 10
+#| fig-height: 10
+exp1 |> 
+  mutate(subj_exp = glue::glue("subj_{subject}_exp_{experimentorder}")) |> 
+  ggplot(aes(resperr)) + 
+  geom_histogram(bins = 60) +
+  facet_wrap(~ subj_exp) +
+  theme_classic()
+```
+
+## Arc widths
+
+```{r}
+#| fig-width: 10
+#| fig-height: 10
+exp1 |> 
+  mutate(subj_exp = glue::glue("subj_{subject}_exp_{experimentorder}")) |> 
+  ggplot(aes(arc)) + 
+  geom_histogram(bins = 60) +
+  facet_wrap(~ subj_exp) +
+  theme_classic()
+```
+
+## Side by side
+
+```{r}
+#| fig-width: 4
+#| fig-height: 80
+exp1 |> 
+  mutate(subj_exp = glue::glue("S{subject}_E{experimentorder}")) |> 
+  gather(measure, value, arc, resperr) |> 
+  ggplot(aes(value)) + 
+  geom_histogram(bins = 60) +
+  facet_grid(subj_exp ~ measure, scales = "free_x") +
+  theme_bw()
+```
