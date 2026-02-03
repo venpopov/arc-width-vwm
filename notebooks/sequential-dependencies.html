@@ -149,7 +149,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/exp1_eda.html">Notebooks</a></li><li class="breadcrumb-item"><a href="../notebooks/sequential-dependencies.html">Sequential dependencies</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/exp1-by-subject.html">Notebooks</a></li><li class="breadcrumb-item"><a href="../notebooks/sequential-dependencies.html">Sequential dependencies</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -182,19 +182,19 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/exp1_eda.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Exp. 1: Exploratory Data Analysis</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="../notebooks/exp1-by-subject.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">By subject performance</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/honig_explore.html" class="sidebar-item-text sidebar-link">
+  <a href="../notebooks/exp1-eda.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exp. 1: Exploratory Data Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/honig-explore.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Explore Honig et al.&nbsp;data</span></a>
   </div>
 </li>
@@ -206,7 +206,7 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/reinforcement_learning_arc.html" class="sidebar-item-text sidebar-link">
+  <a href="../notebooks/reinforcement-learning-arc.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Explore reinforcement learning algorithms</span></a>
   </div>
 </li>
@@ -236,10 +236,11 @@ window.Quarto = {
   <li><a href="#bootstrap-test-via-shuffling-trials" id="toc-bootstrap-test-via-shuffling-trials" class="nav-link" data-scroll-target="#bootstrap-test-via-shuffling-trials">Bootstrap test via shuffling trials</a></li>
   </ul>
 </li>
+  <li><a href="#simulated-adaptive-algorithm-and-compare-to-bootstrap" id="toc-simulated-adaptive-algorithm-and-compare-to-bootstrap" class="nav-link" data-scroll-target="#simulated-adaptive-algorithm-and-compare-to-bootstrap">Simulated adaptive algorithm and compare to bootstrap</a></li>
   </ul></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/exp1_eda.html">Notebooks</a></li><li class="breadcrumb-item"><a href="../notebooks/sequential-dependencies.html">Sequential dependencies</a></li></ol></nav><div class="quarto-title">
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/exp1-by-subject.html">Notebooks</a></li><li class="breadcrumb-item"><a href="../notebooks/sequential-dependencies.html">Sequential dependencies</a></li></ol></nav><div class="quarto-title">
 <h1 class="title">Sequential dependencies</h1>
 </div>
 
@@ -258,6 +259,7 @@ window.Quarto = {
 <p>We saw that some reinforcement learning algorithms can find the optimal reward point. They do this by generally contracting the arc if the previous trial was a hit, and expanding it if it was a miss. Do we see this in the data? We know there are some sequential dependencies, although they are of a different kind.</p>
 <div class="cell">
 <details class="code-fold"><summary>Load packages and define helper functions</summary><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/venpopov/bmm">bmm</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#' Shift a vector by a specified number of positions</span></span>
 <span><span class="co">#'</span></span>
@@ -339,9 +341,11 @@ window.Quarto = {
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">resp_type</span>, <span class="va">change_type</span>, <span class="op">!</span><span class="op">!</span><span class="op">!</span><span class="va">count_by_syms</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">change_type</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">resp_type</span>, <span class="va">change_type</span>, <span class="op">!</span><span class="op">!</span><span class="op">!</span><span class="va">count_by_syms</span>, fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">resp_type</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/spread.html">spread</a></span><span class="op">(</span><span class="va">change_type</span>, <span class="va">n</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>likelihood_ratio_expand <span class="op">=</span> <span class="va">expanding</span> <span class="op">/</span> <span class="va">contracting</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>likelihood_ratio_expand <span class="op">=</span> <span class="va">expanding</span> <span class="op">/</span> <span class="va">contracting</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="op">!</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_data.html">group_vars</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">plot_likelihood_ratio</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">{</span></span>
@@ -735,9 +739,91 @@ a \sim \text{Gamma}(\alpha = 3, \lambda = 2)
 1      0.275</code></pre>
 </div>
 </div>
+</section></section><section id="simulated-adaptive-algorithm-and-compare-to-bootstrap" class="level2"><h2 class="anchored" data-anchor-id="simulated-adaptive-algorithm-and-compare-to-bootstrap">Simulated adaptive algorithm and compare to bootstrap</h2>
+<p>Maybe my intuition is incorrect, and this is what we expect with the adaptation algorithm? Let’s see the expected data for a simulated agent using our algorithm 4 / 5. We will compare their expansion likelihood ratio when using the adaptation vs shuffled bootstrap.</p>
+<div class="cell">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">run_arc_algorithm</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">arc_update_fun</span>, <span class="va">c</span> <span class="op">=</span> <span class="fl">4</span>, <span class="va">kappa</span> <span class="op">=</span> <span class="fl">3</span>, <span class="va">init_arc</span> <span class="op">=</span> <span class="va">pi</span><span class="op">/</span><span class="fl">2</span>, <span class="va">n_trials</span> <span class="op">=</span> <span class="fl">1e5</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://venpopov.github.io/bmm/reference/SDMdist.html">rsdm</a></span><span class="op">(</span><span class="va">n_trials</span>, <span class="fl">0</span>, c <span class="op">=</span> <span class="va">c</span>, kappa <span class="op">=</span> <span class="va">kappa</span><span class="op">)</span></span>
+<span></span>
+<span>  <span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">n_trials</span><span class="op">)</span></span>
+<span>  <span class="va">a</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">init_arc</span></span>
+<span>  </span>
+<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">n_trials</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">hit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sign.html">sign</a></span><span class="op">(</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">y</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="va">a</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span> <span class="op">-</span> <span class="fl">0.5</span><span class="op">)</span>  <span class="co"># 1 if hit, -1 if miss</span></span>
+<span>    <span class="va">a</span><span class="op">[</span><span class="va">i</span><span class="op">+</span><span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">arc_update_fun</span><span class="op">(</span>a <span class="op">=</span> <span class="va">a</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, hit <span class="op">=</span> <span class="va">hit</span>, y <span class="op">=</span> <span class="va">y</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>, i <span class="op">=</span> <span class="va">i</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>phit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="va">a</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">y</span>, a <span class="op">=</span> <span class="va">a</span><span class="op">)</span>  </span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">algo4</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">delta</span><span class="op">)</span> \<span class="op">(</span><span class="va">a</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span> <span class="va">a</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">delta</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="op">&gt;</span> <span class="va">a</span><span class="op">)</span> <span class="op">*</span> <span class="va">pi</span> <span class="op">*</span> <span class="va">delta</span></span>
+<span></span>
+<span><span class="va">algo5</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">tau</span> <span class="op">=</span> <span class="fl">0.025</span>, <span class="va">delta0</span> <span class="op">=</span> <span class="fl">0.1</span>, <span class="va">delta_pow</span> <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/force.html">force</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/base/force.html">force</a></span><span class="op">(</span><span class="va">delta0</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/base/force.html">force</a></span><span class="op">(</span><span class="va">delta_pow</span><span class="op">)</span></span>
+<span></span>
+<span>  <span class="kw">function</span><span class="op">(</span><span class="va">a</span>, <span class="va">y</span>, <span class="va">i</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="co"># learning rate schedule</span></span>
+<span>    <span class="va">delta</span> <span class="op">&lt;-</span> <span class="va">delta0</span> <span class="op">/</span> <span class="op">(</span><span class="va">i</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span> <span class="op">^</span> <span class="va">delta_pow</span></span>
+<span></span>
+<span>    <span class="va">z</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">a</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="va">tau</span></span>
+<span>    <span class="va">s</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">z</span><span class="op">)</span><span class="op">)</span>        </span>
+<span></span>
+<span>    <span class="va">grad</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="va">s</span> <span class="op">+</span> <span class="op">(</span><span class="va">pi</span> <span class="op">-</span> <span class="va">a</span><span class="op">)</span> <span class="op">*</span> <span class="va">s</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">s</span><span class="op">)</span> <span class="op">/</span> <span class="va">tau</span></span>
+<span>    <span class="va">a</span> <span class="op">+</span> <span class="va">delta</span> <span class="op">*</span> <span class="va">grad</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span></span>
+<span><span class="va">sim_algo4</span> <span class="op">&lt;-</span> <span class="fu">algo4</span><span class="op">(</span>delta <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span>n_trials <span class="op">=</span> <span class="fl">1000</span>, init_arc <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">sim_algo4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>resperr <span class="op">=</span> <span class="va">sim_algo4</span><span class="op">$</span><span class="va">y</span>, arc <span class="op">=</span> <span class="va">sim_algo4</span><span class="op">$</span><span class="va">a</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">sim_algo5</span> <span class="op">&lt;-</span> <span class="fu">algo5</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span>n_trials <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="va">sim_algo5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>resperr <span class="op">=</span> <span class="va">sim_algo5</span><span class="op">$</span><span class="va">y</span>, arc <span class="op">=</span> <span class="va">sim_algo5</span><span class="op">$</span><span class="va">a</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Under algorithm 4 by design the agent never expands after a hit and never contracts after a miss.</p>
+<div class="cell">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">sim_algo4</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">calculate_expand_likelihood_ratio</span><span class="op">(</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 4
+  resp_type contracting expanding likelihood_ratio_expand
+  &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;                   &lt;dbl&gt;
+1 hit                 1         0                       0
+2 miss                0         1                     Inf</code></pre>
+</div>
+</div>
+<p>Algorithm 5 occasionally expands after a hit and contracts after a miss but very rarely and much less than in the human data.</p>
+<div class="cell">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">sim_algo5</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">calculate_expand_likelihood_ratio</span><span class="op">(</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 4
+  resp_type contracting expanding likelihood_ratio_expand
+  &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;                   &lt;dbl&gt;
+1 hit             0.894     0.106                   0.118
+2 miss            0.188     0.812                   4.33 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">replicate</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="fu">bootstrap_lr_shuffled_arcs</span><span class="op">(</span><span class="va">sim_algo5</span><span class="op">)</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">out</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here is the result. The figure shows the expected likelihood ratio for expanding the arc for the simulated data from algorithm 5 when shuffling the arcs.</p>
+<div class="cell">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">out</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>likelihood_ratio_expand <span class="op">=</span> <span class="va">mean_ratio</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">plot_likelihood_ratio</span><span class="op">(</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="sequential-dependencies_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The regression to the mean effect is real here too, and of the same magnitude, but it accounts for a very minor proportion of contractions <em>after hits</em>. After misses the algorithm LLR for expansion is 1.10185, which is smaller than 68% of the shuffled LLRs.</p>
+<p>Normally this would indicate that the expansion isn’t due to adaptation but due to regression to the mean. However, in this case we know the ground truth - the algorithm does expand after misses! See section <a href="reinforcement-learning-arc.html#visualizing-algorithm-5">Visualizing algorithm 5 of the reinforcement learning notebook</a>. It only does that after <em>narrow</em> misses, so that’s why the likelihood ratio for expansion is small. In this case, even though the effect size is consistent with what is expected under regression to the mean, we know there is no regression to the mean because the arc size is determined deterministically.</p>
+<p>This finding means that shuffling the arcs is not necessarily a good control, and depends on the assumptions we put in (that the arc is a random sample from a distribution).</p>
 
 
-</section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
