@@ -1,0 +1,214 @@
+---
+title: "Fitting the RL algorithms"
+format: html
+---
+
+```{r}
+library(brms)
+library(bmm)
+library(tidyverse)
+
+source("R/arc-models.R")
+source("R/utils.R")
+
+### Prepare models and stan files
+
+sdm_algo4 <- custom_family(
+  "sdm_algo4",
+  dpars = c("mu", "c", "kappa", "delta", "asigma", "theta"),
+  links = c("tan_half", "identity", "log", "logit", "log", "identity"),
+  type = "real",
+  loop = FALSE,
+  vars = "vreal1"
+)
+
+sc <- system.file("stan_chunks", package = "bmm")
+
+stanvars <- stanvar(
+    scode = read_file(path(sc, "sdm_simple_funs.stan")), 
+    block = "functions"
+  ) +
+  stanvar(
+    scode = read_file("stan/sdm_algo4_likelihood.stan"), 
+    block = "functions"
+  ) +
+  stanvar(
+    scode = read_file(path(sc, "sdm_simple_tdata.stan")), 
+    block = "tdata"
+  ) +
+  stanvar(
+    scode = read_file(path(sc, "sdm_simple_likelihood.stan")), 
+    block = "likelihood", position = "end"
+  )
+
+### Simulate and fit
+
+sim_data <- algo4(delta = 0.05, sd = 0.2) |> 
+  run_arc_algorithm(n_trials = 1000, c = 7) |> 
+  as_tibble()
+
+prior <- set_prior("constant(0)", dpar = "mu", class = "Intercept") +
+  set_prior("student_t(5, 1.75, 0.75)", dpar = "kappa", class = "Intercept") +
+  set_prior("student_t(5, 2, 0.75)", dpar = "c", class = "Intercept") +
+  set_prior("normal(-3.5, 2)", dpar = "delta", class = "Intercept") +
+  set_prior("normal(-3.5, 2)", dpar = "asigma", class = "Intercept")
+
+fit <- brm(
+  bf(y | vreal(a) ~ 1, c ~ 1, kappa ~ 1, delta ~ 1, asigma ~ 1, theta ~ 1),
+  prior = prior,
+  data = sim_data, family = sdm_algo4, stanvars = stanvars,
+  backend = "cmdstanr", cores = 4
+)
+```
+
+```{r}
+plot(sim_data$a)
+```
+
+```{r}
+sdm4_pars_from_fit <- function(fit) {
+  est <- fixef(fit)[-1,1]
+  c(exp(est[1:2]), inv_logit_scaled(est[3]), exp(est[4]), inv_logit_scaled(est[5]))
+}
+
+sdm4_pars_from_fit(fit)
+```
+
+
+Apply to real data
+
+
+```{r}
+
+exp1 <- read_csv("output/exp1_data.csv", show_col_types = FALSE)
+dat <- exp1 |> 
+  filter(exp_type == "Time", experimentorder == 1) |> 
+  select(subject, experimentorder, blocknumber, trialnumber, setsize, resperr, arc, points) |> 
+  mutate(half_arc = arc / 2)
+
+s1 <- dat |> filter(subject == 6, arc > 0)
+
+fit_s1 <- brm(
+  bf(resperr | vreal(half_arc) ~ 1, c ~ 1, kappa ~ 1, delta ~ 1, asigma ~ 1, theta ~ 1),
+  prior = prior,
+  data = s1, family = sdm_algo4, stanvars = stanvars,
+  backend = "cmdstanr", cores = 4, init = 0
+)
+
+pars <- sdm4_pars_from_fit(fit_s1)
+```
+
+
+```{r}
+sim <- algo4(delta = pars["delta_Intercept"], sd = pars["asigma_Intercept"]) |> 
+  run_arc_algorithm(n_trials = nrow(s1), c = pars["c_Intercept"], kappa = pars["kappa_Intercept"], init_arc = s1$half_arc[1])
+
+plot(s1$half_arc)
+lines(sim$a, col = "red")
+plot(density(s1$half_arc))
+lines(density(sim$a), col = "red")
+abline(v = median(s1$half_arc))
+abline(v = median(sim$a), col = "red")
+plot(density(s1$resperr))
+lines(density(sim$y), col = "red")
+```
+
+
+```{r}
+sdm_algo5 <- custom_family(
+  "sdm_algo5",
+  dpars = c("mu", "c", "kappa", "delta", "asigma", "tau"),
+  links = c("tan_half", "identity", "log", "logit", "log", "log"),
+  type = "real",
+  loop = FALSE,
+  vars = "vreal1"
+)
+
+
+sc <- system.file("stan_chunks", package = "bmm")
+
+stanvars <- stanvar(
+    scode = read_file(path(sc, "sdm_simple_funs.stan")), 
+    block = "functions"
+  ) +
+  stanvar(
+    scode = read_file("stan/sdm_algo5_likelihood.stan"), 
+    block = "functions"
+  ) +
+  stanvar(
+    scode = read_file(path(sc, "sdm_simple_tdata.stan")), 
+    block = "tdata"
+  ) +
+  stanvar(
+    scode = read_file(path(sc, "sdm_simple_likelihood.stan")), 
+    block = "likelihood", position = "end"
+  )
+
+### Simulate and fit
+
+sim_data <- algo5(tau = 0.05, delta0 = 0.1, sd = 0.2) |> 
+  run_arc_algorithm(n_trials = 1000, c = 7) |> 
+  as_tibble()
+
+prior <- set_prior("constant(0)", dpar = "mu", class = "Intercept") +
+  set_prior("student_t(5, 1.75, 0.75)", dpar = "kappa", class = "Intercept") +
+  set_prior("student_t(5, 2, 0.75)", dpar = "c", class = "Intercept") +
+  set_prior("normal(-2, 2)", dpar = "delta", class = "Intercept") +
+  set_prior("normal(-3.5, 2)", dpar = "asigma", class = "Intercept") +
+  set_prior("normal(-4, 1)", dpar = "tau", class = "Intercept")
+
+fit <- brm(
+  bf(y | vreal(a) ~ 1, c ~ 1, kappa ~ 1, delta ~ 1, asigma ~ 1, tau ~ 1),
+  prior = prior,
+  data = sim_data, family = sdm_algo5, stanvars = stanvars,
+  backend = "cmdstanr", cores = 4
+)
+
+sdm5_pars_from_fit <- function(fit) {
+  est <- fixef(fit)[-1,1]
+  c(exp(est[1:2]), inv_logit_scaled(est[3]), exp(est[4]), exp(est[5]))
+}
+
+pars <- sdm5_pars_from_fit(fit)
+pars
+```
+
+```{r}
+sim <- algo5(delta0 = pars["delta_Intercept"], sd = pars["asigma_Intercept"], tau = pars["tau_Intercept"]) |> 
+  run_arc_algorithm(n_trials = nrow(sim_data), c = pars["c_Intercept"], kappa = pars["kappa_Intercept"], init_arc = sim_data$a[1])
+
+plot(sim_data$a)
+lines(sim$a, col = "red")
+plot(density(sim_data$a))
+lines(density(sim$a), col = "red")
+abline(v = median(sim_data$a))
+abline(v = median(sim$a), col = "red")
+```
+
+```{r}
+
+s1 <- dat |> filter(subject == 1, arc > 0)
+
+fit_s1 <- brm(
+  bf(resperr | vreal(half_arc) ~ 1, c ~ 1, kappa ~ 1, delta ~ 1, asigma ~ 1, tau ~ 1),
+  prior = prior,
+  data = s1, family = sdm_algo5, stanvars = stanvars,
+  backend = "cmdstanr", cores = 4, init = 0
+)
+
+pars <- sdm4_pars_from_fit(fit_s1)
+```
+
+```{r}
+sim <- algo5(delta0 = pars["delta_Intercept"], sd = pars["asigma_Intercept"], tau = pars["tau_Intercept"]) |> 
+  run_arc_algorithm(n_trials = nrow(s1), c = pars["c_Intercept"], kappa = pars["kappa_Intercept"], init_arc = s1$half_arc[1])
+
+plot(s1$half_arc, ylim = c(0, pi))
+lines(sim$a, col = "red")
+plot(density(s1$half_arc))
+lines(density(sim$a), col = "red")
+abline(v = median(s1$half_arc))
+abline(v = median(sim$a), col = "red")
+plot(density(s1$resperr))
+lines(density(sim$y), col = "red")
+```

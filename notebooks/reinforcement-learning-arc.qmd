@@ -1,7 +1,6 @@
 ---
 title: "Explore reinforcement learning algorithms"
 format: html
-editor: visual
 execute: 
   cache: true
 ---
@@ -208,7 +207,7 @@ plot_algorithm_run <- function(out) {
 }
 ```
 
-### Algorithm 1: Decrease/increase arc by delta depending on hit or not
+## Algorithm 1: Decrease/increase arc by delta depending on hit or not
 
 If target is within arc, decrease arc by a proportion $\delta$ of the arc; otherwise increase by the same proportion
 
@@ -259,7 +258,7 @@ phit <- lapply(deltas, \(x) run_arc_algorithm(algo1(delta = x), c = 4)$phit)
 plot(deltas, phit)
 ```
 
-### Algorithm 2: Logarithmic decrease/increase arc by delta depending on hit or not
+## Algorithm 2: Logarithmic decrease/increase arc by delta depending on hit or not
 
 $$
 a_{n+1} = a_n \left(1-\delta\right)^{\pm1}
@@ -288,7 +287,7 @@ phits <- lapply(deltas, \(x) run_arc_algorithm(algo2(delta = x), c = 4)$phit)
 plot(deltas, phits)
 ```
 
-### Algorithm 3: Change delta proportionally to the distance to the target
+## Algorithm 3: Change delta proportionally to the distance to the target
 
 $$
 a_{n+1} = a_n + \delta \, (|y_n|-a_n)
@@ -314,7 +313,7 @@ phits <- sapply(cs, \(c) run_arc_algorithm(algo3(delta = 1))$phit)
 plot(cs, phits)
 ```
 
-### Algorithm 4: Increase/decrease proportionally by arc remaining / arc used
+## Algorithm 4: Increase/decrease proportionally by arc remaining / arc used
 
 $$
 a_{n+1} = \cases{ 
@@ -408,7 +407,7 @@ $$
 
 ```{r}
 # Boundary-aware arc update (observe y, uses distance to boundary)
-algo5 <- function(tau = 0.05, delta0 = 0.12, delta_pow = 0.5) {
+algo5 <- function(tau = 0.05, delta0 = 0.1, delta_pow = 0.5) {
   force(tau); force(delta0); force(delta_pow)
 
   function(a, y, i, ...) {
@@ -423,7 +422,7 @@ algo5 <- function(tau = 0.05, delta0 = 0.12, delta_pow = 0.5) {
   }
 }
 
-algo5(tau = 0.05, delta0 = 0.1, delta_pow = 0.5) |>
+algo5(tau = 0.025, delta0 = 0.1, delta_pow = 0.5) |>
   run_arc_algorithm(n_trials = 1000, init_arc = pi/2) |>
   plot_algorithm_run()
 ```
@@ -450,7 +449,7 @@ More detailed individual runs:
 #| fig-width: 9
 #| fig-height: 15
 spaghetti_single_runs(
-  alg_list = list(algorithm5 = algo5(tau = 0.05)),
+  alg_list = list(algorithm5 = algo5(tau = 0.025, delta0 = 0.1)),
   c = c(0, 2, 4, 8, 16),
   n_trials = 800,
   n_runs = 10,
@@ -461,3 +460,45 @@ spaghetti_single_runs(
   seed = 123
 )
 ```
+
+### Visualizing algorithm 5
+
+The abstract form of the algorithm equation makes it difficult to see how it works. So let's visualize how the arc width will be updated depending on the distance between the arc and the response. Assume that the target is at a distance $\pi/2$ from the response, and vary the arc half width around the response. If the arc is less than $\pi/2$ then it's a miss (right side); otherwise it's a hit (left side)
+
+```{r}
+update_fun <- algo5(tau = 0.025, delta0 = 0.1, delta_pow = 0.5)
+
+old_a <- seq(0, pi, 0.01)
+new_a <- sapply(old_a, \(a) update_fun(a = a, y = pi/2, i = 1))
+plot(old_a, new_a, type = "l", xlab = "Old arc", ylab = "New arc")
+abline(v = pi/2, lty = 2)
+abline(0, 1, col = "red")
+```
+
+That was unexpected. It is an interesting algorithm, which we can summarize as:
+
+-   if it's a hit and the arc is much wider than the target, contract
+
+-   if it's a miss and the arc is much smaller than the target, do nothing
+
+-   if the arc boundary is close to the target, regardless of whether it's a miss or hit - expand.
+
+The intuition is that if your arc is much smaller than the target, the fact that you miss can be due to chance - you know that even with a very precise memory some samples will be expected to deviate. When your arc is much bigger and you hit, you try to make it smaller. But if you are very close to the target, whether you hit or missed doesn't matter - a small change would have pushed you over from a hit to a miss or vice versa, and we know that there is sampling noise. So you increase the arc to be safer, proportionally to how close the call was.
+
+I didn't design the algorithm this way, but it makes sense. For completeness, let's look at the same figure, but also varying where the target is. Above I used a target that is a quarter of the circle away.
+
+```{r}
+#| fig-width: 10
+expand_grid(old_a = old_a, y = seq(0, pi, length.out = 9)) |>
+  mutate(new_a = purrr::pmap_dbl(list(old_a, y), \(a, y) update_fun(a = a, y = y, i = 1)),
+         y = round(y, 2)) |>
+  ggplot(aes(x = old_a, y = new_a)) +
+  geom_line(aes(color = factor(y))) +
+  geom_abline(alpha = 0.5) +
+  geom_vline(aes(xintercept = y), linetype = "dashed") +
+  labs(x = "Old A", y = "New A", color = "Target") +
+  facet_wrap(~y)
+
+```
+
+Right, so it's always the same principle, except that the amount of expansion when we are close to the target is biggest when the target was very close to the response, and smallest if it was on the opposite side of the circle. This makes sense - if the target is on the other side of the circle, and our arc is already big enough to be close to it, we don't expand much. But if the target is close to the origin, and our arc is really small, then expand a lot because "we are in danger". This fits the discussion we had about "the cost of errors" - when we have a small arc that is near optimal, changes to are a lot more costly, because an increment would lead to a lot more misses than the same increment if the optimal arc was much bigger.

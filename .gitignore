@@ -11,3 +11,5 @@ _freeze
 .vscode
 *_files/
 *_cache/
+
+**/*.quarto_ipynb
