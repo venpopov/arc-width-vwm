@@ -1,3 +1,12 @@
+with_cache <- function(path, expr, force = FALSE) {
+  if (file.exists(path) && !force) {
+    return(readRDS(path))
+  }
+  result <- expr
+  saveRDS(result, path)
+  result
+}
+
 theme_Publication <- function(base_size = 14) {
   library(grid)
   library(ggthemes)
@@ -122,4 +131,244 @@ plot_likelihood_ratio <- function(data) {
     geom_point(position = position_jitter(0.1), alpha = 0.3) +
     stat_summary(fun.data = \(x) mean_se(x, 2), color = "red") +
     geom_abline(intercept = 1, slope = 0, linetype = "dashed")
+}
+
+cummean <- function(x) cumsum(x) / seq_along(x)
+
+# reward per trial: (pi - a_t) if hit else 0
+trial_reward <- function(y, a) (pi - a) * (abs(y) <= a)
+
+# Default, pleasant palettes without extra deps
+pal_runs <- function(n) grDevices::hcl.colors(n, palette = "Spectral", rev = TRUE)
+pal_algs <- function(n) grDevices::hcl.colors(n, palette = "Dark 3")
+
+# --- Spaghetti plotting for single runs ---
+# ugly overly-complicated function written by ChatGPT which I'm too lazy to simplify
+spaghetti_single_runs <- function(
+  alg_list, # named list of update functions, e.g. list(simple=algo4(...), boundary=..., smooth=...)
+  cs = c(0, 2, 8, 16),
+  kappa = 3,
+  n_trials = 800,
+  n_runs = 20,
+  init_arc = pi / 2,
+  plot_what = c("a", "hit", "reward"), # any subset
+  add_oracle = FALSE,
+  oracle_fun = NULL,
+  seed = 1
+) {
+  plot_what <- match.arg(plot_what, several.ok = TRUE)
+  stopifnot(is.list(alg_list), length(alg_list) >= 1)
+
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar), add = TRUE)
+
+  # layout: rows = cs, cols = metrics
+  par(
+    mfrow = c(length(cs), length(plot_what)),
+    mar = c(3.2, 3.2, 2.0, 0.8), mgp = c(2.0, 0.7, 0)
+  )
+
+  alg_names <- names(alg_list)
+  if (is.null(alg_names) || any(alg_names == "")) {
+    alg_names <- paste0("alg", seq_along(alg_list))
+    names(alg_list) <- alg_names
+  }
+
+  cols_runs <- pal_runs(n_runs)
+  cols_algs <- setNames(pal_algs(length(alg_list)), alg_names)
+
+  set.seed(seed)
+
+  for (c in cs) {
+    for (metric in plot_what) {
+      # Prepare plot canvas with sane y-limits by doing one cheap pre-run
+      # (We’ll compute dynamic limits while collecting, but need a first plot call.)
+      # We'll collect all series in a list first.
+      series <- list()
+
+      for (alg_nm in alg_names) {
+        alg_fun <- alg_list[[alg_nm]]
+
+        for (r in seq_len(n_runs)) {
+          # vary seed per run
+          out <- run_arc_algorithm(
+            arc_update_fun = alg_fun,
+            c = c, kappa = kappa,
+            init_arc = init_arc,
+            n_trials = n_trials
+          )
+
+          y <- out$y
+          a <- out$a
+
+          v <- switch(metric,
+            a = a,
+            hit = cummean(abs(y) <= a),
+            reward = cummean(trial_reward(y, a))
+          )
+
+          series[[length(series) + 1]] <- list(
+            alg = alg_nm,
+            run = r,
+            v = v
+          )
+        }
+      }
+
+      # Determine y-limits across all series for this panel
+      allv <- unlist(lapply(series, `[[`, "v"), use.names = FALSE)
+      ylim <- range(allv, finite = TRUE)
+
+      # Title + axis labels
+      main <- paste0("c=", c, " | ", metric)
+      ylab <- switch(metric,
+        a = "a(t) [rad]",
+        hit = "cum hit rate",
+        reward = "cum avg reward"
+      )
+
+      # Initialize empty plot
+      plot(seq_len(n_trials), series[[1]]$v,
+        type = "n", ylim = ylim,
+        xlab = "trial", ylab = ylab, main = main
+      )
+
+      # Draw spaghetti: color by run, line type by algorithm
+      # (Run colors repeat across algorithms; alg distinguished by lty + optional legend)
+      ltys <- seq_along(alg_names)
+      names(ltys) <- alg_names
+
+      for (s in series) {
+        lines(seq_len(n_trials), s$v,
+          col = cols_runs[s$run],
+          lty = ltys[s$alg],
+          lwd = 1
+        )
+      }
+
+      # Optional oracle reference line
+      if (isTRUE(add_oracle)) {
+        if (is.null(oracle_fun)) stop("add_oracle=TRUE but oracle_fun is NULL")
+        o <- oracle_fun(c)
+        y_oracle <- switch(metric,
+          a = o$alpha,
+          hit = o$phit,
+          reward = (pi - o$alpha) * o$phit
+        )
+        abline(h = y_oracle, lty = 2, lwd = 2)
+      }
+
+      # Legend only in top-left panel (keeps clutter down)
+      if (c == cs[1] && metric == plot_what[1]) {
+        legend("topright",
+          legend = c(paste0("runs (color)"), paste0(alg_names, " (lty)")),
+          col = c("black", cols_algs[alg_names]),
+          lty = c(NA, ltys[alg_names]),
+          lwd = c(NA, rep(2, length(alg_names))),
+          pch = c(15, rep(NA, length(alg_names))),
+          bty = "n", cex = 0.85
+        )
+      }
+    }
+  }
+}
+
+ribbon_summary_runs <- function(
+  alg_list,
+  cs = c(0, 2, 8, 16),
+  kappa = 3,
+  n_trials = 800,
+  n_runs = 50,
+  init_arc = pi / 2,
+  ci_level = 0.95,
+  add_oracle = FALSE,
+  oracle_fun = NULL,
+  seed = 1
+) {
+  stopifnot(is.list(alg_list), length(alg_list) >= 1)
+
+  alg_names <- names(alg_list)
+  if (is.null(alg_names) || any(alg_names == "")) {
+    alg_names <- paste0("alg", seq_along(alg_list))
+    names(alg_list) <- alg_names
+  }
+
+  set.seed(seed)
+
+  sims <- list()
+  for (alg_nm in alg_names) {
+    for (c_val in cs) {
+      for (r in seq_len(n_runs)) {
+        out <- run_arc_algorithm(
+          arc_update_fun = alg_list[[alg_nm]],
+          c = c_val, kappa = kappa,
+          init_arc = init_arc,
+          n_trials = n_trials
+        )
+        sims[[length(sims) + 1]] <- data.frame(
+          algorithm = alg_nm,
+          c = c_val,
+          run = r,
+          trial = seq_len(n_trials),
+          a = out$a,
+          hit = cummean(abs(out$y) <= out$a),
+          reward = cummean(trial_reward(out$y, out$a))
+        )
+      }
+    }
+  }
+
+  sim_df <- do.call(rbind, sims)
+
+  sim_long <- sim_df |>
+    tidyr::pivot_longer(cols = c(a, hit, reward), names_to = "metric", values_to = "value")
+
+  alpha <- 1 - ci_level
+  summary_df <- sim_long |>
+    dplyr::group_by(algorithm, c, trial, metric) |>
+    dplyr::summarise(
+      mean = mean(value),
+      lower = quantile(value, alpha / 2),
+      upper = quantile(value, 1 - alpha / 2),
+      .groups = "drop"
+    )
+
+  metric_labels <- c(
+    reward = "Cumulative avg reward",
+    hit = "Cumulative hit rate",
+    a = "Arc width (rad)"
+  )
+  metric_order <- c("reward", "hit", "a")
+  summary_df$metric <- factor(summary_df$metric, levels = metric_order, labels = metric_labels[metric_order])
+  summary_df$c <- factor(summary_df$c, labels = paste0("c = ", sort(unique(summary_df$c))))
+
+  p <- ggplot2::ggplot(summary_df, ggplot2::aes(x = trial, y = mean, color = algorithm, fill = algorithm)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = lower, ymax = upper), alpha = 0.2, colour = NA) +
+    ggplot2::geom_line(linewidth = 0.6) +
+    ggplot2::facet_wrap(c ~ metric, scales = "free", ncol = 3) +
+    ggplot2::labs(x = "Trial", y = NULL, color = "Algorithm", fill = "Algorithm")
+
+  if (isTRUE(add_oracle)) {
+    if (is.null(oracle_fun)) stop("add_oracle=TRUE but oracle_fun is NULL")
+    oracle_rows <- lapply(cs, function(c_val) {
+      o <- oracle_fun(c_val)
+      data.frame(
+        c = c_val,
+        metric = c("reward", "hit", "a"),
+        value = c((pi - o$alpha) * o$phit, o$phit, o$alpha)
+      )
+    })
+    oracle_df <- do.call(rbind, oracle_rows)
+    oracle_df$metric <- factor(oracle_df$metric, levels = metric_order, labels = metric_labels[metric_order])
+    oracle_df$c <- factor(oracle_df$c, labels = paste0("c = ", sort(unique(oracle_df$c))))
+
+    p <- p + ggplot2::geom_hline(
+      data = oracle_df,
+      ggplot2::aes(yintercept = value),
+      linetype = "dashed", colour = "black", linewidth = 0.5,
+      inherit.aes = FALSE
+    )
+  }
+
+  p
 }

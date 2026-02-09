@@ -31,6 +31,7 @@ plot_algorithm_run <- function(out) {
   par(mfrow = c(1, 2))
   plot(out$a, type = "l", xlab = "trial", ylab = "Arc half-width")
   plot(cummean(abs(out$y) <= out$a), type = "l", xlab = "trial", ylab = "Cummulative hit rate")
+  par(mfrow = c(1, 1))
 }
 
 algo1 <- function(delta) {
@@ -50,18 +51,16 @@ algo3 <- function(delta) {
   \(a, hit, y, ...) a + delta * (abs(y) - a)
 }
 
-algo4 <- function(delta, sd = 0) {
+algo4 <- function(delta) {
   force(delta)
   force(sd)
 
   \(a, y, ...) {
-    a_star <- a * (1 - delta) + (abs(y) > a) * pi * delta
-    out <- brms::logit_scaled(a_star / pi) + rnorm(1, sd = sd)
-    brms::inv_logit_scaled(out) * pi
+    a * (1 - delta) + (abs(y) > a) * pi * delta
   }
 }
 
-algo5 <- function(tau = 0.05, delta0 = 0.1, delta_pow = 0.5, sd = 0) {
+algo5 <- function(tau = 0.05, delta0 = 0.1, delta_pow = 0.5) {
   force(tau)
   force(delta0)
   force(delta_pow)
@@ -75,31 +74,24 @@ algo5 <- function(tau = 0.05, delta0 = 0.1, delta_pow = 0.5, sd = 0) {
     s <- 1 / (1 + exp(-z))
 
     grad <- -s + (pi - a) * s * (1 - s) / tau
-    a_star <- a + delta * grad
-    out <- brms::logit_scaled(a_star / pi) + rnorm(1, sd = sd)
-    brms::inv_logit_scaled(out) * pi
+    a + delta * grad
   }
 }
 
-algo5_meas <- function(tau = 0.05, delta0 = 0.1, delta_pow = 0.5, sd_meas = 0) {
+algo5_noisy_grad <- function(tau = 0.05, delta0 = 0.1, delta_pow = 0.5, sigma_g = 1) {
   force(tau)
   force(delta0)
   force(delta_pow)
-  force(sd_meas)
+  force(sigma_g)
 
-  # returns TWO values: latent a_star and observed a_obs
-  function(a_latent, y, i, ...) {
+  \(a, y, i, ...) {
     delta <- delta0 / (i + 1)^delta_pow
-    z <- (a_latent - abs(y)) / tau
+    z <- (a - abs(y)) / tau
     s <- 1 / (1 + exp(-z))
-    grad <- -s + (pi - a_latent) * s * (1 - s) / tau
-    a_star <- a_latent + delta * grad
-    a_star <- max(0, min(pi, a_star))
+    grad <- -s + (pi - a) * s * (1 - s) / tau
 
-    # noisy observation
-    eta <- logit(a_star / pi) + rnorm(1, sd = sd_meas)
-    a_obs <- brms::inv_logit_scaled(eta) * pi
-
-    list(a_latent = a_star, a_obs = a_obs)
+    x <- logit(a / pi)
+    x_new <- x + delta * (grad + rnorm(1, sd = sigma_g))
+    inv_logit(x_new) * pi
   }
 }
