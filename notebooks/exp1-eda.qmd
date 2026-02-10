@@ -12,13 +12,15 @@ Below we examine whether set size, encoding time, and retention interval affect 
 Preprocessed data: `output/exp1_data.csv` (produced by `R/data-functions.R`).
 :::
 
-```{r setup}
+```{r}
+#| label: setup
 #| message: FALSE
 #| include: false
 knitr::opts_chunk$set(message = FALSE)
 ```
 
-```{r initialize, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
+#| label: initialize
 library(tidyverse)
 library(patchwork)
 library(mixtur)
@@ -30,12 +32,14 @@ theme_set(theme_Publication())
 load the preprocessed data
 
 ```{r}
+#| label: load-exp1-data
 exp1_data <- read.csv("output/exp1_data.csv")
 ```
 
 ### Arc width is affected by set size, encoding duration and retention interval
 
 ```{r fig.width=10, fig.height=5}
+#| label: setsize-density-plots
 pa1 <- exp1_data |>
   filter(exp_type == "SetS") |>
   ggplot(aes(resperr, color=as.factor(setsize))) +
@@ -61,6 +65,7 @@ pa1+pa2
 ### Plot the effect of setsize on sd(angle error) and the mean(arcwidth)
 
 ```{r fig.width=8, fig.height=4}
+#| label: setsize-effects
 exp1_data |>
   filter(exp_type == "SetS") |>
   group_by(setsize, subject) |>
@@ -83,6 +88,7 @@ exp1_data |>
 ### Fit 2-component mixture model to the setsize data
 
 ```{r fig.width=8, fig.height=4}
+#| label: setsize-mixture-fit
 #| message: FALSE
 
 ss_mm <- exp1_data |>
@@ -117,7 +123,8 @@ pb1+pb2
 
 ```
 
-```{r, fig.width=3, fig.height=3}
+```{r fig.width=3, fig.height=3}
+#| label: setsize-arc-sd-joint
 ss_arc <- exp1_data |>
   filter(exp_type == "SetS") |>
   group_by(subject) |>
@@ -157,6 +164,7 @@ pc1
 ### Plot the effect of time on sd(angle error) and the mean(arcwidth)
 
 ```{r fig.width=4, fig.height=4}
+#| label: time-effects
 exp1_data |>
   filter(exp_type == "Time") |>
   group_by(encodingtime, delay, subject) |>
@@ -185,6 +193,7 @@ exp1_data |>
 ### Fit 2-component mixture model to the time data
 
 ```{r}
+#| label: time-mixture-fit
 #| message: FALSE
 time_mm <- exp1_data |>
   filter(exp_type == "Time") |>
@@ -222,7 +231,8 @@ pd2 <- exp1_data |>
 pd1+pd2
 ```
 
-```{r, fig.width=3, fig.height=3}
+```{r fig.width=3, fig.height=3}
+#| label: time-arc-sd-joint
 time_arc <- exp1_data |>
   filter(exp_type == "Time") |>
   group_by(subject) |>
@@ -262,11 +272,13 @@ pe1
 ### Combine all figures
 
 ```{r fig.width=10, fig.height=11}
+#| label: combine-figures
 (pa1+pa2) / (pb1+pb2+pc1) / (pd1+pd2+pe1)
 ggsave('img/fig3.1.png', units='in', width=10, height=11)
 ```
 
 ```{r}
+#| label: compare-time-setsize
 time_joint <- mutate(time_joint, procedure="Time")
 ss_joint <- mutate(ss_joint, procedure="Set Size")
 both <- bind_rows(time_joint, ss_joint)

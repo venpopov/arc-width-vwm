@@ -43,12 +43,18 @@ The sidebar groups notebooks into three sections. Here is the recommended readin
 
 4. [**Optimal Arc Width (SDM)**](notebooks/optimal-arc-response.qmd) — Derives the theoretically optimal arc width for any given memory error distribution. Fits the Signal Detection Model (SDM) and shows that empirical arc widths are remarkably close to optimal. *Key notebook.*
 5. [**RL Algorithms: Exploration**](notebooks/reinforcement-learning-arc.qmd) — Develops and simulates five reinforcement learning algorithms (algo1–5) for trial-by-trial arc-width adaptation, progressing from simple heuristics to a noisy stochastic-gradient model. *Key notebook.*
-6. [**Model Fitting: contraction-expansion (algo4), MLE**](notebooks/fitting-rl-algorithms-algo4-mle.qmd) — Implements maximum-likelihood estimation for the contraction-expansion model (algo4) with logit-scale noise, validates identifiability via 10,000-iteration parameter recovery.
-7. [**Model Fitting: noisy-gradient (algo5), MLE**](notebooks/fitting-rl-algorithms-algo5-mle.qmd) — Implements maximum-likelihood estimation for the noisy-gradient model (algo5), validates identifiability via 10,000-iteration parameter recovery.
+6. [**Model Diagnostics: contraction-expansion (algo4), MLE**](notebooks/diagnostics-algo4-mle.qmd) — Implements maximum-likelihood estimation for the contraction-expansion model (algo4) with logit-scale noise, validates identifiability via 10,000-iteration parameter recovery.
+7. [**Model Diagnostics: contraction-expansion (algo4), Bayesian**](notebooks/diagnostics-algo4-bayes.qmd) — Full Bayesian inference for algo4 using brms/Stan, with simulation-based validation.
+8. [**Model Diagnostics: noisy-gradient (algo5), MLE**](notebooks/diagnostics-algo5-mle.qmd) — Implements maximum-likelihood estimation for the noisy-gradient model (algo5), validates identifiability via 10,000-iteration parameter recovery.
+9. [**Model Diagnostics: noisy-gradient (algo5), Bayesian**](notebooks/diagnostics-algo5-bayes.qmd) — Full Bayesian inference for algo5 using brms/Stan, with simulation-based validation.
+
+### Model Fits
+
+9. [**Algo4 Bayesian fit (Exp 1)**](notebooks/fit-algo4-bayes.qmd) — Fits the contraction-expansion model to Experiment 1 data using Bayesian inference with posterior predictive checks.
 
 ### Empirical Tests
 
-8. [**Sequential Dependencies**](notebooks/sequential-dependencies.qmd) — Tests whether participants actually adapt arc width after hits/misses, as predicted by the RL models. Controls for regression to the mean via bootstrap shuffling.
+10. [**Sequential Dependencies**](notebooks/sequential-dependencies.qmd) — Tests whether participants actually adapt arc width after hits/misses, as predicted by the RL models. Controls for regression to the mean via bootstrap shuffling.
 
 ## Key concepts
 

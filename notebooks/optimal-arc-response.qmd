@@ -69,6 +69,7 @@ Since $\alpha$ is the half-width arc in radians, it means that *the optimal full
 Now, let's take the SDM and vary the $c$ parameter and find the optimum arc width and hit rate. Here are the results for one set of parameters (note that alpha is the half-width arc in *radians*).
 
 ```{r}
+#| label: load-libs-optimum
 #| message: false
 library(bmm)
 library(ggplot2)
@@ -83,6 +84,7 @@ find_optimum_sdm(c = 4, kappa = 4)
 So let's vary $c$, with fixed $\kappa = 3$:
 
 ```{r}
+#| label: compute-sdm-optima
 cs <- seq(0, 10, 0.01)
 sdm_optim <- lapply(cs, \(c) find_optimum_sdm(c, kappa = 3))
 sdm_optim <- do.call(rbind, sdm_optim)
@@ -91,6 +93,7 @@ sdm_optim_long <- gather(sdm_optim, variable, optimal_value, alpha, phit)
 ```
 
 ```{r}
+#| label: plot-sdm-optima
 sdm_optim_long |> 
   ggplot(aes(c, optimal_value)) +
   geom_line() +
@@ -113,6 +116,7 @@ In both cases, we are not using the arc-width or phit values at all - only the p
 First, let's do the non-parametric analysis over different set size conditions. We have 8 set sizes and these are the empirical error distributions, collapsed over subjects:
 
 ```{r}
+#| label: load-empirical-data
 data <- read.csv("output/exp1_data.csv")
 ss_exp <- data |> 
   filter(exp_type == "SetS") |> 
@@ -136,6 +140,7 @@ Next, we find the optimum arc width and phit under these empirical distributions
 First, a sanity check that this empirical approach works. We generate data from the sdm under the c values as above, and now use the generated data to estimate the optimum instead of the theoretical optimum. Then compare with the above theoretical optimum. We have 4000 trials per setsize in the real data, so simulate that many.
 
 ```{r}
+#| label: validate-empirical-optimum
 find_empirical_optimum <- function(y) {
   Fe <- ecdf(y)
   obj <- function(alpha) (pi - alpha) * (Fe(alpha) - Fe(-alpha))
@@ -158,6 +163,7 @@ e_optimim_sdm |>
 It works well - with 4000 observations, the optimums derived from the empirical cdf are clustered closely around the theoretical values. Now, let's apply this to our real data.
 
 ```{r}
+#| label: empirical-optima-setsizes
 predicted_empirical_optimals <- ss_exp |> 
   group_by(setsize) |> 
   summarise(opt = find_empirical_optimum(resperr)) |> 
@@ -168,6 +174,7 @@ predicted_empirical_optimals
 Remember, these estimates are based only on the point responses, and do not use any information about the given arc width, or the results hit rate - these are completely separate sources of data. Therefore these are parameter free predictions, which gives us what the optimal arc response would be if the subject knew what the response distribution (or the corresponding memory trace strength distribution) will look like. We can now compare them with the actual values to determine how optimal the behavior is.
 
 ```{r}
+#| label: observed-arc-phit
 observed_arc_phit <- ss_exp |> 
   group_by(setsize) |> 
   summarise(arc_obs = median(arc/2),
@@ -176,6 +183,7 @@ observed_arc_phit
 ```
 
 ```{r}
+#| label: compare-empirical-predictions
 #| message: false
 left_join(observed_arc_phit, predicted_empirical_optimals) |> 
   rename(arc_pred = alpha, phit_pred = phit) |> 
@@ -190,6 +198,7 @@ left_join(observed_arc_phit, predicted_empirical_optimals) |>
 The median observed arc, and the hit rates are remarkably close to optimal. From these we can calculate the optimal amount of points, and then get a measure of optimality by dividing the received points by the optimal amount:
 
 ```{r}
+#| label: optimality-by-setsize
 #| message: false
 points_by_setsize <- ss_exp |> 
   group_by(setsize) |> 
@@ -213,6 +222,7 @@ ggplot(predicted_empirical_optimals, aes(setsize, optimality, group = 1)) +
 Next, we can do this separately for each participant, and look at how optimal each of them are.
 
 ```{r}
+#| label: optimality-by-subject
 #| message: false
 points_by_subject <- ss_exp |> 
   group_by(subject) |> 
@@ -232,6 +242,7 @@ hist(predicted_empirical_optimals_subject$optimality, breaks = 60)
 And by setsize:
 
 ```{r}
+#| label: optimality-by-subject-setsize
 #| message: false
 points_by_setsize_subject <- ss_exp |> 
   group_by(subject, setsize) |> 
@@ -249,6 +260,7 @@ mean(predicted_empirical_optimals_subject$optimality)
 ```
 
 ```{r}
+#| label: plot-optimality-by-subject
 ggplot(predicted_empirical_optimals_subject, aes(setsize, optimality, color = subject, group = subject)) +
   geom_point() + 
   geom_line() +
@@ -260,6 +272,7 @@ ggplot(predicted_empirical_optimals_subject, aes(setsize, optimality, color = su
 We fit a hierarchical model varying c and kappa by setsize and random effects for each subject
 
 ```{r}
+#| label: fit-sdm-hierarchical
 #| message: false
 #| results: hide
 set.seed(123456)
@@ -277,12 +290,14 @@ fit <- bmm(
 There are no obvious convergence issues:
 
 ```{r}
+#| label: fit-sdm-summary
 fit
 ```
 
 Because we have full posterior samples for the sdm parameters, we can determine a posterior prediction for the optimal arc size and hit probability given the parameters of each posterior sample. First, do this using only the population parameters for setsize, similar to the pooled empirical predictions above.
 
 ```{r}
+#| label: population-optimum-posterior
 #| message: false
 #| warning: false
 
@@ -328,6 +343,7 @@ The red dots and line are the observed median arc width and hit rate. The white 
 Since this was a hierarchical model, we can estimate predicted optimal behavior for each subject and setsize condition. We can get a full posterior for the optimality coefficient.
 
 ```{r}
+#| label: subject-optimum-posterior
 #| message: false
 #| warning: false
 
@@ -385,6 +401,7 @@ observed_arc_phit_subj_long <- observed_arc_phit_subj |>
 ```
 
 ```{r}
+#| label: subject-optimality-violin
 #| message: false
 points_by_setsize_subject <- ss_exp |> 
   group_by(setsize, subject) |> 
@@ -404,6 +421,7 @@ ggplot(subj_optimum_posterior, aes(setsize, optimality)) +
 Here are the median arc width response for each subject vs the posterior of the optimal arc width:
 
 ```{r}
+#| label: subject-arc-vs-optimal
 #| fig-width: 12
 #| fig-height: 9
 subj_optimum_posterior |>
@@ -418,6 +436,7 @@ subj_optimum_posterior |>
 and the same for hit rate:
 
 ```{r}
+#| label: subject-phit-vs-optimal
 #| fig-width: 12
 #| fig-height: 9
 subj_optimum_posterior |> 
@@ -431,6 +450,7 @@ subj_optimum_posterior |>
 Posteriors (95 HDI) of optimality score for each subject:
 
 ```{r}
+#| label: subject-optimality-score
 subj_optimum_posterior |> 
   ggplot(aes(subject, optimality)) +
   stat_summary(geom = "errorbar", fun.data = \(y) data.frame(y = mean(y), ymin = mean(y) - 2*sd(y), ymax = mean(y) + 2*sd(y))) +

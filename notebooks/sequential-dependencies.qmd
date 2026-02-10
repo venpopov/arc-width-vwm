@@ -28,6 +28,7 @@ This notebook tests empirical predictions of the RL algorithms developed in [RL 
 We saw that some reinforcement learning algorithms can find the optimal reward point. They do this by generally contracting the arc if the previous trial was a hit, and expanding it if it was a miss. Do we see this in the data? We know there are some sequential dependencies, although they are of a different kind.
 
 ```{r}
+#| label: arcp-seq
 #| warning: false
 #| message: false
 
@@ -47,6 +48,7 @@ dat |>
 This might be because we are collapsing over participants - even if there is no sequential dependency *within participants*, the above plot might show one if participants have much different average arcs. We can standardize the arc responses within participants to account for this. For each arc we get its percentile rank such that 0 represents the smallest arc within participant, and 1 represents the highest. We see that there is still sequential dependencies, although a big part of it was accounted for due to between-subject variability.
 
 ```{r}
+#| label: lag1-correlation
 #| warning: false
 #| message: false
 dat |> 
@@ -63,6 +65,7 @@ dat |>
 The lag 1 correlation, computed within participants, has the following distribution:
 
 ```{r}
+#| label: expand-lr-summary
 dat |> 
   group_by(subject, experimentorder) |> 
   summarize(r = cor(arc, prior_arc, use = "pairwise.complete.obs")) |> 
@@ -79,6 +82,7 @@ $$
 $$
 
 ```{r}
+#| label: expand-lr-ttest
 smry1 <- exp1 |> 
   group_by(subject, experimentorder) |> 
   calculate_expand_likelihood_ratio()
@@ -90,6 +94,7 @@ smry1 |>
 Each point is a single subject, and each subject has as point for hits and a point after misses. First, we see that the likelihood ratio is much more variable after a miss. This is partly due to the low level of misses overall. We see a tendency for contraction after hits (likelihood ratio \< 1) and tendency for expansion after misses (likelihood ratio \> 1). This is supported by one sample t-tests:
 
 ```{r}
+#| label: expand-lr-setsize
 t.test(filter(smry1, resp_type == "hit")$likelihood_ratio_expand, mu = 1, alternative = "less")
 t.test(filter(smry1, resp_type == "miss")$likelihood_ratio_expand, mu = 1, alternative = "greater")
 ```
@@ -97,6 +102,7 @@ t.test(filter(smry1, resp_type == "miss")$likelihood_ratio_expand, mu = 1, alter
 The experiment uses an interleaved design where the set size varies on each trial. Since arc responses vary strongly with set-size, what we are interested in is how their response changes not only from the previous trial but from what it would have been given the set size that they see. We can check if we compare the change direction with the previous time they encountered the same set size, depending on that previous time was a hit or miss. There can be any number of intervening trials and we only care about the last time that the same setsize occurred. We get a similar dependency:
 
 ```{r}
+#| label: expand-lr-setsize-ttest
 #| warning: false
 smry2 <- exp1 |> 
   filter(exp_type == "SetS") |> 
@@ -109,6 +115,7 @@ smry2 |>
 ```
 
 ```{r}
+#| label: load-honig
 t.test(filter(smry2, resp_type == "hit")$likelihood_ratio_expand, mu = 1, alternative = "less")
 t.test(filter(smry2, resp_type == "miss")$likelihood_ratio_expand, mu = 1, alternative = "greater")
 ```
@@ -122,12 +129,14 @@ So from the two analyses combined we know that people adapt their arc (expand or
 We can do the same analysis for Honig et al's (2020) data, where each of 12 participants did four sessions. There is no setsize manipulation (always 4), and each session is blocked with identical (with respect to any task parameters) trials.
 
 ```{r}
+#| label: expand-lr-honig
 #| message: false
 honig_data <- read_csv("output/honig_data.csv")
 honig_data
 ```
 
 ```{r}
+#| label: expand-lr-honig-ttest
 smry1_honig <- honig_data |> 
   group_by(subject, session) |> 
   calculate_expand_likelihood_ratio()
@@ -139,6 +148,7 @@ smry1_honig |>
 We see essentially the same results.
 
 ```{r}
+#| label: simulate-regression-mean
 t.test(filter(smry1_honig, resp_type == "hit")$likelihood_ratio_expand, mu = 1, alternative = "less")
 t.test(filter(smry1_honig, resp_type == "miss")$likelihood_ratio_expand, mu = 1, alternative = "greater")
 ```
@@ -168,6 +178,7 @@ a \sim \text{Gamma}(\alpha = 3, \lambda = 2)
 $$
 
 ```{r}
+#| label: plot-simulated-lr
 #| message: false
 library(bmm)
 simulate_data <- function(n) {
@@ -185,6 +196,7 @@ out <- do.call(rbind, out)
 ```
 
 ```{r}
+#| label: shuffle-single
 out |> 
   plot_likelihood_ratio()
 ```
@@ -198,6 +210,7 @@ Now that we know this can happen as a byproduct of regression to the mean, let's
 First, here's how the results look after a single shuffling. Almost indistinguishable from the real deal.
 
 ```{r}
+#| label: bootstrap-mean-lr
 exp1 |> 
   group_by(subject, experimentorder) |> 
   mutate(arc = sample(arc)) |> 
@@ -208,6 +221,7 @@ exp1 |>
 Here is the bootstrap distribution for the mean likelihood ratios (corresponding to the red points in the plot above. The vertical lines represent the observed mean without the shuffling.
 
 ```{r}
+#| label: bootstrap-mean-plot
 bootstrap_lr_shuffled_arcs <- function(dat) {
   dat |> 
     mutate(arc = sample(arc)) |> 
@@ -220,6 +234,7 @@ out <- do.call(rbind, out)
 ```
 
 ```{r}
+#| label: bootstrap-by-subj
 observed_ratios <- smry1 |> 
   group_by(resp_type) |> 
   summarise(mean_ratio = mean(likelihood_ratio_expand))
@@ -237,6 +252,7 @@ That is strange. In the real data participants contract less after hit and expan
 That doesn't make any sense. Maybe some sort of Simpson's paradox? Let's get a separate bootstrap estimate for each subject under shuffling. Long plot coming:
 
 ```{r}
+#| label: bootstrap-percentiles
 #| fig-width: 6
 #| fig-height: 50
 bootstrap_lr_shuffled_arcs_by_subj <- function(dat) {
@@ -263,6 +279,7 @@ It's not a Simpson's paradox. While there are many subject whose likelihood rati
 Let's summarize this by calculating for each subject the percentile of their observed likelihood ratio for expansion relative to the shuffled bootstrap estimates.
 
 ```{r}
+#| label: bootstrap-joint-score
 boot_percentiles <- out |> 
   left_join(smry1, by = c("resp_type", "subject", "experimentorder")) |> 
   group_by(subject, resp_type, experimentorder) |> 
@@ -277,6 +294,7 @@ boot_percentiles |>
 We can get a joint score by multiplying the percentile ranks of hit \* (1-miss). Values close to 1 means that participants have the weird data where they deviate in the wrong direction from the shuffled expectations. We seem to indeed have two types of participants - about a quarter deviate strongly (percentile rank \>= 0.99)
 
 ```{r}
+#| label: bootstrap-weird-prop
 boot_percentiles |> 
   spread(resp_type, percentile) |> 
   mutate(joint = hit * (1-miss)) |> 
@@ -285,6 +303,7 @@ boot_percentiles |>
 ```
 
 ```{r}
+#| label: simulate-algos
 boot_percentiles |> 
   spread(resp_type, percentile) |> 
   ungroup() |> 
@@ -297,6 +316,7 @@ boot_percentiles |>
 Maybe my intuition is incorrect, and this is what we expect with the adaptation algorithm? Let's see the expected data for a simulated agent using our algorithm 4 / 5. We will compare their expansion likelihood ratio when using the adaptation vs shuffled bootstrap.
 
 ```{r}
+#| label: sim-algo4-lr
 sim_algo4 <- algo4(delta = 0.01) |> run_arc_algorithm(n_trials = 1000, init_arc = 1)
 sim_algo4 <- data.frame(resperr = sim_algo4$y, arc = sim_algo4$a * 2)
 sim_algo5 <- algo5() |> run_arc_algorithm(n_trials = 1000)
@@ -306,6 +326,7 @@ sim_algo5 <- data.frame(resperr = sim_algo5$y, arc = sim_algo5$a * 2)
 Under algorithm 4 by design the agent never expands after a hit and never contracts after a miss.
 
 ```{r}
+#| label: sim-algo5-lr
 sim_algo4 |> 
   calculate_expand_likelihood_ratio()
 ```
@@ -313,11 +334,13 @@ sim_algo4 |>
 Algorithm 5 occasionally expands after a hit and contracts after a miss but very rarely and much less than in the human data.
 
 ```{r}
+#| label: bootstrap-sim-algo5
 sim_algo5 |> 
   calculate_expand_likelihood_ratio()
 ```
 
 ```{r}
+#| label: plot-sim-algo5-boot
 out <- replicate(1000, bootstrap_lr_shuffled_arcs(sim_algo5), simplify = FALSE)
 out <- do.call(rbind, out)
 ```
@@ -325,6 +348,7 @@ out <- do.call(rbind, out)
 Here is the result. The figure shows the expected likelihood ratio for expanding the arc for the simulated data from algorithm 5 when shuffling the arcs.
 
 ```{r}
+#| label: plot-sim-algo5-lr
 out |> 
   mutate(likelihood_ratio_expand = mean_ratio) |> 
   plot_likelihood_ratio()

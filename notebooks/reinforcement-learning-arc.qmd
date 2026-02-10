@@ -5,7 +5,8 @@ execute:
   cache: true
 ---
 
-```{r setup, cache = FALSE}
+```{r cache = FALSE}
+#| label: setup
 #| message: false
 #| cache: false
 # Load useful packages and custom functions
@@ -47,6 +48,7 @@ a_{n+1} = a_n \pm \delta a_n = a_n (1 \pm \delta)
 $$
 
 ```{r}
+#| label: algo1-single-run
 algo1(delta = 0.1) |> 
   run_arc_algorithm(n_trials = 1000) |>
   plot_algorithm_run()
@@ -55,6 +57,7 @@ algo1(delta = 0.1) |>
 Run for different c parameters
 
 ```{r}
+#| label: algo1-run-grid
 cs <- seq(0, 10, 0.5)
 out <- lapply(cs, \(c) run_arc_algorithm(algo1(delta = 0.1), c = c))
 ```
@@ -63,6 +66,7 @@ Distribution of arc widths for different $c$ values of the SDM parameter:
 
 ::: panel-tabset
 ```{r}
+#| label: algo1-hist-by-c
 #| results: asis
 par(mfrow = c(1,1))
 for (i in seq_along(cs)) {
@@ -76,12 +80,14 @@ for (i in seq_along(cs)) {
 Hit rate as a function of $c$ doesn't change.
 
 ```{r}
+#| label: algo1-hit-rate
 plot(cs, sapply(out, \(x) x$phit), ylim = c(0,1))
 ```
 
 As a function of the step size $\delta$:
 
 ```{r}
+#| label: algo1-delta-phit
 deltas <- seq(0.01, 1, 0.01)
 phit <- lapply(deltas, \(x) run_arc_algorithm(algo1(delta = x), c = 4)$phit)
 plot(deltas, phit)
@@ -98,12 +104,14 @@ multiply by $(1-\delta)$ if hit, otherwise divide by it.
 One run of the algorithm:
 
 ```{r}
+#| label: algo2-single-run
 algo2(delta = 0.1) |> 
   run_arc_algorithm(n_trials = 1000) |>
   plot_algorithm_run()
 ```
 
 ```{r}
+#| label: algo2-phit-by-c
 out <- lapply(cs, \(c) run_arc_algorithm(algo2(delta = 0.1), c = c))
 plot(cs, sapply(out, \(x) x$phit), ylab = "Hit rate")
 
@@ -119,12 +127,14 @@ a_{n+1} = a_n + \delta \, (|y_n|-a_n)
 $$
 
 ```{r}
+#| label: algo3-single-run
 algo3(delta = 0.05) |> 
   run_arc_algorithm(n_trials = 1000) |> 
   plot_algorithm_run()
 ```
 
 ```{r}
+#| label: algo3-phit-by-c
 phits <- lapply(cs, \(c) run_arc_algorithm(algo3(delta = 0.05), c = c)$phit)
 plot(cs, phits)
 ```
@@ -132,6 +142,7 @@ plot(cs, phits)
 With delta = 1 we get the case where you set the arc to be the same as the error:
 
 ```{r}
+#| label: algo3-delta1
 phits <- sapply(cs, \(c) run_arc_algorithm(algo3(delta = 1))$phit)
 plot(cs, phits)
 ```
@@ -146,12 +157,14 @@ a_{n+1} = \cases{
 $$
 
 ```{r}
+#| label: algo4-single-run
 algo4(delta = 0.01) |> 
   run_arc_algorithm(n_trials = 1000) |> 
   plot_algorithm_run()
 ```
 
 ```{r}
+#| label: algo4-phit-reward-by-c
 cs1 <- seq(0, 10, 0.1)
 deltas <- c(0.001, 0.05, 0.1, 0.2, 0.5)
 pars <- expand.grid(c = cs1, delta = deltas)
@@ -183,6 +196,7 @@ where F is the cdf of the sdm.
 This is similar to our objective but not exactly. That said, I decided to plot the achieved reward by the algorithm, rather than the hit rate, and compare it to the reward you get from the theoretical optimum:
 
 ```{r}
+#| label: algo4-reward-compare
 plot(cs1, sdm_optim$reward, type = "l", lty = "dashed", ylab = "Mean reward")
 for (i in seq_along(deltas)) {
   lines(cs1, filter(pars, delta == deltas[i])$reward, col = i+1)
@@ -197,6 +211,7 @@ This will need more exploration but at least it seems like a plausible candidate
 Here are more detailed individual runs:
 
 ```{r}
+#| label: algo4-spaghetti
 #| fig-width: 9
 #| fig-height: 15
 spaghetti_single_runs(
@@ -228,12 +243,14 @@ a_{n+1} = a_n + \delta_i\Big[-s + (\pi-a)\frac{s(1-s)}{\tau}\Big]
 $$
 
 ```{r}
+#| label: algo5-single-run
 algo5(tau = 0.025, delta0 = 0.1, delta_pow = 0.5) |>
   run_arc_algorithm(n_trials = 1000, init_arc = pi/2) |>
   plot_algorithm_run()
 ```
 
 ```{r}
+#| label: algo5-phit-compare
 taus <- c(0.01, 0.02, 0.05)
 pars <- expand.grid(c = cs1, tau = taus)
 
@@ -252,6 +269,7 @@ legend("topleft", legend = c("sdm optimal", taus), col = seq_len(length(taus)+1)
 More detailed individual runs:
 
 ```{r}
+#| label: algo5-spaghetti
 #| fig-width: 9
 #| fig-height: 15
 spaghetti_single_runs(
@@ -272,6 +290,7 @@ spaghetti_single_runs(
 The abstract form of the algorithm equation makes it difficult to see how it works. So let's visualize how the arc width will be updated depending on the distance between the arc and the response. Assume that the target is at a distance $\pi/2$ from the response, and vary the arc half width around the response. If the arc is less than $\pi/2$ then it's a miss (right side); otherwise it's a hit (left side)
 
 ```{r}
+#| label: algo5-update-curve
 update_fun <- algo5(tau = 0.025, delta0 = 0.1, delta_pow = 0.5)
 
 old_a <- seq(0, pi, 0.01)
@@ -294,6 +313,7 @@ The intuition is that if your arc is much smaller than the target, the fact that
 I didn't design the algorithm this way, but it makes sense. For completeness, let's look at the same figure, but also varying where the target is. Above I used a target that is a quarter of the circle away.
 
 ```{r}
+#| label: algo5-update-grid
 #| fig-width: 10
 expand_grid(old_a = old_a, y = seq(0, pi, length.out = 9)) |>
   mutate(new_a = purrr::pmap_dbl(list(old_a, y), \(a, y) update_fun(a = a, y = y, i = 1)),
@@ -366,6 +386,7 @@ where $\epsilon_t$ is normally distributed noise, and we restrict to $[0, \pi)$.
 We fix the c parameter of the sdm to 8. For algorithm 4, adding randomly distributed noise around the intended arc response has a small-to-moderate effect on reducing the reward. But that effect seems to be reducing only the amplitude, and not the convergence properties of the algorithm. The plots below show the average reward, hit rate and arc width over trial averaged over 50 runs of the algorithm, with ribbons showing the 95% range of runs.
 
 ```{r}
+#| label: algo4-clipped-noise
 clipped_noise <- function(..., sd, algo_fun) {
   min(pi, max(0, algo_fun(...) + rnorm(1, sd = sd)))
 }
@@ -390,6 +411,7 @@ ribbon_summary_runs(
 That is not true for algorithm 5, whose performance drastically deteriorates with this type of noise. The noise added to the true response is likely interfering with the gradient estimation.
 
 ```{r}
+#| label: algo5-clipped-noise
 #| fig-asp: 0.5
 ribbon_summary_runs(
   alg_list = list(
@@ -430,6 +452,7 @@ $$
 For algorithm 4, everything is stable as before, so we could use this for stable estimation:
 
 ```{r}
+#| label: algo4-logit-noise
 #| fig-asp: 0.5
 logit_noise <- function(..., sd, algo_fun) {
   inv_logit(logit(algo_fun(...)/pi) + rnorm(1, sd = sd))*pi
@@ -454,6 +477,7 @@ ribbon_summary_runs(
 Also for algorithm 5, there is no significant difference to clipping the noise on the native scale. The noise would have to be very tiny not to deteriorate performance.
 
 ```{r}
+#| label: algo5-logit-noise
 #| fig-asp: 0.5
 ribbon_summary_runs(
   alg_list = list(
@@ -587,6 +611,7 @@ $$
 The `algo5_noisy_grad` function in `R/arc-models.R` implements this model. Unlike the logit-noise wrapper (which computes the deterministic update on the native scale and then perturbs on the logit scale), here the entire update---gradient plus noise---is applied on the unconstrained logit scale $x_t = \operatorname{logit}(a_t/\pi)$.
 
 ```{r}
+#| label: algo5-noisy-gradient-summary
 #| fig-asp: 0.5
 ribbon_summary_runs(
   alg_list = list(
@@ -610,6 +635,7 @@ Because the noise multiplies $\delta_t$ (which decays over trials), even substan
 Individual runs across several memory-strength values:
 
 ```{r}
+#| label: algo5-noisy-gradient-spaghetti
 #| fig-width: 9
 #| fig-height: 15
 spaghetti_single_runs(

@@ -39,18 +39,26 @@ website:
             href: notebooks/exp1-by-subject.qmd
           - text: "Honig et al.: Data Exploration"
             href: notebooks/honig-explore.qmd
-      - section: "Theory & Modeling"
+      - section: "Theory & Model derivations"
         contents:
           - text: "Optimal Arc Width (SDM)"
             href: notebooks/optimal-arc-response.qmd
           - text: "RL Algorithms: Exploration"
             href: notebooks/reinforcement-learning-arc.qmd
-          - section: Model diagnostics
-            contents:
-              - text: "Noisy contraction-expansion (algo4), MLE"
-                href: notebooks/fitting-rl-algorithms-algo4-mle.qmd
-              - text: "Stochastic gradient ascent (algo5), MLE"
-                href: notebooks/fitting-rl-algorithms-algo5-mle.qmd
+      - section: Model diagnostics
+        contents:
+          - text: "Contraction-expansion (algo4), MLE"
+            href: notebooks/diagnostics-algo4-mle.qmd
+          - text: "Contraction-expansion (algo4), Bayesian"
+            href: notebooks/diagnostics-algo4-bayes.qmd
+          - text: "Stochastic gradient ascent (algo5), MLE"
+            href: notebooks/diagnostics-algo5-mle.qmd
+          - text: "Stochastic gradient ascent (algo5), Bayesian"
+            href: notebooks/diagnostics-algo5-bayes.qmd
+      - section: "Model Fits"
+        contents:
+          - text: "Algo4 Bayesian fit (Exp 1)"
+            href: notebooks/fit-algo4-bayes.qmd
       - section: "Empirical Tests"
         contents:
           - text: "Sequential Dependencies"

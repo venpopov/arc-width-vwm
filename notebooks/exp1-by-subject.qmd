@@ -10,6 +10,7 @@ Preprocessed data: `output/exp1_data.csv`.
 :::
 
 ```{r}
+#| label: setup-exp1-data
 #| message: false
 library(tidyverse)
 exp1 <- read.csv("output/exp1_data.csv")
@@ -18,6 +19,7 @@ exp1 <- read.csv("output/exp1_data.csv")
 ## Point response error
 
 ```{r}
+#| label: plot-resperr-hist
 #| fig-width: 10
 #| fig-height: 10
 exp1 |> 
@@ -31,6 +33,7 @@ exp1 |>
 ## Arc widths
 
 ```{r}
+#| label: plot-arc-hist
 #| fig-width: 10
 #| fig-height: 10
 exp1 |> 
@@ -44,6 +47,7 @@ exp1 |>
 ## Side by side
 
 ```{r}
+#| label: plot-side-by-side
 #| fig-width: 4
 #| fig-height: 80
 exp1 |> 

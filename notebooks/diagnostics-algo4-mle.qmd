@@ -3,7 +3,8 @@ title: "Model diagnostics: contraction-expansion (algo4) with logit noise, MLE"
 format: html
 ---
 
-```{r setup, cache = FALSE}
+```{r cache = FALSE}
+#| label: setup
 #| message: false
 library(tidyverse)
 library(bmm)
@@ -61,6 +62,7 @@ known parameters. We use `run_arc_algorithm` which feeds SDM-generated response
 errors `y` through the update function trial by trial.
 
 ```{r}
+#| label: simulate-data
 true_pars <- list(c = 6, kappa = 3, delta = 0.1, sigma_e = 0.2)
 
 set.seed(4233)
@@ -102,6 +104,7 @@ We initialise at perturbed values (not the truth) to verify that the optimiser
 can recover the generating parameters.
 
 ```{r}
+#| label: fit-optim
 init_pars <- list(c = 3, kappa = 5, delta = 0.05, sigma_e = 0.5)
 theta0 <- par_to_unconstrained_algo4(init_pars)
 
@@ -120,6 +123,7 @@ fit$convergence  # 0 = success
 ## Compare estimated vs true parameters
 
 ```{r}
+#| label: compare-params
 estimated <- par_from_unconstrained_algo4(fit$par)
 
 comparison <- tibble(
@@ -137,6 +141,7 @@ A quick sanity check: evaluate the likelihood over a grid around each MLE
 estimate while holding the others fixed, to confirm we are at a peak.
 
 ```{r}
+#| label: likelihood-profile
 #| fig-width: 9
 #| fig-height: 6
 best_theta <- fit$par
@@ -226,6 +231,7 @@ recovery_est <- with_cache("output/algo4_recovery_est.rds", {
 Tag iterations where at least one estimate exceeds 4× the max true generating value:
 
 ```{r}
+#| label: tag-recovery
 est_cols <- c("c_est", "kappa_est", "delta_est", "sigma_e_est")
 true_cols <- c("c", "kappa", "delta", "sigma_e")
 thresholds <- 4 * sapply(true_cols, \(col) max(recovery_true[[col]]))
@@ -238,6 +244,7 @@ recovery_est$bad <- rowSums(outlier_mat, na.rm = TRUE) > 0
 Join true and estimated values and reshape for plotting:
 
 ```{r}
+#| label: build-recovery-df
 recovery_df <- recovery_true |>
   left_join(recovery_est, by = "iter") |>
   pivot_longer(
@@ -264,6 +271,7 @@ cat("Bad parameter estimates:", sum(recovery_est$bad), "/", n_recovery,
 Correlations between true and estimated values (converged runs only):
 
 ```{r}
+#| label: recovery-correlations
 recovery_df |>
   filter(converged, !bad) |>
   group_by(parameter) |>
@@ -328,6 +336,206 @@ binned_df <- plot_df |>
   )
 
 ggplot(binned_df, aes(x = true_mid)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  geom_ribbon(aes(ymin = q025, ymax = q975), alpha = 0.15, fill = "steelblue") +
+  geom_ribbon(aes(ymin = q10, ymax = q90), alpha = 0.3, fill = "steelblue") +
+  geom_line(aes(y = median_est), color = "steelblue", linewidth = 0.8) +
+  facet_wrap(~parameter, scales = "free") +
+  labs(x = "True value", y = "Estimated value")
+```
+
+## Shuffled-trial diagnostics
+
+This test checks whether the model can recover learning-related parameters
+from variability alone. Shuffling the trials should destroy the sequential
+dependencies that the algorithm relies on, so any recovery here reflects
+information not tied to trial-to-trial structure.
+
+### Shuffled-trial fits
+
+Shuffle the trial order of the simulated dataset 1000 times and fit the model
+each time. This destroys trial-to-trial dependencies while keeping the same
+observed marginal distributions.
+
+```{r}
+#| label: shuffled-trial-fits
+set.seed(2027)
+n_shuffle <- 1000
+
+fit_shuffled_once <- function(y, a) {
+  idx <- sample.int(length(y))
+  y_s <- y[idx]
+  a_s <- a[idx]
+
+  theta0 <- par_to_unconstrained_algo4(init_pars)
+  fit <- tryCatch(
+    optim(par = theta0, fn = neg_loglik_algo4, y = y_s, a = a_s,
+          method = "Nelder-Mead",
+          control = list(maxit = 5000, reltol = 1e-10)),
+    error = \(e) list(par = rep(NA_real_, 4), convergence = 99)
+  )
+
+  est <- par_from_unconstrained_algo4(fit$par)
+  tibble(
+    c = est$c, kappa = est$kappa,
+    delta = est$delta, sigma_e = est$sigma_e,
+    converged = fit$convergence == 0
+  )
+}
+
+shuffle_fits <- with_cache("output/algo4_shuffle_fits.rds", {
+  purrr::map_dfr(seq_len(n_shuffle), \(i) fit_shuffled_once(sim$y, sim$a))
+})
+
+shuffle_long <- shuffle_fits |>
+  pivot_longer(
+    cols = c(c, kappa, delta, sigma_e),
+    names_to = "parameter",
+    values_to = "estimated"
+  )
+
+ggplot(shuffle_long, aes(x = estimated)) +
+  geom_histogram(bins = 40, fill = "steelblue", color = "white") +
+  geom_vline(
+    data = tibble(parameter = names(true_pars), true_value = unlist(true_pars)),
+    aes(xintercept = true_value), color = "red", linetype = "dashed"
+  ) +
+  facet_wrap(~parameter, scales = "free") +
+  labs(x = "Estimated value", y = "Count",
+       caption = "Red dashed = generating parameter (unshuffled data)")
+```
+
+### Parameter recovery with shuffled trials
+
+Repeat the recovery analysis, but shuffle the trial order once before fitting
+each simulated dataset.
+
+```{r}
+#| label: shuffled-recovery-fit
+fit_one_shuffled <- function(iter, c, kappa, delta, sigma_e) {
+  sim <- run_arc_algorithm(
+    arc_update_fun = algo4_logit_noise(delta = delta, sigma_e = sigma_e),
+    c = c, kappa = kappa, init_arc = pi / 2, n_trials = n_trials
+  )
+
+  idx <- sample.int(length(sim$y))
+  sim$y <- sim$y[idx]
+  sim$a <- sim$a[idx]
+
+  theta0 <- par_to_unconstrained_algo4(list(
+    c = 4, kappa = 4, delta = 0.1, sigma_e = 0.3
+  ))
+
+  fit <- tryCatch(
+    optim(par = theta0, fn = neg_loglik_algo4, y = sim$y, a = sim$a,
+          method = "Nelder-Mead",
+          control = list(maxit = 5000, reltol = 1e-10)),
+    error = \(e) list(par = rep(NA_real_, 4), convergence = 99)
+  )
+
+  est <- par_from_unconstrained_algo4(fit$par)
+  tibble(
+    iter = iter,
+    c_est = est$c, kappa_est = est$kappa,
+    delta_est = est$delta, sigma_e_est = est$sigma_e,
+    converged = fit$convergence == 0
+  )
+}
+
+recovery_est_shuffled <- with_cache("output/algo4_recovery_est_shuffled.rds", {
+  purrr::pmap_dfr(recovery_true, fit_one_shuffled)
+})
+
+outlier_mat_shuffled <- sapply(seq_along(est_cols), \(j) {
+  recovery_est_shuffled[[est_cols[j]]] > thresholds[j]
+})
+recovery_est_shuffled$bad <- rowSums(outlier_mat_shuffled, na.rm = TRUE) > 0
+
+recovery_df_shuffled <- recovery_true |>
+  left_join(recovery_est_shuffled, by = "iter") |>
+  pivot_longer(
+    cols = c(c, kappa, delta, sigma_e),
+    names_to = "parameter",
+    values_to = "true_value"
+  ) |>
+  mutate(
+    estimated = case_when(
+      parameter == "c" ~ c_est,
+      parameter == "kappa" ~ kappa_est,
+      parameter == "delta" ~ delta_est,
+      parameter == "sigma_e" ~ sigma_e_est
+    )
+  ) |>
+  select(iter, parameter, true_value, estimated, converged, bad)
+
+cat("Converged:", sum(recovery_est_shuffled$converged), "/", n_recovery,
+    sprintf("(%.1f%%)", 100 * mean(recovery_est_shuffled$converged)), "\n")
+cat("Bad parameter estimates:", sum(recovery_est_shuffled$bad), "/", n_recovery,
+    sprintf("(%.1f%%)", 100 * mean(recovery_est_shuffled$bad)), "\n")
+```
+
+```{r}
+#| label: shuffled-recovery-correlations
+recovery_df_shuffled |>
+  filter(converged, !bad) |>
+  group_by(parameter) |>
+  summarise(
+    r = cor(true_value, estimated),
+    rmse = sqrt(mean((true_value - estimated)^2)),
+    bias = mean(estimated - true_value),
+    .groups = "drop"
+  )
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| label: fig-recovery-shuffled
+#| fig-cap: "Parameter recovery with shuffled trials. Each point is one simulated dataset. The dashed line is the identity."
+
+plot_df_shuffled <- recovery_df_shuffled |> filter(converged, !bad)
+
+cor_labels_shuffled <- plot_df_shuffled |>
+  group_by(parameter) |>
+  summarise(
+    r = cor(true_value, estimated),
+    x = -Inf, y = Inf,
+    .groups = "drop"
+  ) |>
+  mutate(label = sprintf("r = %.2f", r))
+
+plot_df_shuffled |>
+  ggplot(aes(x = true_value, y = estimated)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  geom_point(aes(color = converged), alpha = 0.1, size = 1.5) +
+  geom_text(data = cor_labels_shuffled, aes(x = x, y = y, label = label),
+            hjust = -0.1, vjust = 1.3, inherit.aes = FALSE, size = 4) +
+  facet_wrap(~parameter, scales = "free") +
+  scale_color_manual(values = c("TRUE" = "steelblue", "FALSE" = "red")) +
+  labs(x = "True value", y = "Estimated value", color = "Converged")
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| label: fig-recovery-binned-shuffled
+#| fig-cap: "Binned parameter recovery with shuffled trials. Line = median estimate per bin; dark ribbon = 80% interval; light ribbon = 95% interval."
+
+binned_df_shuffled <- plot_df_shuffled |>
+  group_by(parameter) |>
+  mutate(bin = cut(true_value, breaks = 20, labels = FALSE)) |>
+  group_by(parameter, bin) |>
+  summarise(
+    true_mid = mean(true_value),
+    median_est = median(estimated),
+    q025 = quantile(estimated, 0.025),
+    q10 = quantile(estimated, 0.10),
+    q90 = quantile(estimated, 0.90),
+    q975 = quantile(estimated, 0.975),
+    .groups = "drop"
+  )
+
+ggplot(binned_df_shuffled, aes(x = true_mid)) +
   geom_abline(linetype = "dashed", color = "grey50") +
   geom_ribbon(aes(ymin = q025, ymax = q975), alpha = 0.15, fill = "steelblue") +
   geom_ribbon(aes(ymin = q10, ymax = q90), alpha = 0.3, fill = "steelblue") +

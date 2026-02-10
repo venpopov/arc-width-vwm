@@ -1,0 +1,410 @@
+---
+title: "Model diagnostics: contraction-expansion (algo4) with logit noise, Bayesian"
+format: html
+---
+
+```{r cache = FALSE}
+#| label: setup
+#| message: false
+library(tidyverse)
+library(brms)
+library(bmm)
+source("R/arc-models.R")
+source("R/utils.R")
+source("R/math.R")
+```
+
+::: {.callout-note}
+## Prerequisites
+This notebook fits the contraction-expansion model (algo4) with logit-scale noise
+via full Bayesian inference using `brms` and custom Stan code. The same model is
+fitted by MLE in [algo4 MLE diagnostics](diagnostics-algo4-mle.qmd).
+The SDM model and optimality derivation are described in
+[Optimal Arc Width (SDM)](optimal-arc-response.qmd).
+:::
+
+## Task and model summary
+
+On each trial a participant reports a remembered color (continuous response) and
+sets a symmetric **arc** of half-width $a_t \in (0,\pi)$ around it. Points are
+awarded as
+$$
+p_t = (\pi - a_t)\,\mathbf{1}\!\bigl[|y_t| \le a_t\bigr],
+$$
+where $y_t$ is the signed response error. Wider arcs are safer but earn fewer
+points, creating an accuracy–confidence tradeoff.
+[Empirically, participants' arc widths are near-optimal](optimal-arc-response.html)
+given their error distributions.
+
+**Response errors** are modelled by the
+[Signal Discrimination Model](https://venpopov.github.io/bmm/articles/bmm_sdm_simple.html)
+(SDM):
+$$
+y_t \sim \text{SDM}(c,\kappa).
+$$
+
+**Deterministic arc-width update (algo4).** On each trial the arc contracts
+toward 0 on a hit and expands toward $\pi$ on a miss, with step-size
+$\delta \in (0,1)$:
+$$
+\tilde{a}_{t+1} = a_t\,(1-\delta) + \mathbf{1}\!\bigl[|y_t|>a_t\bigr]\,\delta\,\pi.
+$$
+
+**Logit-noise stochastic extension.** To make the model estimable, we add
+Gaussian noise on the unconstrained logit scale. Define
+$$
+\tilde{x}_{t+1} = \operatorname{logit}\!\left(\tilde{a}_{t+1}/\pi\right),
+$$
+then the stochastic transition is
+$$
+x_{t+1} = \tilde{x}_{t+1} + \varepsilon_t, \qquad
+\varepsilon_t \sim \mathcal{N}(0,\sigma_\varepsilon^2),
+$$
+so that $a_{t+1} = \pi\,\sigma(x_{t+1})$ is guaranteed to lie in $(0,\pi)$
+without clipping.
+
+**Joint log-likelihood.** Because $x_{t+1} \mid a_t, y_t$ is normal, the full
+log-likelihood decomposes as
+$$
+\ell(\theta) =
+\underbrace{\sum_{t=1}^{T}\log f_{\text{SDM}}(y_t \mid c,\kappa)}_{\text{response errors}}
+\;+\;
+\underbrace{\sum_{t=1}^{T-1}\log\phi\!\left(x_{t+1};\; \tilde{x}_{t+1},\; \sigma_\varepsilon\right)}_{\text{arc transitions}},
+$$
+with parameter vector $\theta=(c,\kappa,\delta,\sigma_\varepsilon)$.
+
+## Custom brms family and Stan code
+
+We define a `brms` custom family whose log-likelihood is implemented by the
+`sdm_algo4_lpdf` Stan function in `stan/sdm_algo4_likelihood.stan`. The SDM
+numerator and normalization are provided by `bmm`'s Stan chunks.
+
+```{r}
+#| label: define-family-stanvars
+sdm_algo4 <- custom_family(
+  "sdm_algo4",
+  dpars = c("mu", "c", "kappa", "delta", "asigma"),
+  links = c("tan_half", "identity", "log", "logit", "log"),
+  type = "real",
+  loop = FALSE,
+  vars = "vreal1"
+)
+
+stanvars <- sdm_base_stanvars() +
+  stanvar(
+    scode = read_file("stan/sdm_algo4_likelihood.stan"),
+    block = "functions"
+  )
+```
+
+## Priors
+
+For c and kappa we use the default bmm priors. For delta and asigma we use a weakly informative prior that has more mass close to 0 but allows potentially larger values for normalization.
+
+```{r}
+#| label: define-priors
+prior <- set_prior("constant(0)", dpar = "mu", class = "Intercept") +
+  set_prior("student_t(5, 2, 0.75)", dpar = "c", class = "Intercept") +
+  set_prior("student_t(5, 1.75, 0.75)", dpar = "kappa", class = "Intercept") +
+  set_prior("normal(-3.5, 2)", dpar = "delta", class = "Intercept") +
+  set_prior("normal(-3.5, 2)", dpar = "asigma", class = "Intercept")
+```
+
+## Simulate data
+
+Generate a single subject's worth of data from the algo4 logit-noise model with
+known parameters.
+
+```{r}
+#| label: simulate-data
+true_pars <- list(c = 6, kappa = 3, delta = 0.1, sigma_e = 0.2)
+
+set.seed(4233)
+sim <- run_arc_algorithm(
+  arc_update_fun = algo4_logit_noise(
+    delta = true_pars$delta,
+    sigma_e = true_pars$sigma_e
+  ),
+  c = true_pars$c,
+  kappa = true_pars$kappa,
+  init_arc = pi / 8,
+  n_trials = 1000
+)
+
+sim_data <- tibble(y = sim$y, a = sim$a)
+
+par(mfrow = c(1, 3))
+plot(sim$a, type = "l", xlab = "Trial", ylab = "Arc width")
+hist(sim$a, xlab = "Arc width")
+hist(sim$y, xlab = "Response error")
+par(mfrow = c(1, 1))
+```
+
+## Fit simulated data with brms
+
+We fit the model using `brms` with the custom family and Stan code defined
+above. The `vreal(a)` syntax passes the arc-width vector as additional data to
+the Stan likelihood.
+
+```{r}
+#| label: fit-sim
+fit_sim <- brm(
+  bf(y | vreal(a) ~ 1, c ~ 1, kappa ~ 1, delta ~ 1, asigma ~ 1),
+  prior = prior,
+  data = sim_data, family = sdm_algo4, stanvars = stanvars,
+  backend = "cmdstanr", cores = 4, init = 0,
+  file = "output/algo4_bayes_sim_fit.rds", file_refit = "on_change"
+)
+```
+
+## Diagnostics
+
+```{r}
+#| label: fit-summary
+summary(fit_sim)
+```
+
+```{r}
+#| label: fit-plot
+#| fig-width: 10
+#| fig-height: 6
+plot(fit_sim)
+```
+
+## Compare estimated vs true parameters
+
+Extract posterior means and compare to generating values.
+
+```{r}
+#| label: compare-params
+sdm4_pars_from_fit <- function(fit) {
+  est <- fixef(fit)[-1, 1]
+  list(
+    c = exp(est["c_Intercept"]),
+    kappa = exp(est["kappa_Intercept"]),
+    delta = inv_logit(est["delta_Intercept"]),
+    sigma_e = exp(est["asigma_Intercept"])
+  )
+}
+
+estimated <- sdm4_pars_from_fit(fit_sim)
+
+comparison <- tibble(
+  parameter = names(true_pars),
+  true_value = unlist(true_pars),
+  estimated = unlist(estimated)
+)
+comparison
+```
+
+## Posterior predictive check: simulated arc trajectories
+
+Simulate arc trajectories from the posterior to check whether the fitted model
+reproduces the observed arc dynamics.
+
+```{r}
+#| label: pp-arc-trajectories
+#| fig-width: 10
+#| fig-height: 5
+est <- estimated
+sim_pp <- run_arc_algorithm(
+  arc_update_fun = algo4_logit_noise(
+    delta = est$delta,
+    sigma_e = est$sigma_e
+  ),
+  c = est$c,
+  kappa = est$kappa,
+  init_arc = sim$a[1],
+  n_trials = nrow(sim_data)
+)
+
+par(mfrow = c(1, 2))
+plot(sim$a, type = "l", xlab = "Trial", ylab = "Arc width", main = "Arc trajectory")
+lines(sim_pp$a, col = "red")
+legend("topright", c("Data", "Posterior"), col = c("black", "red"), lty = 1)
+
+plot(density(sim$a), main = "Arc width distribution")
+lines(density(sim_pp$a), col = "red")
+legend("topright", c("Data", "Posterior"), col = c("black", "red"), lty = 1)
+par(mfrow = c(1, 1))
+```
+
+## Parameter recovery
+
+Assess parameter recovery for the Bayesian version by simulating many datasets, fitting each with `brms`, and extracting only summary statistics and convergence diagnostics (not saving full fits).
+
+```{r}
+#| label: param-recovery-bayes
+n_recovery <- 1000  
+n_trials <- 1000
+set.seed(2026)
+
+recovery_true <- tibble(
+  iter = seq_len(n_recovery),
+  c = runif(n_recovery, 1, 10),
+  kappa = runif(n_recovery, 1, 10),
+  delta = runif(n_recovery, 0.01, 0.5),
+  sigma_e = runif(n_recovery, 0.01, 1)
+)
+
+fit_one_bayes <- function(iter, c, kappa, delta, sigma_e) {
+  sim <- run_arc_algorithm(
+    arc_update_fun = algo4_logit_noise(delta = delta, sigma_e = sigma_e),
+    c = c, kappa = kappa, init_arc = pi / 2, n_trials = n_trials
+  )
+  sim_data <- tibble(y = sim$y, a = sim$a)
+  
+  fit <- tryCatch(
+    brm(
+      bf(y | vreal(a) ~ 1, c ~ 1, kappa ~ 1, delta ~ 1, asigma ~ 1),
+      prior = prior,
+      data = sim_data, family = sdm_algo4, stanvars = stanvars,
+      backend = "cmdstanr", cores = 4,
+      refresh = 0, silent = 2
+    ),
+    error = function(e) NULL
+  )
+  if (is.null(fit)) {
+    return(tibble(
+      iter = iter, c_est = NA, kappa_est = NA, delta_est = NA, sigma_e_est = NA,
+      rhat_max = NA, neff_min = NA, converged = FALSE
+    ))
+  }
+  est <- tryCatch({
+    s <- fixef(fit)[-1, 1]
+    list(
+      c = exp(s["c_Intercept"]),
+      kappa = exp(s["kappa_Intercept"]),
+      delta = inv_logit(s["delta_Intercept"]),
+      sigma_e = exp(s["asigma_Intercept"])
+    )
+  }, error = function(e) list(c = NA, kappa = NA, delta = NA, sigma_e = NA))
+  rhat_max <- max(posterior::rhat(fit), na.rm = TRUE)
+  tibble(
+    iter = iter,
+    c_est = est$c, kappa_est = est$kappa,
+    delta_est = est$delta, sigma_e_est = est$sigma_e,
+    rhat_max = rhat_max, converged = (rhat_max < 1.1)
+  )
+}
+
+recovery_est_bayes <- with_cache(
+  "output/algo4_recovery_bayes.rds",
+  purrr::pmap_dfr(recovery_true, fit_one_bayes, .progress = TRUE)
+)
+```
+
+Tag iterations with poor convergence or extreme estimates:
+
+```{r}
+#| label: tag-recovery-outliers
+est_cols <- c("c_est", "kappa_est", "delta_est", "sigma_e_est")
+true_cols <- c("c", "kappa", "delta", "sigma_e")
+thresholds <- 4 * sapply(true_cols, function(col) max(recovery_true[[col]], na.rm = TRUE))
+outlier_mat <- sapply(seq_along(est_cols), function(j) {
+  recovery_est_bayes[[est_cols[j]]] > thresholds[j]
+})
+recovery_est_bayes$bad <- rowSums(outlier_mat, na.rm = TRUE) > 0 | !recovery_est_bayes$converged
+```
+
+Join true and estimated values and reshape for plotting:
+
+```{r}
+#| label: build-recovery-df
+recovery_df_bayes <- recovery_true |>
+  left_join(recovery_est_bayes, by = "iter") |>
+  pivot_longer(
+    cols = c(c, kappa, delta, sigma_e),
+    names_to = "parameter",
+    values_to = "true_value"
+  ) |>
+  mutate(
+    estimated = case_when(
+      parameter == "c" ~ c_est,
+      parameter == "kappa" ~ kappa_est,
+      parameter == "delta" ~ delta_est,
+      parameter == "sigma_e" ~ sigma_e_est
+    )
+  ) |>
+  select(iter, parameter, true_value, estimated, converged, bad)
+
+cat("Converged:", sum(recovery_est_bayes$converged, na.rm = TRUE), "/", n_recovery,
+    sprintf("(%.1f%%)", 100 * mean(recovery_est_bayes$converged, na.rm = TRUE)), "\n")
+cat("Bad parameter estimates:", sum(recovery_est_bayes$bad, na.rm = TRUE), "/", n_recovery,
+    sprintf("(%.1f%%)", 100 * mean(recovery_est_bayes$bad, na.rm = TRUE)), "\n")
+```
+
+Correlations between true and estimated values (converged runs only):
+
+```{r}
+#| label: recovery-correlations
+recovery_df_bayes |>
+  filter(converged, !bad) |>
+  group_by(parameter) |>
+  summarise(
+    r = cor(true_value, estimated, use = "complete.obs"),
+    rmse = sqrt(mean((true_value - estimated)^2, na.rm = TRUE)),
+    bias = mean(estimated - true_value, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| label: fig-recovery-bayes
+#| fig-cap: "Parameter recovery for the contraction-expansion model with logit noise (Bayesian). Each point is one simulated dataset. The dashed line is the identity."
+
+plot_df <- recovery_df_bayes |> filter(converged, !bad)
+
+cor_labels <- plot_df |>
+  group_by(parameter) |>
+  summarise(
+    r = cor(true_value, estimated, use = "complete.obs"),
+    x = -Inf, y = Inf,
+    .groups = "drop"
+  ) |>
+  mutate(label = sprintf("r = %.2f", r))
+
+plot_df |>
+  ggplot(aes(x = true_value, y = estimated)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  geom_point(aes(color = converged), alpha = 0.5, size = 1.5) +
+  geom_text(data = cor_labels, aes(x = x, y = y, label = label),
+            hjust = -0.1, vjust = 1.3, inherit.aes = FALSE, size = 4) +
+  facet_wrap(~parameter, scales = "free") +
+  scale_color_manual(values = c("TRUE" = "steelblue", "FALSE" = "red")) +
+  labs(x = "True value", y = "Estimated value", color = "Converged")
+```
+
+Binned summary: for each parameter, true values are split into 20 equal-width bins. Within each bin, we show the median estimate (line) and 80%/95% intervals (ribbons).
+
+```{r}
+#| fig-width: 10
+#| fig-height: 8
+#| label: fig-recovery-binned-bayes
+#| fig-cap: "Binned parameter recovery (Bayesian). Line = median estimate per bin; dark ribbon = 80% interval; light ribbon = 95% interval."
+
+binned_df <- plot_df |>
+  group_by(parameter) |>
+  mutate(bin = cut(true_value, breaks = 20, labels = FALSE)) |>
+  group_by(parameter, bin) |>
+  summarise(
+    true_mid = mean(true_value, na.rm = TRUE),
+    median_est = median(estimated, na.rm = TRUE),
+    q025 = quantile(estimated, 0.025, na.rm = TRUE),
+    q10 = quantile(estimated, 0.10, na.rm = TRUE),
+    q90 = quantile(estimated, 0.90, na.rm = TRUE),
+    q975 = quantile(estimated, 0.975, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(binned_df, aes(x = true_mid)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  geom_ribbon(aes(ymin = q025, ymax = q975), alpha = 0.15, fill = "steelblue") +
+  geom_ribbon(aes(ymin = q10, ymax = q90), alpha = 0.3, fill = "steelblue") +
+  geom_line(aes(y = median_est), color = "steelblue", linewidth = 0.8) +
+  facet_wrap(~parameter, scales = "free") +
+  labs(x = "True value", y = "Estimated value")
+```
+

@@ -1,0 +1,145 @@
+---
+title: "Fitting algo4 to experimental data (Bayesian)"
+format: html
+execute: 
+  enabled: false
+---
+
+```{r cache = FALSE}
+#| label: setup
+#| message: false
+library(tidyverse)
+library(brms)
+library(bmm)
+source("R/arc-models.R")
+source("R/utils.R")
+source("R/math.R")
+```
+
+::: {.callout-note}
+## Prerequisites
+This notebook fits the contraction-expansion model (algo4) with logit-scale
+noise to real experimental data using full Bayesian inference. Model diagnostics
+and parameter recovery are in
+[algo4 Bayesian diagnostics](diagnostics-algo4-bayes.qmd). The MLE counterpart
+is in [algo4 MLE diagnostics](diagnostics-algo4-mle.qmd).
+:::
+
+## Model setup
+
+```{r}
+#| label: define-family-stanvars-priors
+sdm_algo4 <- custom_family(
+  "sdm_algo4",
+  dpars = c("mu", "c", "kappa", "delta", "asigma"),
+  links = c("tan_half", "identity", "log", "logit", "log"),
+  type = "real",
+  loop = FALSE,
+  vars = "vreal1"
+)
+
+stanvars <- sdm_base_stanvars() +
+  stanvar(
+    scode = read_file("stan/sdm_algo4_likelihood.stan"),
+    block = "functions"
+  )
+
+prior <- set_prior("constant(0)", dpar = "mu", class = "Intercept") +
+  set_prior("student_t(5, 2, 0.75)", dpar = "c", class = "Intercept") +
+  set_prior("student_t(5, 1.75, 0.75)", dpar = "kappa", class = "Intercept") +
+  set_prior("normal(-3.5, 2)", dpar = "delta", class = "Intercept") +
+  set_prior("normal(-3.5, 2)", dpar = "asigma", class = "Intercept")
+```
+
+## Load data
+
+```{r}
+#| label: load-data
+exp1 <- read_csv("output/exp1_data.csv", show_col_types = FALSE)
+dat <- exp1 |>
+  filter(exp_type == "Time", experimentorder == 1) |>
+  select(subject, experimentorder, blocknumber, trialnumber, setsize, resperr, arc, points) |>
+  mutate(half_arc = arc / 2)
+```
+
+## Single-subject fit
+
+Select one subject and remove trials with zero arc width:
+
+```{r}
+#| label: select-subject
+s1 <- dat |> filter(subject == 6, arc > 0)
+```
+
+```{r}
+#| label: fit-subject
+fit_s1 <- brm(
+  bf(resperr | vreal(half_arc) ~ 1, c ~ 1, kappa ~ 1, delta ~ 1, asigma ~ 1),
+  prior = prior,
+  data = s1, family = sdm_algo4, stanvars = stanvars,
+  backend = "cmdstanr", cores = 4, init = 0,
+  file = "output/fit-algo4-bayes-s6"
+)
+```
+
+```{r}
+#| label: fit-summary
+summary(fit_s1)
+```
+
+```{r}
+#| label: fit-plot
+#| fig-width: 10
+#| fig-height: 6
+plot(fit_s1)
+```
+
+## Posterior predictive check
+
+```{r}
+#| label: extract-fit-params
+sdm4_pars_from_fit <- function(fit) {
+  est <- fixef(fit)[-1, 1]
+  list(
+    c = exp(est["c_Intercept"]),
+    kappa = exp(est["kappa_Intercept"]),
+    delta = inv_logit(est["delta_Intercept"]),
+    sigma_e = exp(est["asigma_Intercept"])
+  )
+}
+```
+
+```{r}
+#| label: pp-arc-plot
+#| fig-width: 10
+#| fig-height: 8
+pars <- sdm4_pars_from_fit(fit_s1)
+
+sim_s1 <- run_arc_algorithm(
+  arc_update_fun = algo4_logit_noise(
+    delta = pars$delta,
+    sigma_e = pars$sigma_e
+  ),
+  c = pars$c,
+  kappa = pars$kappa,
+  init_arc = s1$half_arc[1],
+  n_trials = nrow(s1)
+)
+
+par(mfrow = c(2, 2))
+plot(s1$half_arc, type = "l", xlab = "Trial", ylab = "Arc half-width",
+     main = "Arc trajectory", ylim = c(0, pi))
+lines(sim_s1$a, col = "red")
+legend("topright", c("Data", "Posterior"), col = c("black", "red"), lty = 1)
+
+plot(density(s1$half_arc), main = "Arc width distribution")
+lines(density(sim_s1$a), col = "red")
+abline(v = median(s1$half_arc), lty = 2)
+abline(v = median(sim_s1$a), col = "red", lty = 2)
+legend("topright", c("Data", "Posterior"), col = c("black", "red"), lty = 1)
+
+plot(density(s1$resperr), main = "Response error distribution")
+lines(density(sim_s1$y), col = "red")
+legend("topright", c("Data", "Posterior"), col = c("black", "red"), lty = 1)
+par(mfrow = c(1, 1))
+```

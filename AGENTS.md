@@ -71,6 +71,18 @@ preprocess_honig_data()          # Preprocesses Honig → output/honig_data.csv
 - Use implicit returns at the end of functions (no explicit `return()`)
 - Prefer vector operations over loops
 - Use functional programming where possible
+- Use `with_cache()` wrapper for long computations in R
+- In notebooks, label code chunks via `#| label:` (do not put labels in the chunk header)
+
+Example:
+
+```r
+recovery_est_bayes <- with_cache(
+  "output/algo5_recovery_bayes.rds",
+  purrr::pmap_dfr(recovery_true, fit_one_bayes, .progress = TRUE)
+)
+```
+
 
 ### 🚫 Never
 - Add comments explaining what code does (refactor instead)
@@ -86,13 +98,12 @@ preprocess_honig_data()          # Preprocesses Honig → output/honig_data.csv
 ### ⚠️ Ask First
 - Adding new dependencies
 - Changes to Stan model code in `stan/`
-- Changes to Bayesian model specifications in `R/models.R`
 - Modifying preprocessing logic in `R/data-functions.R` (could invalidate downstream analyses)
 
 ### 🚫 Never
 - Commit secrets or `.env` files
 - Modify content within `<!-- BEGIN USER-SPECIFIED -->` blocks
-- Modify files in `data-raw`, `reference`, `_freeze`, `docs`, `renv`
+- Modify files in `data-raw`, `archive`, `_freeze`, `docs`, `renv`
 - Force push to main
 - Use `setwd()` or `rm(list=ls())` in function files
 
@@ -101,12 +112,9 @@ preprocess_honig_data()          # Preprocesses Honig → output/honig_data.csv
 | What                                       | Where                            |
 | ------------------------------------------ | -------------------------------- |
 | Core RL algorithms & simulation            | `R/arc-models.R`                 |
-| Bayesian model fitting wrappers (bmm/brms) | `R/models.R`                     |
 | Data loading & preprocessing               | `R/data-functions.R`             |
 | Plotting & analysis helpers                | `R/utils.R`                      |
 | Math helpers (logit/inv_logit)             | `R/math.R`                       |
-| Per-subject parameter extraction           | `R/results.R`                    |
-| SDM Stan functions (Chebyshev quadrature)  | `stan/sdm_simple_funs.stan`      |
 | RL algo4 Stan likelihood                   | `stan/sdm_algo4_likelihood.stan` |
 | RL algo5 Stan likelihood                   | `stan/sdm_algo5_likelihood.stan` |
 | Experiment 1 raw data                      | `data-raw/exp1_2021_data.csv`    |
@@ -116,7 +124,7 @@ preprocess_honig_data()          # Preprocesses Honig → output/honig_data.csv
 Notes:
 - (Some) Stan files are **snippets** included via `stanvar()` in brms custom families,
   not standalone models
-- `reference/` contains collaborator-shared scripts or legacy code preserved for consultation
+- `archive/` contains collaborator-shared scripts or legacy code preserved for consultation
   (not executed as part of this project)
 
 ## Architecture
@@ -124,7 +132,6 @@ Notes:
 Data flow:
 ```
 data-raw/  →  R/data-functions.R  →  output/*.csv     (preprocessing)
-R/models.R + stan/  →  brms/bmm   →  output/*.rds      (model fitting)
 R/arc-models.R      →  simulation →  notebooks/         (RL algorithms)
 notebooks/*.qmd     →  quarto     →  docs/              (website)
 ```
@@ -146,9 +153,10 @@ project-specific decisions that might conflict with general best practices
 R/                   # shared functions (source from notebooks); no computations
 stan/                # Stan code snippets included via stanvar() in brms
 data-raw/            # DO NOT MODIFY — raw experimental data
-reference/           # collaborator-shared or legacy scripts — DO NOT MODIFY
+archive/             # collaborator-shared or legacy scripts — DO NOT MODIFY
 notebooks/           # Quarto notebooks reporting computational results
 output/              # computed artifacts (.csv, .rds, .h5) — write here
+meta/                # project logs, planning, other admin
 img/                 # static images
 docs/                # AUTO-GENERATED quarto site — do not edit
 _freeze/             # AUTO-GENERATED quarto cache — do not edit

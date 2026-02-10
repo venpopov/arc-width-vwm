@@ -7,6 +7,22 @@ with_cache <- function(path, expr, force = FALSE) {
   result
 }
 
+sdm_base_stanvars <- function() {
+  sc <- system.file("stan_chunks", package = "bmm")
+  brms::stanvar(
+    scode = readr::read_file(file.path(sc, "sdm_simple_funs.stan")),
+    block = "functions"
+  ) +
+    brms::stanvar(
+      scode = readr::read_file(file.path(sc, "sdm_simple_tdata.stan")),
+      block = "tdata"
+    ) +
+    brms::stanvar(
+      scode = readr::read_file(file.path(sc, "sdm_simple_likelihood.stan")),
+      block = "likelihood", position = "end"
+    )
+}
+
 theme_Publication <- function(base_size = 14) {
   (ggthemes::theme_foundation(base_size = base_size)
   + theme(

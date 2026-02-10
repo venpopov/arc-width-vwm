@@ -12,19 +12,22 @@ This notebook is a preliminary exploration of the Honig dataset — observation 
 Preprocessed data: `output/honig_data.csv` (produced by `R/data-functions.R`).
 :::
 
-```{r setup, warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE}
+#| label: setup
 library(tidyverse)
 ```
 
 This is what the data looks like:
 
 ```{r}
+#| label: load-honig-data
 honig_data <- read.csv("output/honig_data.csv")
 ```
 
 Number of observations per subject and session:
 
 ```{r}
+#| label: obs-by-session
 honig_data |> 
   group_by(subject, session) |> 
   summarise(n = n(),
@@ -37,6 +40,7 @@ note that sessions 1 and 4 use uniformly distributed stimuli, while sessions 2 a
 Response error by subject
 
 ```{r}
+#| label: resperr-by-subject
 ggplot(honig_data, aes(resperr)) +
   geom_histogram() +
   facet_wrap(~subject) +
