@@ -168,12 +168,29 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">Data Exploration</span></a>
+ <span class="menu-text">Experiment Description</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./notebooks/experiment-description.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Experiment Description &amp; Data Codebook</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Data Exploration</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./notebooks/exp1-eda.html" class="sidebar-item-text sidebar-link">
@@ -196,13 +213,13 @@ window.Quarto = {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
  <span class="menu-text">Theory &amp; Modeling</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./notebooks/optimal-arc-response.html" class="sidebar-item-text sidebar-link">
@@ -231,13 +248,13 @@ window.Quarto = {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
  <span class="menu-text">Empirical Tests</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./notebooks/sequential-dependencies.html" class="sidebar-item-text sidebar-link">
@@ -260,6 +277,7 @@ window.Quarto = {
   <li><a href="#datasets" id="toc-datasets" class="nav-link" data-scroll-target="#datasets">Datasets</a></li>
   <li><a href="#guide-to-the-notebooks" id="toc-guide-to-the-notebooks" class="nav-link" data-scroll-target="#guide-to-the-notebooks">Guide to the notebooks</a>
   <ul class="collapse">
+  <li><a href="#experiment-description" id="toc-experiment-description" class="nav-link" data-scroll-target="#experiment-description">Experiment Description</a></li>
   <li><a href="#data-exploration" id="toc-data-exploration" class="nav-link" data-scroll-target="#data-exploration">Data Exploration</a></li>
   <li><a href="#theory-modeling" id="toc-theory-modeling" class="nav-link" data-scroll-target="#theory-modeling">Theory &amp; Modeling</a></li>
   <li><a href="#empirical-tests" id="toc-empirical-tests" class="nav-link" data-scroll-target="#empirical-tests">Empirical Tests</a></li>
@@ -313,6 +331,12 @@ p = (\pi - \alpha) \cdot \mathbf{1}[|y| \le \alpha],
 <section id="guide-to-the-notebooks" class="level2">
 <h2 class="anchored" data-anchor-id="guide-to-the-notebooks">Guide to the notebooks</h2>
 <p>The sidebar groups notebooks into three sections. Here is the recommended reading order:</p>
+<section id="experiment-description" class="level3">
+<h3 class="anchored" data-anchor-id="experiment-description">Experiment Description</h3>
+<ol start="0" type="1">
+<li><a href="./notebooks/experiment-description.html"><strong>Experiment Description &amp; Data Codebook</strong></a> — Describes the experimental design of Experiment 1 and provides codebooks for both raw and preprocessed data files.</li>
+</ol>
+</section>
 <section id="data-exploration" class="level3">
 <h3 class="anchored" data-anchor-id="data-exploration">Data Exploration</h3>
 <ol type="1">
@@ -326,12 +350,13 @@ p = (\pi - \alpha) \cdot \mathbf{1}[|y| \le \alpha],
 <ol start="4" type="1">
 <li><a href="./notebooks/optimal-arc-response.html"><strong>Optimal Arc Width (SDM)</strong></a> — Derives the theoretically optimal arc width for any given memory error distribution. Fits the Signal Detection Model (SDM) and shows that empirical arc widths are remarkably close to optimal. <em>Key notebook.</em></li>
 <li><a href="./notebooks/reinforcement-learning-arc.html"><strong>RL Algorithms: Exploration</strong></a> — Develops and simulates five reinforcement learning algorithms (algo1–5) for trial-by-trial arc-width adaptation, progressing from simple heuristics to a noisy stochastic-gradient model. <em>Key notebook.</em></li>
-<li><a href="./notebooks/fitting-rl-algorithms-algo5-mle.html"><strong>Model Fitting: MLE &amp; Recovery</strong></a> — Implements maximum-likelihood estimation for the noisy-gradient model (algo5), validates identifiability via 10,000-iteration parameter recovery.</li>
+<li><a href="./notebooks/fitting-rl-algorithms-algo4-mle.html"><strong>Model Fitting: contraction-expansion (algo4), MLE</strong></a> — Implements maximum-likelihood estimation for the contraction-expansion model (algo4) with logit-scale noise, validates identifiability via 10,000-iteration parameter recovery.</li>
+<li><a href="./notebooks/fitting-rl-algorithms-algo5-mle.html"><strong>Model Fitting: noisy-gradient (algo5), MLE</strong></a> — Implements maximum-likelihood estimation for the noisy-gradient model (algo5), validates identifiability via 10,000-iteration parameter recovery.</li>
 </ol>
 </section>
 <section id="empirical-tests" class="level3">
 <h3 class="anchored" data-anchor-id="empirical-tests">Empirical Tests</h3>
-<ol start="7" type="1">
+<ol start="8" type="1">
 <li><a href="./notebooks/sequential-dependencies.html"><strong>Sequential Dependencies</strong></a> — Tests whether participants actually adapt arc width after hits/misses, as predicted by the RL models. Controls for regression to the mean via bootstrap shuffling.</li>
 </ol>
 </section>
