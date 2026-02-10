@@ -25,6 +25,8 @@ website:
     contents:
       - text: "Home"
         href: index.qmd
+      - text: "Experiment Description & Codebook"
+        href: notebooks/experiment-description.qmd
       - section: "Data Exploration"
         contents:
           - text: "Exp 1: Exploratory Analysis"
@@ -39,7 +41,9 @@ website:
             href: notebooks/optimal-arc-response.qmd
           - text: "RL Algorithms: Exploration"
             href: notebooks/reinforcement-learning-arc.qmd
-          - text: "Model Fitting: noisy-gradient (algo5), MLE"
+          - text: "Model Diagnostics: contraction-expansion (algo4), MLE"
+            href: notebooks/fitting-rl-algorithms-algo4-mle.qmd
+          - text: "Model Diagnostics: noisy-gradient (algo5), MLE"
             href: notebooks/fitting-rl-algorithms-algo5-mle.qmd
       - section: "Empirical Tests"
         contents:
