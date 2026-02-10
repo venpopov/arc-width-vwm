@@ -152,7 +152,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/reinforcement-learning-arc.html">RL Algorithms: Exploration</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Model derivations</a></li><li class="breadcrumb-item"><a href="../notebooks/reinforcement-learning-arc.html">RL Algorithms: Exploration</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -223,7 +223,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
- <span class="menu-text">Theory &amp; Modeling</span></a>
+ <span class="menu-text">Theory &amp; Model derivations</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -241,40 +241,69 @@ window.Quarto = {
  <span class="menu-text">RL Algorithms: Exploration</span></a>
   </div>
 </li>
-          <li class="sidebar-item sidebar-item-section">
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
  <span class="menu-text">Model diagnostics</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/fitting-rl-algorithms-algo4-mle.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Noisy contraction-expansion (algo4), MLE</span></a>
+  <a href="../notebooks/diagnostics-algo4-mle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Contraction-expansion (algo4), MLE</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/fitting-rl-algorithms-algo5-mle.html" class="sidebar-item-text sidebar-link">
+  <a href="../notebooks/diagnostics-algo4-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Contraction-expansion (algo4), Bayesian</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/diagnostics-algo5-mle.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Stochastic gradient ascent (algo5), MLE</span></a>
   </div>
 </li>
-      </ul>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/diagnostics-algo5-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Stochastic gradient ascent (algo5), Bayesian</span></a>
+  </div>
 </li>
       </ul>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
- <span class="menu-text">Empirical Tests</span></a>
+ <span class="menu-text">Model Fits</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/fit-algo4-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algo4 Bayesian fit (Exp 1)</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Empirical Tests</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../notebooks/sequential-dependencies.html" class="sidebar-item-text sidebar-link">
@@ -326,7 +355,7 @@ window.Quarto = {
   </ul><div class="toc-actions"><ul><li><a href="https://github.com/venpopov/arc-width-vwm/edit/main/notebooks/reinforcement-learning-arc.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/blob/main/notebooks/reinforcement-learning-arc.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/reinforcement-learning-arc.html">RL Algorithms: Exploration</a></li></ol></nav><div class="quarto-title">
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Model derivations</a></li><li class="breadcrumb-item"><a href="../notebooks/reinforcement-learning-arc.html">RL Algorithms: Exploration</a></li></ol></nav><div class="quarto-title">
 <h1 class="title">Explore reinforcement learning algorithms</h1>
 </div>
 
@@ -385,7 +414,7 @@ a_{n+1} = a_n \pm \delta a_n = a_n (1 \pm \delta)
 <span>  <span class="fu">plot_algorithm_run</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo1-single-run-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -422,67 +451,67 @@ a_{n+1} = a_n \pm \delta a_n = a_n (1 \pm \delta)
 </ul>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-1.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-2.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-2.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-3.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-3.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-4.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-4.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-5-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-5.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-5.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-6" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-6-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-6.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-6.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-7" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-7-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-7.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-7.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-8" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-8-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-8.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-8.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-9" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-9-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-9.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-9.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-10" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-10-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-10.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-10.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-11" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-11-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-11.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-11.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-12" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-12-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-12.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-12.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-13" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-13-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-13.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-13.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-14" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-14-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-14.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-14.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-15" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-15-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-15.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-15.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-16" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-16-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-16.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-16.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-17" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-17-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-17.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-17.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-18" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-18-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-18.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-18.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-19" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-19-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-19.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-19.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-20" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-20-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-20.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-20.png" class="img-fluid" width="672"></p>
 </div>
 <div id="tabset-1-21" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-21-tab">
-<p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-3-21.png" class="img-fluid" width="672"></p>
+<p><img src="reinforcement-learning-arc_files/figure-html/algo1-hist-by-c-21.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </div>
@@ -491,7 +520,7 @@ a_{n+1} = a_n \pm \delta a_n = a_n (1 \pm \delta)
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">cs</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">out</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">phit</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo1-hit-rate-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -503,7 +532,7 @@ a_{n+1} = a_n \pm \delta a_n = a_n (1 \pm \delta)
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">deltas</span>, <span class="va">phit</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo1-delta-phit-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -520,7 +549,7 @@ a_{n+1} = a_n \left(1-\delta\right)^{\pm1}
 <span>  <span class="fu">plot_algorithm_run</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo2-single-run-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -530,7 +559,7 @@ a_{n+1} = a_n \left(1-\delta\right)^{\pm1}
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">cs</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">out</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">phit</span><span class="op">)</span>, ylab <span class="op">=</span> <span class="st">"Hit rate"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo2-phit-by-c-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -539,7 +568,7 @@ a_{n+1} = a_n \left(1-\delta\right)^{\pm1}
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">deltas</span>, <span class="va">phits</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo2-phit-by-c-2.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -554,7 +583,7 @@ a_{n+1} = a_n + \delta \, (|y_n|-a_n)
 <span>  <span class="fu">plot_algorithm_run</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo3-single-run-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -564,7 +593,7 @@ a_{n+1} = a_n + \delta \, (|y_n|-a_n)
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">cs</span>, <span class="va">phits</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo3-phit-by-c-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -575,7 +604,7 @@ a_{n+1} = a_n + \delta \, (|y_n|-a_n)
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">cs</span>, <span class="va">phits</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo3-delta1-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -593,7 +622,7 @@ a_{n+1} = \cases{
 <span>  <span class="fu">plot_algorithm_run</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo4-single-run-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -618,7 +647,7 @@ a_{n+1} = \cases{
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topleft"</span>, legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"sdm optimal"</span>, <span class="va">deltas</span><span class="op">)</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">deltas</span><span class="op">)</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo4-phit-reward-by-c-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -637,7 +666,7 @@ a = \pi (1 - F(a))
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topleft"</span>, legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"sdm optimal"</span>, <span class="va">deltas</span><span class="op">)</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">deltas</span><span class="op">)</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo4-reward-compare-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -659,7 +688,7 @@ a = \pi (1 - F(a))
 <span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="864"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo4-spaghetti-1.png" class="img-fluid figure-img" width="864"></p>
 </figure>
 </div>
 </div>
@@ -679,7 +708,7 @@ a_{n+1} = a_n + \delta_i\Big[-s + (\pi-a)\frac{s(1-s)}{\tau}\Big]
 <span>  <span class="fu">plot_algorithm_run</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo5-single-run-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -700,7 +729,7 @@ a_{n+1} = a_n + \delta_i\Big[-s + (\pi-a)\frac{s(1-s)}{\tau}\Big]
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topleft"</span>, legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"sdm optimal"</span>, <span class="va">taus</span><span class="op">)</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">taus</span><span class="op">)</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo5-phit-compare-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -720,7 +749,7 @@ a_{n+1} = a_n + \delta_i\Big[-s + (\pi-a)\frac{s(1-s)}{\tau}\Big]
 <span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="864"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo5-spaghetti-1.png" class="img-fluid figure-img" width="864"></p>
 </figure>
 </div>
 </div>
@@ -737,7 +766,7 @@ a_{n+1} = a_n + \delta_i\Big[-s + (\pi-a)\frac{s(1-s)}{\tau}\Big]
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo5-update-curve-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -762,7 +791,7 @@ a_{n+1} = a_n + \delta_i\Big[-s + (\pi-a)\frac{s(1-s)}{\tau}\Big]
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">y</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="960"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo5-update-grid-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
@@ -831,7 +860,7 @@ a_{t+1} = u(a_t, u_t, \theta_a) + \epsilon_t
 <span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo4-clipped-noise-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -854,7 +883,7 @@ a_{t+1} = u(a_t, u_t, \theta_a) + \epsilon_t
 <span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo5-clipped-noise-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -894,7 +923,7 @@ a_{t+1} = \sigma(\sigma^{-1}(u(a_t, u_t, \theta_a)/ \pi) + \epsilon_t)\pi
 <span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo4-logit-noise-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -917,7 +946,7 @@ a_{t+1} = \sigma(\sigma^{-1}(u(a_t, u_t, \theta_a)/ \pi) + \epsilon_t)\pi
 <span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo5-logit-noise-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -1020,7 +1049,7 @@ x_t+\delta_t g(a_t,y_t;\tau),
 <span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo5-noisy-gradient-summary-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -1041,7 +1070,7 @@ x_t+\delta_t g(a_t,y_t;\tau),
 <span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid figure-img" width="864"></p>
+<figure class="figure"><p><img src="reinforcement-learning-arc_files/figure-html/algo5-noisy-gradient-spaghetti-1.png" class="img-fluid figure-img" width="864"></p>
 </figure>
 </div>
 </div>

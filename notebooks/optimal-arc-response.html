@@ -152,7 +152,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Optimal Arc Width (SDM)</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Model derivations</a></li><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Optimal Arc Width (SDM)</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -223,7 +223,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
- <span class="menu-text">Theory &amp; Modeling</span></a>
+ <span class="menu-text">Theory &amp; Model derivations</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -241,40 +241,69 @@ window.Quarto = {
  <span class="menu-text">RL Algorithms: Exploration</span></a>
   </div>
 </li>
-          <li class="sidebar-item sidebar-item-section">
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
  <span class="menu-text">Model diagnostics</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/fitting-rl-algorithms-algo4-mle.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Noisy contraction-expansion (algo4), MLE</span></a>
+  <a href="../notebooks/diagnostics-algo4-mle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Contraction-expansion (algo4), MLE</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/fitting-rl-algorithms-algo5-mle.html" class="sidebar-item-text sidebar-link">
+  <a href="../notebooks/diagnostics-algo4-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Contraction-expansion (algo4), Bayesian</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/diagnostics-algo5-mle.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Stochastic gradient ascent (algo5), MLE</span></a>
   </div>
 </li>
-      </ul>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/diagnostics-algo5-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Stochastic gradient ascent (algo5), Bayesian</span></a>
+  </div>
 </li>
       </ul>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
- <span class="menu-text">Empirical Tests</span></a>
+ <span class="menu-text">Model Fits</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/fit-algo4-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algo4 Bayesian fit (Exp 1)</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Empirical Tests</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../notebooks/sequential-dependencies.html" class="sidebar-item-text sidebar-link">
@@ -297,7 +326,7 @@ window.Quarto = {
   </ul><div class="toc-actions"><ul><li><a href="https://github.com/venpopov/arc-width-vwm/edit/main/notebooks/optimal-arc-response.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/blob/main/notebooks/optimal-arc-response.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Optimal Arc Width (SDM)</a></li></ol></nav><div class="quarto-title">
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Model derivations</a></li><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Optimal Arc Width (SDM)</a></li></ol></nav><div class="quarto-title">
 <h1 class="title">Optimal arc to maximize reward</h1>
 </div>
 
@@ -383,7 +412,7 @@ f(y) &amp;= \frac{1}{2\pi}, \quad F(y) = \frac{\pi+y}{2\pi} \\
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">variable</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/plot-sdm-optima-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -419,7 +448,7 @@ f(y) &amp;= \frac{1}{2\pi}, \quad F(y) = \frac{\pi+y}{2\pi} \\
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">setsize</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/load-empirical-data-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -446,7 +475,7 @@ f(y) &amp;= \frac{1}{2\pi}, \quad F(y) = \frac{\pi+y}{2\pi} \\
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">variable</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/validate-empirical-optimum-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -504,7 +533,7 @@ f(y) &amp;= \frac{1}{2\pi}, \quad F(y) = \frac{\pi+y}{2\pi} \\
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">measure</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/compare-empirical-predictions-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -542,7 +571,7 @@ f(y) &amp;= \frac{1}{2\pi}, \quad F(y) = \frac{\pi+y}{2\pi} \\
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html">geom_abline</a></span><span class="op">(</span>intercept <span class="op">=</span> <span class="fl">0.95</span>, slope <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/optimality-by-setsize-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -564,7 +593,7 @@ f(y) &amp;= \frac{1}{2\pi}, \quad F(y) = \frac{\pi+y}{2\pi} \\
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span><span class="op">(</span><span class="va">predicted_empirical_optimals_subject</span><span class="op">$</span><span class="va">optimality</span>, breaks <span class="op">=</span> <span class="fl">60</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/optimality-by-subject-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -595,7 +624,7 @@ f(y) &amp;= \frac{1}{2\pi}, \quad F(y) = \frac{\pi+y}{2\pi} \\
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html">geom_abline</a></span><span class="op">(</span>intercept <span class="op">=</span> <span class="fl">0.95</span>, slope <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/plot-optimality-by-subject-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -716,7 +745,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">measure</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/population-optimum-posterior-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -791,7 +820,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html">geom_abline</a></span><span class="op">(</span>intercept <span class="op">=</span> <span class="fl">0.95</span>, slope <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/subject-optimality-violin-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -807,7 +836,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">subject</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="1152"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/subject-arc-vs-optimal-1.png" class="img-fluid figure-img" width="1152"></p>
 </figure>
 </div>
 </div>
@@ -822,7 +851,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">subject</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="1152"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/subject-phit-vs-optimal-1.png" class="img-fluid figure-img" width="1152"></p>
 </figure>
 </div>
 </div>
@@ -841,7 +870,7 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="optimal-arc-response_files/figure-html/subject-optimality-score-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>

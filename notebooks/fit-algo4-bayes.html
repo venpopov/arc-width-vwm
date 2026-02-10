@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.27">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Exp 1: By-Subject Diagnostics – Arc width and continuous reproduction</title>
+<title>Fitting algo4 to experimental data (Bayesian) – Arc width and continuous reproduction</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -127,7 +127,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/exp1-eda.html">Data Exploration</a></li><li class="breadcrumb-item"><a href="../notebooks/exp1-by-subject.html">Exp 1: By-Subject Diagnostics</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/fit-algo4-bayes.html">Model Fits</a></li><li class="breadcrumb-item"><a href="../notebooks/fit-algo4-bayes.html">Algo4 Bayesian fit (Exp 1)</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -183,7 +183,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/exp1-by-subject.html" class="sidebar-item-text sidebar-link active">
+  <a href="../notebooks/exp1-by-subject.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Exp 1: By-Subject Diagnostics</span></a>
   </div>
 </li>
@@ -264,7 +264,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/fit-algo4-bayes.html" class="sidebar-item-text sidebar-link">
+  <a href="../notebooks/fit-algo4-bayes.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Algo4 Bayesian fit (Exp 1)</span></a>
   </div>
 </li>
@@ -295,14 +295,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#point-response-error" id="toc-point-response-error" class="nav-link active" data-scroll-target="#point-response-error">Point response error</a></li>
-  <li><a href="#arc-widths" id="toc-arc-widths" class="nav-link" data-scroll-target="#arc-widths">Arc widths</a></li>
-  <li><a href="#side-by-side" id="toc-side-by-side" class="nav-link" data-scroll-target="#side-by-side">Side by side</a></li>
-  </ul><div class="toc-actions"><ul><li><a href="https://github.com/venpopov/arc-width-vwm/edit/main/notebooks/exp1-by-subject.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/blob/main/notebooks/exp1-by-subject.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+<li><a href="#model-setup" id="toc-model-setup" class="nav-link active" data-scroll-target="#model-setup">Model setup</a></li>
+  <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data">Load data</a></li>
+  <li><a href="#single-subject-fit" id="toc-single-subject-fit" class="nav-link" data-scroll-target="#single-subject-fit">Single-subject fit</a></li>
+  <li><a href="#posterior-predictive-check" id="toc-posterior-predictive-check" class="nav-link" data-scroll-target="#posterior-predictive-check">Posterior predictive check</a></li>
+  </ul><div class="toc-actions"><ul><li><a href="https://github.com/venpopov/arc-width-vwm/edit/main/notebooks/fit-algo4-bayes.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/blob/main/notebooks/fit-algo4-bayes.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/exp1-eda.html">Data Exploration</a></li><li class="breadcrumb-item"><a href="../notebooks/exp1-by-subject.html">Exp 1: By-Subject Diagnostics</a></li></ol></nav><div class="quarto-title">
-<h1 class="title">Exp 1: By-Subject Diagnostics</h1>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/fit-algo4-bayes.html">Model Fits</a></li><li class="breadcrumb-item"><a href="../notebooks/fit-algo4-bayes.html">Algo4 Bayesian fit (Exp 1)</a></li></ol></nav><div class="quarto-title">
+<h1 class="title">Fitting algo4 to experimental data (Bayesian)</h1>
 </div>
 
 
@@ -316,69 +317,120 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   
 
 
-</header><p>This notebook shows per-subject distributions of point response error and arc width from Experiment 1. The goal is to visually inspect individual differences — some participants may have much tighter or wider distributions than others, or may show unusual patterns (e.g., near-uniform responses suggesting inattention). There are 20 participants, some contributing to more than one experimental session.</p>
+</header><div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms">brms</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/venpopov/bmm">bmm</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"R/arc-models.R"</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"R/utils.R"</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"R/math.R"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Data source
+<span class="screen-reader-only">Note</span>Prerequisites
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Preprocessed data: <code>output/exp1_data.csv</code>.</p>
+<p>This notebook fits the contraction-expansion model (algo4) with logit-scale noise to real experimental data using full Bayesian inference. Model diagnostics and parameter recovery are in <a href="../notebooks/diagnostics-algo4-bayes.html">algo4 Bayesian diagnostics</a>. The MLE counterpart is in <a href="../notebooks/diagnostics-algo4-mle.html">algo4 MLE diagnostics</a>.</p>
 </div>
+</div>
+<section id="model-setup" class="level2"><h2 class="anchored" data-anchor-id="model-setup">Model setup</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">sdm_algo4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/custom_family.html">custom_family</a></span><span class="op">(</span></span>
+<span>  <span class="st">"sdm_algo4"</span>,</span>
+<span>  dpars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"c"</span>, <span class="st">"kappa"</span>, <span class="st">"delta"</span>, <span class="st">"asigma"</span><span class="op">)</span>,</span>
+<span>  links <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tan_half"</span>, <span class="st">"identity"</span>, <span class="st">"log"</span>, <span class="st">"logit"</span>, <span class="st">"log"</span><span class="op">)</span>,</span>
+<span>  type <span class="op">=</span> <span class="st">"real"</span>,</span>
+<span>  loop <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  vars <span class="op">=</span> <span class="st">"vreal1"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">stanvars</span> <span class="op">&lt;-</span> <span class="fu">sdm_base_stanvars</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/stanvar.html">stanvar</a></span><span class="op">(</span></span>
+<span>    scode <span class="op">=</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_file.html">read_file</a></span><span class="op">(</span><span class="st">"stan/sdm_algo4_likelihood.stan"</span><span class="op">)</span>,</span>
+<span>    block <span class="op">=</span> <span class="st">"functions"</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="st">"constant(0)"</span>, dpar <span class="op">=</span> <span class="st">"mu"</span>, class <span class="op">=</span> <span class="st">"Intercept"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="st">"student_t(5, 2, 0.75)"</span>, dpar <span class="op">=</span> <span class="st">"c"</span>, class <span class="op">=</span> <span class="st">"Intercept"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="st">"student_t(5, 1.75, 0.75)"</span>, dpar <span class="op">=</span> <span class="st">"kappa"</span>, class <span class="op">=</span> <span class="st">"Intercept"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="st">"normal(-3.5, 2)"</span>, dpar <span class="op">=</span> <span class="st">"delta"</span>, class <span class="op">=</span> <span class="st">"Intercept"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="st">"normal(-3.5, 2)"</span>, dpar <span class="op">=</span> <span class="st">"asigma"</span>, class <span class="op">=</span> <span class="st">"Intercept"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="load-data" class="level2"><h2 class="anchored" data-anchor-id="load-data">Load data</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">exp1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span><span class="op">(</span><span class="st">"output/exp1_data.csv"</span>, show_col_types <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va">exp1</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">exp_type</span> <span class="op">==</span> <span class="st">"Time"</span>, <span class="va">experimentorder</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">subject</span>, <span class="va">experimentorder</span>, <span class="va">blocknumber</span>, <span class="va">trialnumber</span>, <span class="va">setsize</span>, <span class="va">resperr</span>, <span class="va">arc</span>, <span class="va">points</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>half_arc <span class="op">=</span> <span class="va">arc</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="single-subject-fit" class="level2"><h2 class="anchored" data-anchor-id="single-subject-fit">Single-subject fit</h2>
+<p>Select one subject and remove trials with zero arc width:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">s1</span> <span class="op">&lt;-</span> <span class="va">dat</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">subject</span> <span class="op">==</span> <span class="fl">6</span>, <span class="va">arc</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
-<span><span class="va">exp1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.csv</a></span><span class="op">(</span><span class="st">"output/exp1_data.csv"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fit_s1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html">brm</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html">bf</a></span><span class="op">(</span><span class="va">resperr</span> <span class="op">|</span> <span class="fu">vreal</span><span class="op">(</span><span class="va">half_arc</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">c</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">kappa</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">delta</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">asigma</span> <span class="op">~</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  prior <span class="op">=</span> <span class="va">prior</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">s1</span>, family <span class="op">=</span> <span class="va">sdm_algo4</span>, stanvars <span class="op">=</span> <span class="va">stanvars</span>,</span>
+<span>  backend <span class="op">=</span> <span class="st">"cmdstanr"</span>, cores <span class="op">=</span> <span class="fl">4</span>, init <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  file <span class="op">=</span> <span class="st">"output/fit-algo4-bayes-s6"</span></span>
+<span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<section id="point-response-error" class="level2"><h2 class="anchored" data-anchor-id="point-response-error">Point response error</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">exp1</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>subj_exp <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html">glue</a></span><span class="op">(</span><span class="st">"subj_{subject}_exp_{experimentorder}"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">resperr</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">60</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">subj_exp</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_classic</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure"><p><img src="exp1-by-subject_files/figure-html/plot-resperr-hist-1.png" class="img-fluid figure-img" width="960"></p>
-</figure>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">fit_s1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</div>
-</div>
-</section><section id="arc-widths" class="level2"><h2 class="anchored" data-anchor-id="arc-widths">Arc widths</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">exp1</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>subj_exp <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html">glue</a></span><span class="op">(</span><span class="st">"subj_{subject}_exp_{experimentorder}"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">arc</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">60</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">subj_exp</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_classic</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure"><p><img src="exp1-by-subject_files/figure-html/plot-arc-hist-1.png" class="img-fluid figure-img" width="960"></p>
-</figure>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">fit_s1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</div>
-</div>
-</section><section id="side-by-side" class="level2"><h2 class="anchored" data-anchor-id="side-by-side">Side by side</h2>
+</section><section id="posterior-predictive-check" class="level2"><h2 class="anchored" data-anchor-id="posterior-predictive-check">Posterior predictive check</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">exp1</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>subj_exp <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html">glue</a></span><span class="op">(</span><span class="st">"S{subject}_E{experimentorder}"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/gather.html">gather</a></span><span class="op">(</span><span class="va">measure</span>, <span class="va">value</span>, <span class="va">arc</span>, <span class="va">resperr</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">60</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html">facet_grid</a></span><span class="op">(</span><span class="va">subj_exp</span> <span class="op">~</span> <span class="va">measure</span>, scales <span class="op">=</span> <span class="st">"free_x"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure"><p><img src="exp1-by-subject_files/figure-html/plot-side-by-side-1.png" class="img-fluid figure-img" width="384"></p>
-</figure>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">sdm4_pars_from_fit</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/nlme/man/fixed.effects.html">fixef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">]</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>    c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">est</span><span class="op">[</span><span class="st">"c_Intercept"</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>    kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">est</span><span class="op">[</span><span class="st">"kappa_Intercept"</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>    delta <span class="op">=</span> <span class="fu">inv_logit</span><span class="op">(</span><span class="va">est</span><span class="op">[</span><span class="st">"delta_Intercept"</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>    sigma_e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">est</span><span class="op">[</span><span class="st">"asigma_Intercept"</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu">sdm4_pars_from_fit</span><span class="op">(</span><span class="va">fit_s1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sim_s1</span> <span class="op">&lt;-</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span></span>
+<span>  arc_update_fun <span class="op">=</span> <span class="fu">algo4_logit_noise</span><span class="op">(</span></span>
+<span>    delta <span class="op">=</span> <span class="va">pars</span><span class="op">$</span><span class="va">delta</span>,</span>
+<span>    sigma_e <span class="op">=</span> <span class="va">pars</span><span class="op">$</span><span class="va">sigma_e</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  c <span class="op">=</span> <span class="va">pars</span><span class="op">$</span><span class="va">c</span>,</span>
+<span>  kappa <span class="op">=</span> <span class="va">pars</span><span class="op">$</span><span class="va">kappa</span>,</span>
+<span>  init_arc <span class="op">=</span> <span class="va">s1</span><span class="op">$</span><span class="va">half_arc</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  n_trials <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">s1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">s1</span><span class="op">$</span><span class="va">half_arc</span>, type <span class="op">=</span> <span class="st">"l"</span>, xlab <span class="op">=</span> <span class="st">"Trial"</span>, ylab <span class="op">=</span> <span class="st">"Arc half-width"</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Arc trajectory"</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">pi</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">sim_s1</span><span class="op">$</span><span class="va">a</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Data"</span>, <span class="st">"Posterior"</span><span class="op">)</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"red"</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/density.html">density</a></span><span class="op">(</span><span class="va">s1</span><span class="op">$</span><span class="va">half_arc</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Arc width distribution"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/density.html">density</a></span><span class="op">(</span><span class="va">sim_s1</span><span class="op">$</span><span class="va">a</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">s1</span><span class="op">$</span><span class="va">half_arc</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">sim_s1</span><span class="op">$</span><span class="va">a</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"red"</span>, lty <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Data"</span>, <span class="st">"Posterior"</span><span class="op">)</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"red"</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/density.html">density</a></span><span class="op">(</span><span class="va">s1</span><span class="op">$</span><span class="va">resperr</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">"Response error distribution"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/density.html">density</a></span><span class="op">(</span><span class="va">sim_s1</span><span class="op">$</span><span class="va">y</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Data"</span>, <span class="st">"Posterior"</span><span class="op">)</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"red"</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 
@@ -786,4 +838,4 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/venpopov/arc-width-vwm/edit/main/notebooks/exp1-by-subject.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/blob/main/notebooks/exp1-by-subject.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/venpopov/arc-width-vwm/edit/main/notebooks/fit-algo4-bayes.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/blob/main/notebooks/fit-algo4-bayes.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

@@ -223,7 +223,7 @@ window.Quarto = {
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
- <span class="menu-text">Theory &amp; Modeling</span></a>
+ <span class="menu-text">Theory &amp; Model derivations</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -241,40 +241,69 @@ window.Quarto = {
  <span class="menu-text">RL Algorithms: Exploration</span></a>
   </div>
 </li>
-          <li class="sidebar-item sidebar-item-section">
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
  <span class="menu-text">Model diagnostics</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/fitting-rl-algorithms-algo4-mle.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Noisy contraction-expansion (algo4), MLE</span></a>
+  <a href="../notebooks/diagnostics-algo4-mle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Contraction-expansion (algo4), MLE</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/fitting-rl-algorithms-algo5-mle.html" class="sidebar-item-text sidebar-link">
+  <a href="../notebooks/diagnostics-algo4-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Contraction-expansion (algo4), Bayesian</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/diagnostics-algo5-mle.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Stochastic gradient ascent (algo5), MLE</span></a>
   </div>
 </li>
-      </ul>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/diagnostics-algo5-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Stochastic gradient ascent (algo5), Bayesian</span></a>
+  </div>
 </li>
       </ul>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
- <span class="menu-text">Empirical Tests</span></a>
+ <span class="menu-text">Model Fits</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/fit-algo4-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algo4 Bayesian fit (Exp 1)</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Empirical Tests</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../notebooks/sequential-dependencies.html" class="sidebar-item-text sidebar-link">
@@ -366,7 +395,7 @@ window.Quarto = {
 <span><span class="va">pa1</span><span class="op">+</span><span class="va">pa2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="exp1-eda_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="960"></p>
+<figure class="figure"><p><img src="exp1-eda_files/figure-html/setsize-density-plots-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
@@ -382,37 +411,29 @@ window.Quarto = {
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/stat_summary.html">stat_summary</a></span><span class="op">(</span>geom<span class="op">=</span><span class="st">"line"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">'SD(angle error)'</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">'B'</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="exp1-eda_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="768"></p>
+<figure class="figure"><p><img src="exp1-eda_files/figure-html/setsize-effects-1.png" class="img-fluid figure-img" width="768"></p>
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">exp_type</span> <span class="op">==</span> <span class="st">"SetS"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">setsize</span>, <span class="va">subject</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">setsize</span>, <span class="va">arc</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/stat_summary.html">stat_summary</a></span><span class="op">(</span>geom<span class="op">=</span><span class="st">"pointrange"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/stat_summary.html">stat_summary</a></span><span class="op">(</span>geom<span class="op">=</span><span class="st">"line"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">'Mean Arc Width'</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="exp1-eda_files/figure-html/unnamed-chunk-3-2.png" class="img-fluid figure-img" width="768"></p>
+<figure class="figure"><p><img src="exp1-eda_files/figure-html/setsize-effects-2.png" class="img-fluid figure-img" width="768"></p>
 </figure>
 </div>
 </div>
 </div>
 </section><section id="fit-2-component-mixture-model-to-the-setsize-data" class="level3"><h3 class="anchored" data-anchor-id="fit-2-component-mixture-model-to-the-setsize-data">Fit 2-component mixture model to the setsize data</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ss_mm</span> <span class="op">&lt;-</span> <span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ss_mm</span> <span class="op">&lt;-</span> <span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">exp_type</span> <span class="op">==</span> <span class="st">"SetS"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">subject</span>,<span class="va">setsize</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/do.html">do</a></span><span class="op">(</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/pkg/mixtur/man/fit_mixtur.html">fit_mixtur</a></span><span class="op">(</span><span class="va">.</span>, model <span class="op">=</span> <span class="st">"2_component"</span>, unit <span class="op">=</span> <span class="st">"radians"</span>, id_var <span class="op">=</span> <span class="st">"setsize"</span>, </span>
@@ -443,13 +464,13 @@ No summary function supplied, defaulting to `mean_se()`</code></pre>
 <span><span class="va">pb1</span><span class="op">+</span><span class="va">pb2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="exp1-eda_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="768"></p>
+<figure class="figure"><p><img src="exp1-eda_files/figure-html/setsize-mixture-fit-1.png" class="img-fluid figure-img" width="768"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ss_arc</span> <span class="op">&lt;-</span> <span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">ss_arc</span> <span class="op">&lt;-</span> <span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">exp_type</span> <span class="op">==</span> <span class="st">"SetS"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">subject</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>arc_subj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">arc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -467,11 +488,9 @@ No summary function supplied, defaulting to `mean_se()`</code></pre>
 <span>            kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">kappa</span><span class="op">)</span>,</span>
 <span>            pmem <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">p_t</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">ss_joint</span> <span class="op">&lt;-</span> <span class="va">ss_arc</span> <span class="op">|&gt;</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">ss_mm1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Joining with `by = join_by(setsize)`</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">ss_joint</span><span class="op">$</span><span class="va">sd</span> <span class="op">~</span> <span class="va">ss_joint</span><span class="op">$</span><span class="va">arc_mean</span><span class="op">)</span> <span class="op">|&gt;</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="va">ss_joint</span> <span class="op">&lt;-</span> <span class="va">ss_arc</span> <span class="op">|&gt;</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">ss_mm1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">ss_joint</span><span class="op">$</span><span class="va">sd</span> <span class="op">~</span> <span class="va">ss_joint</span><span class="op">$</span><span class="va">arc_mean</span><span class="op">)</span> <span class="op">|&gt;</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
@@ -492,7 +511,7 @@ Residual standard error: 0.03962 on 6 degrees of freedom
 Multiple R-squared:  0.9208,    Adjusted R-squared:  0.9077 
 F-statistic:  69.8 on 1 and 6 DF,  p-value: 0.0001598</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">pc1</span> <span class="op">&lt;-</span> <span class="va">ss_joint</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">pc1</span> <span class="op">&lt;-</span> <span class="va">ss_joint</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">sd</span>, <span class="va">arc_mean</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="co"># geom_line() +</span></span>
@@ -504,19 +523,16 @@ F-statistic:  69.8 on 1 and 6 DF,  p-value: 0.0001598</code></pre>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">'C'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pc1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="exp1-eda_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="288"></p>
+<figure class="figure"><p><img src="exp1-eda_files/figure-html/setsize-arc-sd-joint-1.png" class="img-fluid figure-img" width="288"></p>
 </figure>
 </div>
 </div>
 </div>
 </section><section id="plot-the-effect-of-time-on-sdangle-error-and-the-meanarcwidth" class="level3"><h3 class="anchored" data-anchor-id="plot-the-effect-of-time-on-sdangle-error-and-the-meanarcwidth">Plot the effect of time on sd(angle error) and the mean(arcwidth)</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">exp_type</span> <span class="op">==</span> <span class="st">"Time"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">encodingtime</span>, <span class="va">delay</span>, <span class="va">subject</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>err <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">resperr</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -525,24 +541,20 @@ F-statistic:  69.8 on 1 and 6 DF,  p-value: 0.0001598</code></pre>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/stat_summary.html">stat_summary</a></span><span class="op">(</span>geom<span class="op">=</span><span class="st">"pointrange"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/stat_summary.html">stat_summary</a></span><span class="op">(</span>geom<span class="op">=</span><span class="st">"line"</span><span class="op">)</span><span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">'SD(angle error)'</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="exp1-eda_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="384"></p>
+<figure class="figure"><p><img src="exp1-eda_files/figure-html/time-effects-1.png" class="img-fluid figure-img" width="384"></p>
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>&lt;theme&gt; List of 1
  $ legend.position: chr "none"
  @ complete: logi FALSE
  @ validate: logi TRUE</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">exp_type</span> <span class="op">==</span> <span class="st">"Time"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">encodingtime</span>, <span class="va">delay</span>, <span class="va">subject</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>arc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">arc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -552,20 +564,16 @@ No summary function supplied, defaulting to `mean_se()`</code></pre>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/stat_summary.html">stat_summary</a></span><span class="op">(</span>geom<span class="op">=</span><span class="st">"line"</span><span class="op">)</span><span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">'Mean Arc Width'</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html">scale_color_discrete</a></span><span class="op">(</span><span class="st">'Delay'</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="exp1-eda_files/figure-html/unnamed-chunk-6-2.png" class="img-fluid figure-img" width="384"></p>
+<figure class="figure"><p><img src="exp1-eda_files/figure-html/time-effects-2.png" class="img-fluid figure-img" width="384"></p>
 </figure>
 </div>
 </div>
 </div>
 </section><section id="fit-2-component-mixture-model-to-the-time-data" class="level3"><h3 class="anchored" data-anchor-id="fit-2-component-mixture-model-to-the-time-data">Fit 2-component mixture model to the time data</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">time_mm</span> <span class="op">&lt;-</span> <span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">time_mm</span> <span class="op">&lt;-</span> <span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">exp_type</span> <span class="op">==</span> <span class="st">"Time"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">encodingtime</span>,<span class="va">delay</span>, <span class="va">subject</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">encodingtime</span>, <span class="st">"_"</span>, <span class="va">delay</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -601,13 +609,13 @@ No summary function supplied, defaulting to `mean_se()`</code></pre>
 <span><span class="va">pd1</span><span class="op">+</span><span class="va">pd2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="exp1-eda_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="exp1-eda_files/figure-html/time-mixture-fit-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">time_arc</span> <span class="op">&lt;-</span> <span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">time_arc</span> <span class="op">&lt;-</span> <span class="va">exp1_data</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">exp_type</span> <span class="op">==</span> <span class="st">"Time"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">subject</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>arc_subj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">arc</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -625,11 +633,9 @@ No summary function supplied, defaulting to `mean_se()`</code></pre>
 <span>            pmem <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">p_t</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="va">time_joint</span> <span class="op">&lt;-</span> <span class="va">time_arc</span> <span class="op">|&gt;</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">time_mm1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Joining with `by = join_by(encodingtime, delay)`</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">time_joint</span><span class="op">$</span><span class="va">sd</span> <span class="op">~</span> <span class="va">time_joint</span><span class="op">$</span><span class="va">arc_mean</span><span class="op">)</span> <span class="op">|&gt;</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="va">time_joint</span> <span class="op">&lt;-</span> <span class="va">time_arc</span> <span class="op">|&gt;</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">time_mm1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">time_joint</span><span class="op">$</span><span class="va">sd</span> <span class="op">~</span> <span class="va">time_joint</span><span class="op">$</span><span class="va">arc_mean</span><span class="op">)</span> <span class="op">|&gt;</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
@@ -650,7 +656,7 @@ Residual standard error: 0.009183 on 7 degrees of freedom
 Multiple R-squared:  0.9555,    Adjusted R-squared:  0.9491 
 F-statistic: 150.3 on 1 and 7 DF,  p-value: 5.51e-06</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">pe1</span> <span class="op">&lt;-</span> <span class="va">time_joint</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">pe1</span> <span class="op">&lt;-</span> <span class="va">time_joint</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">sd</span>, <span class="va">arc_mean</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="co"># geom_line() +</span></span>
@@ -662,65 +668,35 @@ F-statistic: 150.3 on 1 and 7 DF,  p-value: 5.51e-06</code></pre>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">'E'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pe1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="exp1-eda_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="288"></p>
+<figure class="figure"><p><img src="exp1-eda_files/figure-html/time-arc-sd-joint-1.png" class="img-fluid figure-img" width="288"></p>
 </figure>
 </div>
 </div>
 </div>
 </section><section id="combine-all-figures" class="level3"><h3 class="anchored" data-anchor-id="combine-all-figures">Combine all figures</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="op">(</span><span class="va">pa1</span><span class="op">+</span><span class="va">pa2</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">pb1</span><span class="op">+</span><span class="va">pb2</span><span class="op">+</span><span class="va">pc1</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">pd1</span><span class="op">+</span><span class="va">pd2</span><span class="op">+</span><span class="va">pe1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-`geom_smooth()` using formula = 'y ~ x'
-No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-`geom_smooth()` using formula = 'y ~ x'</code></pre>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="op">(</span><span class="va">pa1</span><span class="op">+</span><span class="va">pa2</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">pb1</span><span class="op">+</span><span class="va">pb2</span><span class="op">+</span><span class="va">pc1</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">pd1</span><span class="op">+</span><span class="va">pd2</span><span class="op">+</span><span class="va">pe1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="exp1-eda_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="960"></p>
+<figure class="figure"><p><img src="exp1-eda_files/figure-html/combine-figures-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span><span class="st">'img/fig3.1.png'</span>, units<span class="op">=</span><span class="st">'in'</span>, width<span class="op">=</span><span class="fl">10</span>, height<span class="op">=</span><span class="fl">11</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-`geom_smooth()` using formula = 'y ~ x'
-No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-No summary function supplied, defaulting to `mean_se()`
-`geom_smooth()` using formula = 'y ~ x'</code></pre>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span><span class="st">'img/fig3.1.png'</span>, units<span class="op">=</span><span class="st">'in'</span>, width<span class="op">=</span><span class="fl">10</span>, height<span class="op">=</span><span class="fl">11</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">time_joint</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="va">time_joint</span>, procedure<span class="op">=</span><span class="st">"Time"</span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">time_joint</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="va">time_joint</span>, procedure<span class="op">=</span><span class="st">"Time"</span><span class="op">)</span></span>
 <span><span class="va">ss_joint</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="va">ss_joint</span>, procedure<span class="op">=</span><span class="st">"Set Size"</span><span class="op">)</span></span>
 <span><span class="va">both</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html">bind_rows</a></span><span class="op">(</span><span class="va">time_joint</span>, <span class="va">ss_joint</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">both</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">sd</span>, <span class="va">arc_mean</span>, color<span class="op">=</span><span class="va">procedure</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html">geom_smooth</a></span><span class="op">(</span>method<span class="op">=</span><span class="st">"lm"</span>, se<span class="op">=</span><span class="cn">F</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="exp1-eda_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="exp1-eda_files/figure-html/compare-time-setsize-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
