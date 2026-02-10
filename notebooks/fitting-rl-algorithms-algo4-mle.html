@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.8.27">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Model diagnostics: noisy-gradient (algo5), MLE – Arc width and continuous reproduction</title>
+<title>Model diagnostics: contraction-expansion (algo4) with logit noise, MLE – Arc width and continuous reproduction</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -152,7 +152,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/fitting-rl-algorithms-algo5-mle.html">Model Diagnostics: noisy-gradient (algo5), MLE</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/fitting-rl-algorithms-algo4-mle.html">Model Diagnostics: contraction-expansion (algo4), MLE</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -232,13 +232,13 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/fitting-rl-algorithms-algo4-mle.html" class="sidebar-item-text sidebar-link">
+  <a href="../notebooks/fitting-rl-algorithms-algo4-mle.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Model Diagnostics: contraction-expansion (algo4), MLE</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../notebooks/fitting-rl-algorithms-algo5-mle.html" class="sidebar-item-text sidebar-link active">
+  <a href="../notebooks/fitting-rl-algorithms-algo5-mle.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Model Diagnostics: noisy-gradient (algo5), MLE</span></a>
   </div>
 </li>
@@ -279,8 +279,8 @@ window.Quarto = {
   </ul></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/fitting-rl-algorithms-algo5-mle.html">Model Diagnostics: noisy-gradient (algo5), MLE</a></li></ol></nav><div class="quarto-title">
-<h1 class="title">Model diagnostics: noisy-gradient (algo5), MLE</h1>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/fitting-rl-algorithms-algo4-mle.html">Model Diagnostics: contraction-expansion (algo4), MLE</a></li></ol></nav><div class="quarto-title">
+<h1 class="title">Model diagnostics: contraction-expansion (algo4) with logit noise, MLE</h1>
 </div>
 
 
@@ -311,7 +311,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This notebook fits the noisy-gradient model developed in <a href="../notebooks/reinforcement-learning-arc.html">RL Algorithms: Exploration</a>. The SDM model and optimality derivation are described in <a href="../notebooks/optimal-arc-response.html">Optimal Arc Width (SDM)</a>.</p>
+<p>This notebook fits the contraction-expansion model (algo4) with logit-scale noise, developed in <a href="../notebooks/reinforcement-learning-arc.html">RL Algorithms: Exploration</a>. The SDM model and optimality derivation are described in <a href="../notebooks/optimal-arc-response.html">Optimal Arc Width (SDM)</a>.</p>
 </div>
 </div>
 <section id="task-and-model-summary" class="level2"><h2 class="anchored" data-anchor-id="task-and-model-summary">Task and model summary</h2>
@@ -321,34 +321,34 @@ p_t = (\pi - a_t)\,\mathbf{1}\!\bigl[|y_t| \le a_t\bigr],
 <p><strong>Response errors</strong> are modelled by the <a href="https://venpopov.github.io/bmm/articles/bmm_sdm_simple.html">Signal Discrimination Model</a> (SDM): <span class="math display">\[
 y_t \sim \text{SDM}(c,\kappa).
 \]</span></p>
-<p><strong>Arc-width updates</strong> follow a noisy stochastic-gradient rule on the logit-reparameterized arc <span class="math inline">\(x_t = \operatorname{logit}(a_t/\pi)\)</span>. We do this on the unconstrained <span class="math inline">\(x_t\)</span> so that despite adding random noise, responses that get mapped back to <span class="math inline">\(a_{t+1} = \operatorname{invlogit}(x_{t+1})\pi\)</span> are in the right range, <span class="math inline">\((0,\pi)\)</span>, without needing to truncate. Define a soft hit indicator and gradient: <span class="math display">\[
-s_t = \sigma\!\left(\frac{a_t - |y_t|}{\tau}\right), \qquad
-g_t = -s_t + (\pi - a_t)\,\frac{s_t(1-s_t)}{\tau},
-\]</span> with a decaying learning rate <span class="math inline">\(\delta_t = \delta_0/(t+1)^{0.5}\)</span>. The state transition is <span class="math display">\[
-x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \sim \mathcal{N}(0,\sigma_g^2).
+<p><strong>Deterministic arc-width update (algo4).</strong> On each trial the arc contracts toward 0 on a hit and expands toward <span class="math inline">\(\pi\)</span> on a miss, with step-size <span class="math inline">\(\delta \in (0,1)\)</span>: <span class="math display">\[
+\tilde{a}_{t+1} = a_t\,(1-\delta) + \mathbf{1}\!\bigl[|y_t|&gt;a_t\bigr]\,\delta\,\pi.
 \]</span></p>
-<p><strong>Joint log-likelihood.</strong> Because <span class="math inline">\(x_{t+1} \mid x_t, y_t\)</span> is normal, the full log-likelihood decomposes as <span class="math display">\[
+<p><strong>Logit-noise stochastic extension.</strong> To make the model estimable, we add Gaussian noise on the unconstrained logit scale. Define <span class="math display">\[
+\tilde{x}_{t+1} = \operatorname{logit}\!\left(\tilde{a}_{t+1}/\pi\right),
+\]</span> then the stochastic transition is <span class="math display">\[
+x_{t+1} = \tilde{x}_{t+1} + \varepsilon_t, \qquad \varepsilon_t \sim \mathcal{N}(0,\sigma_\varepsilon^2),
+\]</span> so that <span class="math inline">\(a_{t+1} = \pi\,\sigma(x_{t+1})\)</span> is guaranteed to lie in <span class="math inline">\((0,\pi)\)</span> without clipping.</p>
+<p><strong>Joint log-likelihood.</strong> Because <span class="math inline">\(x_{t+1} \mid a_t, y_t\)</span> is normal, the full log-likelihood decomposes as <span class="math display">\[
 \ell(\theta) =
 \underbrace{\sum_{t=1}^{T}\log f_{\text{SDM}}(y_t \mid c,\kappa)}_{\text{response errors}}
 \;+\;
-\underbrace{\sum_{t=1}^{T-1}\log\phi\!\left(x_{t+1};\; x_t + \delta_t\, g_t,\; \delta_t\,\sigma_g\right)}_{\text{arc transitions}},
-\]</span> with fitted parameter vector <span class="math inline">\(\theta=(c,\kappa,\tau,\delta_0,\sigma_g)\)</span>. The exponent <span class="math inline">\(\delta_{\text{pow}}=0.5\)</span> is fixed. Below we verify identifiability via simulation-based parameter recovery and maximum-likelihood estimation with <code>optim</code>.</p>
+\underbrace{\sum_{t=1}^{T-1}\log\phi\!\left(x_{t+1};\; \tilde{x}_{t+1},\; \sigma_\varepsilon\right)}_{\text{arc transitions}},
+\]</span> with fitted parameter vector <span class="math inline">\(\theta=(c,\kappa,\delta,\sigma_\varepsilon)\)</span>. Below we verify identifiability via simulation-based parameter recovery and maximum-likelihood estimation with <code>optim</code>.</p>
 </section><section id="simulate-data" class="level2"><h2 class="anchored" data-anchor-id="simulate-data">Simulate data</h2>
-<p>Generate a single subject’s worth of data from the noisy-gradient model with known parameters. We use <code>run_arc_algorithm</code> which feeds SDM-generated response errors <code>y</code> through the update function trial by trial.</p>
+<p>Generate a single subject’s worth of data from the algo4 logit-noise model with known parameters. We use <code>run_arc_algorithm</code> which feeds SDM-generated response errors <code>y</code> through the update function trial by trial.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">true_pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>c <span class="op">=</span> <span class="fl">6</span>, kappa <span class="op">=</span> <span class="fl">3</span>, tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">true_pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>c <span class="op">=</span> <span class="fl">6</span>, kappa <span class="op">=</span> <span class="fl">3</span>, delta <span class="op">=</span> <span class="fl">0.1</span>, sigma_e <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">4233</span><span class="op">)</span></span>
 <span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span></span>
-<span>  arc_update_fun <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span></span>
-<span>    tau <span class="op">=</span> <span class="va">true_pars</span><span class="op">$</span><span class="va">tau</span>,</span>
-<span>    delta0 <span class="op">=</span> <span class="va">true_pars</span><span class="op">$</span><span class="va">delta0</span>,</span>
-<span>    delta_pow <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>    sigma_g <span class="op">=</span> <span class="va">true_pars</span><span class="op">$</span><span class="va">sigma_g</span></span>
+<span>  arc_update_fun <span class="op">=</span> <span class="fu">algo4_logit_noise</span><span class="op">(</span></span>
+<span>    delta <span class="op">=</span> <span class="va">true_pars</span><span class="op">$</span><span class="va">delta</span>,</span>
+<span>    sigma_e <span class="op">=</span> <span class="va">true_pars</span><span class="op">$</span><span class="va">sigma_e</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  c <span class="op">=</span> <span class="va">true_pars</span><span class="op">$</span><span class="va">c</span>,</span>
 <span>  kappa <span class="op">=</span> <span class="va">true_pars</span><span class="op">$</span><span class="va">kappa</span>,</span>
-<span>  init_arc <span class="op">=</span> <span class="va">pi</span><span class="op">/</span><span class="fl">8</span>,</span>
+<span>  init_arc <span class="op">=</span> <span class="va">pi</span> <span class="op">/</span> <span class="fl">8</span>,</span>
 <span>  n_trials <span class="op">=</span> <span class="fl">1000</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -358,7 +358,7 @@ x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \s
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">y</span>, xlab <span class="op">=</span> <span class="st">"Response error"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="fitting-rl-algorithms-algo5-mle_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="fitting-rl-algorithms-algo4-mle_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -374,17 +374,18 @@ x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \s
 <strong>Arc-transition component</strong> — a normal density on the logit scale for the arc update from trial <span class="math inline">\(t\)</span> to <span class="math inline">\(t+1\)</span>
 </li>
 </ol>
-<p>The functions <code>algo5_loglik</code>, <code>par_to_unconstrained</code>, <code>par_from_unconstrained</code>, and <code>neg_loglik</code> are defined in <code>R/arc-models.R</code> (loaded above). All five parameters are strictly positive, so we estimate on the log scale and exponentiate back.</p>
+<p>The functions <code>algo4_loglik</code>, <code>par_to_unconstrained_algo4</code>, <code>par_from_unconstrained_algo4</code>, and <code>neg_loglik_algo4</code> are defined in <code>R/arc-models.R</code> (loaded above). Parameters <span class="math inline">\(c\)</span>, <span class="math inline">\(\kappa\)</span>, and <span class="math inline">\(\sigma_\varepsilon\)</span> are strictly positive (estimated on the log scale); <span class="math inline">\(\delta
+\in (0,1)\)</span> is estimated on the logit scale.</p>
 </section><section id="fit-with-optim" class="level2"><h2 class="anchored" data-anchor-id="fit-with-optim">Fit with <code>optim</code>
 </h2>
 <p>We initialise at perturbed values (not the truth) to verify that the optimiser can recover the generating parameters.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">init_pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>c <span class="op">=</span> <span class="fl">3</span>, kappa <span class="op">=</span> <span class="fl">5</span>, tau <span class="op">=</span> <span class="fl">0.05</span>, delta0 <span class="op">=</span> <span class="fl">0.05</span>, sigma_g <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">theta0</span> <span class="op">&lt;-</span> <span class="fu">par_to_unconstrained</span><span class="op">(</span><span class="va">init_pars</span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">init_pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>c <span class="op">=</span> <span class="fl">3</span>, kappa <span class="op">=</span> <span class="fl">5</span>, delta <span class="op">=</span> <span class="fl">0.05</span>, sigma_e <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="va">theta0</span> <span class="op">&lt;-</span> <span class="fu">par_to_unconstrained_algo4</span><span class="op">(</span><span class="va">init_pars</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/optim.html">optim</a></span><span class="op">(</span></span>
 <span>  par <span class="op">=</span> <span class="va">theta0</span>,</span>
-<span>  fn <span class="op">=</span> <span class="va">neg_loglik</span>,</span>
+<span>  fn <span class="op">=</span> <span class="va">neg_loglik_algo4</span>,</span>
 <span>  y <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">y</span>,</span>
 <span>  a <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">a</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"Nelder-Mead"</span>,</span>
@@ -398,7 +399,7 @@ x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \s
 </div>
 </section><section id="compare-estimated-vs-true-parameters" class="level2"><h2 class="anchored" data-anchor-id="compare-estimated-vs-true-parameters">Compare estimated vs true parameters</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">estimated</span> <span class="op">&lt;-</span> <span class="fu">par_from_unconstrained</span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">par</span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">estimated</span> <span class="op">&lt;-</span> <span class="fu">par_from_unconstrained_algo4</span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">par</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">true_pars</span><span class="op">)</span>,</span>
@@ -408,33 +409,39 @@ x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \s
 <span><span class="op">)</span></span>
 <span><span class="va">comparison</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 5 × 4
+<pre><code># A tibble: 4 × 4
   parameter initial true_value estimated
   &lt;chr&gt;       &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;
-1 c            3         6        5.99  
-2 kappa        5         3        3.11  
-3 tau          0.05      0.025    0.0258
-4 delta0       0.05      0.1      0.102 
-5 sigma_g      1         2        1.92  </code></pre>
+1 c            3           6       5.99 
+2 kappa        5           3       3.11 
+3 delta        0.05        0.1     0.103
+4 sigma_e      0.5         0.2     0.195</code></pre>
 </div>
 </div>
 </section><section id="likelihood-profile-at-the-mle" class="level2"><h2 class="anchored" data-anchor-id="likelihood-profile-at-the-mle">Likelihood profile at the MLE</h2>
 <p>A quick sanity check: evaluate the likelihood over a grid around each MLE estimate while holding the others fixed, to confirm we are at a peak.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">best_theta</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">par</span></span>
-<span><span class="va">par_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"c"</span>, <span class="st">"kappa"</span>, <span class="st">"tau"</span>, <span class="st">"delta0"</span>, <span class="st">"sigma_g"</span><span class="op">)</span></span>
+<span><span class="va">par_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"c"</span>, <span class="st">"kappa"</span>, <span class="st">"delta"</span>, <span class="st">"sigma_e"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">profiles</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html">map_dfr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">par_names</span><span class="op">)</span>, \<span class="op">(</span><span class="va">j</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="va">best_theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">-</span> <span class="fl">1</span>, <span class="va">best_theta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">+</span> <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">80</span><span class="op">)</span></span>
 <span>  <span class="va">ll_vals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">grid</span>, \<span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">theta_tmp</span> <span class="op">&lt;-</span> <span class="va">best_theta</span></span>
 <span>    <span class="va">theta_tmp</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">v</span></span>
-<span>    <span class="op">-</span><span class="fu">neg_loglik</span><span class="op">(</span><span class="va">theta_tmp</span>, y <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">y</span>, a <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">a</span><span class="op">)</span></span>
+<span>    <span class="op">-</span><span class="fu">neg_loglik_algo4</span><span class="op">(</span><span class="va">theta_tmp</span>, y <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">y</span>, a <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">a</span><span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="va">par_names</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">==</span> <span class="st">"delta"</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">value</span> <span class="op">&lt;-</span> <span class="fu">inv_logit</span><span class="op">(</span><span class="va">grid</span><span class="op">)</span></span>
+<span>  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>    <span class="va">value</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">grid</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span></span>
 <span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span></span>
 <span>    parameter <span class="op">=</span> <span class="va">par_names</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>,</span>
 <span>    theta_unconstrained <span class="op">=</span> <span class="va">grid</span>,</span>
-<span>    value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="va">grid</span><span class="op">)</span>,</span>
+<span>    value <span class="op">=</span> <span class="va">value</span>,</span>
 <span>    loglik <span class="op">=</span> <span class="va">ll_vals</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
@@ -448,7 +455,7 @@ x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \s
 <span>       caption <span class="op">=</span> <span class="st">"Blue dashed = MLE, Red dotted = true value"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="fitting-rl-algorithms-algo5-mle_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="864"></p>
+<figure class="figure"><p><img src="fitting-rl-algorithms-algo4-mle_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="864"></p>
 </figure>
 </div>
 </div>
@@ -464,46 +471,44 @@ x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \s
 <span>  iter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">n_recovery</span><span class="op">)</span>,</span>
 <span>  c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n_recovery</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>,</span>
 <span>  kappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n_recovery</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>,</span>
-<span>  tau <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n_recovery</span>, <span class="fl">0.001</span>, <span class="fl">0.05</span><span class="op">)</span>,</span>
-<span>  delta0 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n_recovery</span>, <span class="fl">0.01</span>, <span class="fl">0.2</span><span class="op">)</span>,</span>
-<span>  sigma_g <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n_recovery</span>, <span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span></span>
+<span>  delta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n_recovery</span>, <span class="fl">0.01</span>, <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>  sigma_e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n_recovery</span>, <span class="fl">0.01</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">fit_one</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">iter</span>, <span class="va">c</span>, <span class="va">kappa</span>, <span class="va">tau</span>, <span class="va">delta0</span>, <span class="va">sigma_g</span><span class="op">)</span> <span class="op">{</span></span>
+<span><span class="va">fit_one</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">iter</span>, <span class="va">c</span>, <span class="va">kappa</span>, <span class="va">delta</span>, <span class="va">sigma_e</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span></span>
-<span>    arc_update_fun <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="va">tau</span>, delta0 <span class="op">=</span> <span class="va">delta0</span>,</span>
-<span>                                       delta_pow <span class="op">=</span> <span class="fl">0.5</span>, sigma_g <span class="op">=</span> <span class="va">sigma_g</span><span class="op">)</span>,</span>
+<span>    arc_update_fun <span class="op">=</span> <span class="fu">algo4_logit_noise</span><span class="op">(</span>delta <span class="op">=</span> <span class="va">delta</span>, sigma_e <span class="op">=</span> <span class="va">sigma_e</span><span class="op">)</span>,</span>
 <span>    c <span class="op">=</span> <span class="va">c</span>, kappa <span class="op">=</span> <span class="va">kappa</span>, init_arc <span class="op">=</span> <span class="va">pi</span> <span class="op">/</span> <span class="fl">2</span>, n_trials <span class="op">=</span> <span class="va">n_trials</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
-<span>  <span class="va">theta0</span> <span class="op">&lt;-</span> <span class="fu">par_to_unconstrained</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
-<span>    c <span class="op">=</span> <span class="fl">4</span>, kappa <span class="op">=</span> <span class="fl">4</span>, tau <span class="op">=</span> <span class="fl">0.02</span>, delta0 <span class="op">=</span> <span class="fl">0.08</span>, sigma_g <span class="op">=</span> <span class="fl">3</span></span>
+<span>  <span class="va">theta0</span> <span class="op">&lt;-</span> <span class="fu">par_to_unconstrained_algo4</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>    c <span class="op">=</span> <span class="fl">4</span>, kappa <span class="op">=</span> <span class="fl">4</span>, delta <span class="op">=</span> <span class="fl">0.1</span>, sigma_e <span class="op">=</span> <span class="fl">0.3</span></span>
 <span>  <span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="va">fit</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html">tryCatch</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/stats/optim.html">optim</a></span><span class="op">(</span>par <span class="op">=</span> <span class="va">theta0</span>, fn <span class="op">=</span> <span class="va">neg_loglik</span>, y <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">y</span>, a <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">a</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/optim.html">optim</a></span><span class="op">(</span>par <span class="op">=</span> <span class="va">theta0</span>, fn <span class="op">=</span> <span class="va">neg_loglik_algo4</span>, y <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">y</span>, a <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">a</span>,</span>
 <span>          method <span class="op">=</span> <span class="st">"Nelder-Mead"</span>,</span>
 <span>          control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>maxit <span class="op">=</span> <span class="fl">5000</span>, reltol <span class="op">=</span> <span class="fl">1e-10</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>    error <span class="op">=</span> \<span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="cn">NA_real_</span>, <span class="fl">5</span><span class="op">)</span>, convergence <span class="op">=</span> <span class="fl">99</span><span class="op">)</span></span>
+<span>    error <span class="op">=</span> \<span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>par <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="cn">NA_real_</span>, <span class="fl">4</span><span class="op">)</span>, convergence <span class="op">=</span> <span class="fl">99</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
-<span>  <span class="va">est</span> <span class="op">&lt;-</span> <span class="fu">par_from_unconstrained</span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">par</span><span class="op">)</span></span>
+<span>  <span class="va">est</span> <span class="op">&lt;-</span> <span class="fu">par_from_unconstrained_algo4</span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">par</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span></span>
 <span>    iter <span class="op">=</span> <span class="va">iter</span>,</span>
-<span>    c_est <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">c</span>, kappa_est <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">kappa</span>, tau_est <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">tau</span>,</span>
-<span>    delta0_est <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">delta0</span>, sigma_g_est <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">sigma_g</span>,</span>
+<span>    c_est <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">c</span>, kappa_est <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">kappa</span>,</span>
+<span>    delta_est <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">delta</span>, sigma_e_est <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">sigma_e</span>,</span>
 <span>    converged <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">convergence</span> <span class="op">==</span> <span class="fl">0</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">recovery_est</span> <span class="op">&lt;-</span> <span class="fu">with_cache</span><span class="op">(</span><span class="st">"output/algo5_recovery_est.rds"</span>, <span class="op">{</span></span>
+<span><span class="va">recovery_est</span> <span class="op">&lt;-</span> <span class="fu">with_cache</span><span class="op">(</span><span class="st">"output/algo4_recovery_est.rds"</span>, <span class="op">{</span></span>
 <span>  <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html">pmap_dfr</a></span><span class="op">(</span><span class="va">recovery_true</span>, <span class="va">fit_one</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Tag iterations where at least one estimate exceeds 4× the max true generating value:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">est_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"c_est"</span>, <span class="st">"kappa_est"</span>, <span class="st">"tau_est"</span>, <span class="st">"delta0_est"</span>, <span class="st">"sigma_g_est"</span><span class="op">)</span></span>
-<span><span class="va">true_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"c"</span>, <span class="st">"kappa"</span>, <span class="st">"tau"</span>, <span class="st">"delta0"</span>, <span class="st">"sigma_g"</span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">est_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"c_est"</span>, <span class="st">"kappa_est"</span>, <span class="st">"delta_est"</span>, <span class="st">"sigma_e_est"</span><span class="op">)</span></span>
+<span><span class="va">true_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"c"</span>, <span class="st">"kappa"</span>, <span class="st">"delta"</span>, <span class="st">"sigma_e"</span><span class="op">)</span></span>
 <span><span class="va">thresholds</span> <span class="op">&lt;-</span> <span class="fl">4</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">true_cols</span>, \<span class="op">(</span><span class="va">col</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">recovery_true</span><span class="op">[[</span><span class="va">col</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">outlier_mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">est_cols</span><span class="op">)</span>, \<span class="op">(</span><span class="va">j</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">recovery_est</span><span class="op">[[</span><span class="va">est_cols</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span><span class="op">]</span> <span class="op">&gt;</span> <span class="va">thresholds</span><span class="op">[</span><span class="va">j</span><span class="op">]</span></span>
@@ -515,7 +520,7 @@ x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \s
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">recovery_df</span> <span class="op">&lt;-</span> <span class="va">recovery_true</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">recovery_est</span>, by <span class="op">=</span> <span class="st">"iter"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span></span>
-<span>    cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">c</span>, <span class="va">kappa</span>, <span class="va">tau</span>, <span class="va">delta0</span>, <span class="va">sigma_g</span><span class="op">)</span>,</span>
+<span>    cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">c</span>, <span class="va">kappa</span>, <span class="va">delta</span>, <span class="va">sigma_e</span><span class="op">)</span>,</span>
 <span>    names_to <span class="op">=</span> <span class="st">"parameter"</span>,</span>
 <span>    values_to <span class="op">=</span> <span class="st">"true_value"</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -523,9 +528,8 @@ x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \s
 <span>    estimated <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html">case_when</a></span><span class="op">(</span></span>
 <span>      <span class="va">parameter</span> <span class="op">==</span> <span class="st">"c"</span> <span class="op">~</span> <span class="va">c_est</span>,</span>
 <span>      <span class="va">parameter</span> <span class="op">==</span> <span class="st">"kappa"</span> <span class="op">~</span> <span class="va">kappa_est</span>,</span>
-<span>      <span class="va">parameter</span> <span class="op">==</span> <span class="st">"tau"</span> <span class="op">~</span> <span class="va">tau_est</span>,</span>
-<span>      <span class="va">parameter</span> <span class="op">==</span> <span class="st">"delta0"</span> <span class="op">~</span> <span class="va">delta0_est</span>,</span>
-<span>      <span class="va">parameter</span> <span class="op">==</span> <span class="st">"sigma_g"</span> <span class="op">~</span> <span class="va">sigma_g_est</span></span>
+<span>      <span class="va">parameter</span> <span class="op">==</span> <span class="st">"delta"</span> <span class="op">~</span> <span class="va">delta_est</span>,</span>
+<span>      <span class="va">parameter</span> <span class="op">==</span> <span class="st">"sigma_e"</span> <span class="op">~</span> <span class="va">sigma_e_est</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">iter</span>, <span class="va">parameter</span>, <span class="va">true_value</span>, <span class="va">estimated</span>, <span class="va">converged</span>, <span class="va">bad</span><span class="op">)</span></span>
@@ -538,7 +542,7 @@ x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \s
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Bad parameter estimates:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">recovery_est</span><span class="op">$</span><span class="va">bad</span><span class="op">)</span>, <span class="st">"/"</span>, <span class="va">n_recovery</span>,</span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html">sprintf</a></span><span class="op">(</span><span class="st">"(%.1f%%)"</span>, <span class="fl">100</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">recovery_est</span><span class="op">$</span><span class="va">bad</span><span class="op">)</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Bad parameter estimates: 87 / 10000 (0.9%) </code></pre>
+<pre><code>Bad parameter estimates: 51 / 10000 (0.5%) </code></pre>
 </div>
 </div>
 <p>Correlations between true and estimated values (converged runs only):</p>
@@ -551,16 +555,15 @@ x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \s
 <span>    rmse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">true_value</span> <span class="op">-</span> <span class="va">estimated</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    bias <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">estimated</span> <span class="op">-</span> <span class="va">true_value</span><span class="op">)</span>,</span>
 <span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
-<span>  <span class="op">)</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span>  <span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 5 × 4
-  parameter     r    rmse      bias
-  &lt;chr&gt;     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
-1 c         0.888 1.53     0.238   
-2 delta0    0.984 0.00988 -0.000194
-3 kappa     0.959 0.761   -0.0380  
-4 sigma_g   0.924 1.25     0.115   
-5 tau       0.862 0.00811  0.000418</code></pre>
+<pre><code># A tibble: 4 × 4
+  parameter     r    rmse        bias
+  &lt;chr&gt;     &lt;dbl&gt;   &lt;dbl&gt;       &lt;dbl&gt;
+1 c         0.892 1.49     0.238     
+2 delta     0.999 0.00664  0.00000732
+3 kappa     0.959 0.757   -0.0368    
+4 sigma_e   0.999 0.0130  -0.000504  </code></pre>
 </div>
 </div>
 <div class="cell">
@@ -587,10 +590,10 @@ x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \s
 <div class="cell-output-display">
 <div id="fig-recovery" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-recovery-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="fitting-rl-algorithms-algo5-mle_files/figure-html/fig-recovery-1.png" class="img-fluid figure-img" width="960">
+<img src="fitting-rl-algorithms-algo4-mle_files/figure-html/fig-recovery-1.png" class="img-fluid figure-img" width="960">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-recovery-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Parameter recovery for the noisy-gradient model. Each point is one simulated dataset. The dashed line is the identity.
+Figure&nbsp;1: Parameter recovery for the contraction-expansion model with logit noise. Each point is one simulated dataset. The dashed line is the identity.
 </figcaption></figure>
 </div>
 </div>
@@ -621,7 +624,7 @@ Figure&nbsp;1: Parameter recovery for the noisy-gradient model. Each point is on
 <div class="cell-output-display">
 <div id="fig-recovery-binned" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-recovery-binned-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="fitting-rl-algorithms-algo5-mle_files/figure-html/fig-recovery-binned-1.png" class="img-fluid figure-img" width="960">
+<img src="fitting-rl-algorithms-algo4-mle_files/figure-html/fig-recovery-binned-1.png" class="img-fluid figure-img" width="960">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-recovery-binned-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;2: Binned parameter recovery. Line = median estimate per bin; dark ribbon = 80% interval; light ribbon = 95% interval.

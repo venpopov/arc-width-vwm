@@ -122,97 +122,163 @@
   {
     "objectID": "notebooks/fitting-rl-algorithms-algo5-mle.html",
     "href": "notebooks/fitting-rl-algorithms-algo5-mle.html",
-    "title": "Model fits: noisy-gradient (algo5), MLE",
+    "title": "Model diagnostics: noisy-gradient (algo5), MLE",
     "section": "",
     "text": "library(tidyverse)\nlibrary(bmm)\nsource(\"R/arc-models.R\")\nsource(\"R/utils.R\")\nsource(\"R/math.R\")",
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Fitting: noisy-gradient (algo5), MLE"
+      "Model Diagnostics: noisy-gradient (algo5), MLE"
     ]
   },
   {
     "objectID": "notebooks/fitting-rl-algorithms-algo5-mle.html#task-and-model-summary",
     "href": "notebooks/fitting-rl-algorithms-algo5-mle.html#task-and-model-summary",
-    "title": "Model fits: noisy-gradient (algo5), MLE",
+    "title": "Model diagnostics: noisy-gradient (algo5), MLE",
     "section": "Task and model summary",
     "text": "Task and model summary\nOn each trial a participant reports a remembered color (continuous response) and sets a symmetric arc of half-width \\(a_t \\in (0,\\pi)\\) around it. Points are awarded as \\[\np_t = (\\pi - a_t)\\,\\mathbf{1}\\!\\bigl[|y_t| \\le a_t\\bigr],\n\\] where \\(y_t\\) is the signed response error. Wider arcs are safer but earn fewer points, creating an accuracy–confidence tradeoff. Empirically, participants’ arc widths are near-optimal given their error distributions.\nResponse errors are modelled by the Signal Discrimination Model (SDM): \\[\ny_t \\sim \\text{SDM}(c,\\kappa).\n\\]\nArc-width updates follow a noisy stochastic-gradient rule on the logit-reparameterized arc \\(x_t = \\operatorname{logit}(a_t/\\pi)\\). We do this on the unconstrained \\(x_t\\) so that despite adding random noise, responses that get mapped back to \\(a_{t+1} = \\operatorname{invlogit}(x_{t+1})\\pi\\) are in the right range, \\((0,\\pi)\\), without needing to truncate. Define a soft hit indicator and gradient: \\[\ns_t = \\sigma\\!\\left(\\frac{a_t - |y_t|}{\\tau}\\right), \\qquad\ng_t = -s_t + (\\pi - a_t)\\,\\frac{s_t(1-s_t)}{\\tau},\n\\] with a decaying learning rate \\(\\delta_t = \\delta_0/(t+1)^{0.5}\\). The state transition is \\[\nx_{t+1} = x_t + \\delta_t\\bigl(g_t + \\varepsilon_t\\bigr), \\qquad \\varepsilon_t \\sim \\mathcal{N}(0,\\sigma_g^2).\n\\]\nJoint log-likelihood. Because \\(x_{t+1} \\mid x_t, y_t\\) is normal, the full log-likelihood decomposes as \\[\n\\ell(\\theta) =\n\\underbrace{\\sum_{t=1}^{T}\\log f_{\\text{SDM}}(y_t \\mid c,\\kappa)}_{\\text{response errors}}\n\\;+\\;\n\\underbrace{\\sum_{t=1}^{T-1}\\log\\phi\\!\\left(x_{t+1};\\; x_t + \\delta_t\\, g_t,\\; \\delta_t\\,\\sigma_g\\right)}_{\\text{arc transitions}},\n\\] with fitted parameter vector \\(\\theta=(c,\\kappa,\\tau,\\delta_0,\\sigma_g)\\). The exponent \\(\\delta_{\\text{pow}}=0.5\\) is fixed. Below we verify identifiability via simulation-based parameter recovery and maximum-likelihood estimation with optim.",
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Fitting: noisy-gradient (algo5), MLE"
+      "Model Diagnostics: noisy-gradient (algo5), MLE"
     ]
   },
   {
     "objectID": "notebooks/fitting-rl-algorithms-algo5-mle.html#simulate-data",
     "href": "notebooks/fitting-rl-algorithms-algo5-mle.html#simulate-data",
-    "title": "Model fits: noisy-gradient (algo5), MLE",
+    "title": "Model diagnostics: noisy-gradient (algo5), MLE",
     "section": "Simulate data",
     "text": "Simulate data\nGenerate a single subject’s worth of data from the noisy-gradient model with known parameters. We use run_arc_algorithm which feeds SDM-generated response errors y through the update function trial by trial.\n\ntrue_pars &lt;- list(c = 6, kappa = 3, tau = 0.025, delta0 = 0.1, sigma_g = 2)\n\nset.seed(4233)\nsim &lt;- run_arc_algorithm(\n  arc_update_fun = algo5_noisy_grad(\n    tau = true_pars$tau,\n    delta0 = true_pars$delta0,\n    delta_pow = 0.5,\n    sigma_g = true_pars$sigma_g\n  ),\n  c = true_pars$c,\n  kappa = true_pars$kappa,\n  init_arc = pi/8,\n  n_trials = 1000\n)\n\npar(mfrow = c(1, 3))\nplot(sim$a, type = \"l\", xlab = \"Trial\", ylab = \"Arc width\")\nhist(sim$a, xlab = \"Arc width\")\nhist(sim$y, xlab = \"Response error\")\n\n\n\n\n\n\npar(mfrow = c(1, 1))",
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Fitting: noisy-gradient (algo5), MLE"
+      "Model Diagnostics: noisy-gradient (algo5), MLE"
     ]
   },
   {
     "objectID": "notebooks/fitting-rl-algorithms-algo5-mle.html#log-likelihood",
     "href": "notebooks/fitting-rl-algorithms-algo5-mle.html#log-likelihood",
-    "title": "Model fits: noisy-gradient (algo5), MLE",
+    "title": "Model diagnostics: noisy-gradient (algo5), MLE",
     "section": "Log-likelihood",
     "text": "Log-likelihood\nThe joint log-likelihood has two additive components:\n\n\nSDM component — the density of each response error \\(y_t\\)\n\n\nArc-transition component — a normal density on the logit scale for the arc update from trial \\(t\\) to \\(t+1\\)\n\n\nThe functions algo5_loglik, par_to_unconstrained, par_from_unconstrained, and neg_loglik are defined in R/arc-models.R (loaded above). All five parameters are strictly positive, so we estimate on the log scale and exponentiate back.",
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Fitting: noisy-gradient (algo5), MLE"
+      "Model Diagnostics: noisy-gradient (algo5), MLE"
     ]
   },
   {
     "objectID": "notebooks/fitting-rl-algorithms-algo5-mle.html#fit-with-optim",
     "href": "notebooks/fitting-rl-algorithms-algo5-mle.html#fit-with-optim",
-    "title": "Model fits: noisy-gradient (algo5), MLE",
+    "title": "Model diagnostics: noisy-gradient (algo5), MLE",
     "section": "Fit with optim\n",
     "text": "Fit with optim\n\nWe initialise at perturbed values (not the truth) to verify that the optimiser can recover the generating parameters.\n\ninit_pars &lt;- list(c = 3, kappa = 5, tau = 0.05, delta0 = 0.05, sigma_g = 1)\ntheta0 &lt;- par_to_unconstrained(init_pars)\n\nfit &lt;- optim(\n  par = theta0,\n  fn = neg_loglik,\n  y = sim$y,\n  a = sim$a,\n  method = \"Nelder-Mead\",\n  control = list(maxit = 5000, reltol = 1e-10)\n)\n\nfit$convergence  # 0 = success\n\n[1] 0",
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Fitting: noisy-gradient (algo5), MLE"
+      "Model Diagnostics: noisy-gradient (algo5), MLE"
     ]
   },
   {
     "objectID": "notebooks/fitting-rl-algorithms-algo5-mle.html#compare-estimated-vs-true-parameters",
     "href": "notebooks/fitting-rl-algorithms-algo5-mle.html#compare-estimated-vs-true-parameters",
-    "title": "Model fits: noisy-gradient (algo5), MLE",
+    "title": "Model diagnostics: noisy-gradient (algo5), MLE",
     "section": "Compare estimated vs true parameters",
     "text": "Compare estimated vs true parameters\n\nestimated &lt;- par_from_unconstrained(fit$par)\n\ncomparison &lt;- tibble(\n  parameter = names(true_pars),\n  initial = unlist(init_pars),\n  true_value = unlist(true_pars),\n  estimated = unlist(estimated)\n)\ncomparison\n\n# A tibble: 5 × 4\n  parameter initial true_value estimated\n  &lt;chr&gt;       &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;\n1 c            3         6        5.99  \n2 kappa        5         3        3.11  \n3 tau          0.05      0.025    0.0258\n4 delta0       0.05      0.1      0.102 \n5 sigma_g      1         2        1.92",
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Fitting: noisy-gradient (algo5), MLE"
+      "Model Diagnostics: noisy-gradient (algo5), MLE"
     ]
   },
   {
     "objectID": "notebooks/fitting-rl-algorithms-algo5-mle.html#likelihood-profile-at-the-mle",
     "href": "notebooks/fitting-rl-algorithms-algo5-mle.html#likelihood-profile-at-the-mle",
-    "title": "Model fits: noisy-gradient (algo5), MLE",
+    "title": "Model diagnostics: noisy-gradient (algo5), MLE",
     "section": "Likelihood profile at the MLE",
     "text": "Likelihood profile at the MLE\nA quick sanity check: evaluate the likelihood over a grid around each MLE estimate while holding the others fixed, to confirm we are at a peak.\n\nbest_theta &lt;- fit$par\npar_names &lt;- c(\"c\", \"kappa\", \"tau\", \"delta0\", \"sigma_g\")\n\nprofiles &lt;- purrr::map_dfr(seq_along(par_names), \\(j) {\n  grid &lt;- seq(best_theta[j] - 1, best_theta[j] + 1, length.out = 80)\n  ll_vals &lt;- sapply(grid, \\(v) {\n    theta_tmp &lt;- best_theta\n    theta_tmp[j] &lt;- v\n    -neg_loglik(theta_tmp, y = sim$y, a = sim$a)\n  })\n  tibble(\n    parameter = par_names[j],\n    theta_unconstrained = grid,\n    value = exp(grid),\n    loglik = ll_vals\n  )\n})\n\nggplot(profiles, aes(x = value, y = loglik)) +\n  geom_line() +\n  geom_vline(data = comparison, aes(xintercept = estimated), linetype = \"dashed\", color = \"blue\") +\n  geom_vline(data = comparison, aes(xintercept = true_value), linetype = \"dotted\", color = \"red\") +\n  facet_wrap(~parameter, scales = \"free\") +\n  labs(x = \"Parameter value\", y = \"Log-likelihood\",\n       caption = \"Blue dashed = MLE, Red dotted = true value\")",
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Fitting: noisy-gradient (algo5), MLE"
+      "Model Diagnostics: noisy-gradient (algo5), MLE"
     ]
   },
   {
     "objectID": "notebooks/fitting-rl-algorithms-algo5-mle.html#parameter-recovery",
     "href": "notebooks/fitting-rl-algorithms-algo5-mle.html#parameter-recovery",
-    "title": "Model fits: noisy-gradient (algo5), MLE",
+    "title": "Model diagnostics: noisy-gradient (algo5), MLE",
     "section": "Parameter recovery",
     "text": "Parameter recovery\nSample 10000 parameter sets uniformly, simulate data for each, fit via MLE, and check whether the true values are recovered.\n\nn_recovery &lt;- 10000\nn_trials &lt;- 1000\nset.seed(2026)\n\nrecovery_true &lt;- tibble(\n  iter = seq_len(n_recovery),\n  c = runif(n_recovery, 1, 10),\n  kappa = runif(n_recovery, 1, 10),\n  tau = runif(n_recovery, 0.001, 0.05),\n  delta0 = runif(n_recovery, 0.01, 0.2),\n  sigma_g = runif(n_recovery, 0, 10)\n)\n\nfit_one &lt;- function(iter, c, kappa, tau, delta0, sigma_g) {\n  sim &lt;- run_arc_algorithm(\n    arc_update_fun = algo5_noisy_grad(tau = tau, delta0 = delta0,\n                                       delta_pow = 0.5, sigma_g = sigma_g),\n    c = c, kappa = kappa, init_arc = pi / 2, n_trials = n_trials\n  )\n\n  theta0 &lt;- par_to_unconstrained(list(\n    c = 4, kappa = 4, tau = 0.02, delta0 = 0.08, sigma_g = 3\n  ))\n\n  fit &lt;- tryCatch(\n    optim(par = theta0, fn = neg_loglik, y = sim$y, a = sim$a,\n          method = \"Nelder-Mead\",\n          control = list(maxit = 5000, reltol = 1e-10)),\n    error = \\(e) list(par = rep(NA_real_, 5), convergence = 99)\n  )\n\n  est &lt;- par_from_unconstrained(fit$par)\n  tibble(\n    iter = iter,\n    c_est = est$c, kappa_est = est$kappa, tau_est = est$tau,\n    delta0_est = est$delta0, sigma_g_est = est$sigma_g,\n    converged = fit$convergence == 0\n  )\n}\n\nrecovery_est &lt;- with_cache(\"output/algo5_recovery_est.rds\", {\n  purrr::pmap_dfr(recovery_true, fit_one)\n})\n\nTag iterations where at least one estimate exceeds 4× the max true generating value:\n\nest_cols &lt;- c(\"c_est\", \"kappa_est\", \"tau_est\", \"delta0_est\", \"sigma_g_est\")\ntrue_cols &lt;- c(\"c\", \"kappa\", \"tau\", \"delta0\", \"sigma_g\")\nthresholds &lt;- 4 * sapply(true_cols, \\(col) max(recovery_true[[col]]))\noutlier_mat &lt;- sapply(seq_along(est_cols), \\(j) {\n  recovery_est[[est_cols[j]]] &gt; thresholds[j]\n})\nrecovery_est$bad &lt;- rowSums(outlier_mat, na.rm = TRUE) &gt; 0\n\nJoin true and estimated values and reshape for plotting:\n\nrecovery_df &lt;- recovery_true |&gt;\n  left_join(recovery_est, by = \"iter\") |&gt;\n  pivot_longer(\n    cols = c(c, kappa, tau, delta0, sigma_g),\n    names_to = \"parameter\",\n    values_to = \"true_value\"\n  ) |&gt;\n  mutate(\n    estimated = case_when(\n      parameter == \"c\" ~ c_est,\n      parameter == \"kappa\" ~ kappa_est,\n      parameter == \"tau\" ~ tau_est,\n      parameter == \"delta0\" ~ delta0_est,\n      parameter == \"sigma_g\" ~ sigma_g_est\n    )\n  ) |&gt;\n  select(iter, parameter, true_value, estimated, converged, bad)\n\ncat(\"Converged:\", sum(recovery_est$converged), \"/\", n_recovery,\n    sprintf(\"(%.1f%%)\", 100 * mean(recovery_est$converged)), \"\\n\")\n\nConverged: 10000 / 10000 (100.0%) \n\ncat(\"Bad parameter estimates:\", sum(recovery_est$bad), \"/\", n_recovery,\n    sprintf(\"(%.1f%%)\", 100 * mean(recovery_est$bad)), \"\\n\")\n\nBad parameter estimates: 87 / 10000 (0.9%) \n\n\nCorrelations between true and estimated values (converged runs only):\n\nrecovery_df |&gt;\n  filter(converged, !bad) |&gt;\n  group_by(parameter) |&gt;\n  summarise(\n    r = cor(true_value, estimated),\n    rmse = sqrt(mean((true_value - estimated)^2)),\n    bias = mean(estimated - true_value),\n    .groups = \"drop\"\n  ) \n\n# A tibble: 5 × 4\n  parameter     r    rmse      bias\n  &lt;chr&gt;     &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;\n1 c         0.888 1.53     0.238   \n2 delta0    0.984 0.00988 -0.000194\n3 kappa     0.959 0.761   -0.0380  \n4 sigma_g   0.924 1.25     0.115   \n5 tau       0.862 0.00811  0.000418\n\n\n\nplot_df &lt;- recovery_df |&gt; filter(converged, !bad)\n\ncor_labels &lt;- plot_df |&gt;\n  group_by(parameter) |&gt;\n  summarise(\n    r = cor(true_value, estimated),\n    x = -Inf, y = Inf,\n    .groups = \"drop\"\n  ) |&gt;\n  mutate(label = sprintf(\"r = %.2f\", r))\n\nplot_df |&gt;\n  ggplot(aes(x = true_value, y = estimated)) +\n  geom_abline(linetype = \"dashed\", color = \"grey50\") +\n  geom_point(aes(color = converged), alpha = 0.1, size = 1.5) +\n  geom_text(data = cor_labels, aes(x = x, y = y, label = label),\n            hjust = -0.1, vjust = 1.3, inherit.aes = FALSE, size = 4) +\n  facet_wrap(~parameter, scales = \"free\") +\n  scale_color_manual(values = c(\"TRUE\" = \"steelblue\", \"FALSE\" = \"red\")) +\n  labs(x = \"True value\", y = \"Estimated value\", color = \"Converged\")\n\n\n\n\n\n\nFigure 1: Parameter recovery for the noisy-gradient model. Each point is one simulated dataset. The dashed line is the identity.\n\n\n\n\nBinned summary: for each parameter, true values are split into 20 equal-width bins. Within each bin, we show the median estimate (line) and 80%/95% intervals (ribbons).\n\nbinned_df &lt;- plot_df |&gt;\n  group_by(parameter) |&gt;\n  mutate(bin = cut(true_value, breaks = 20, labels = FALSE)) |&gt;\n  group_by(parameter, bin) |&gt;\n  summarise(\n    true_mid = mean(true_value),\n    median_est = median(estimated),\n    q025 = quantile(estimated, 0.025),\n    q10 = quantile(estimated, 0.10),\n    q90 = quantile(estimated, 0.90),\n    q975 = quantile(estimated, 0.975),\n    .groups = \"drop\"\n  )\n\nggplot(binned_df, aes(x = true_mid)) +\n  geom_abline(linetype = \"dashed\", color = \"grey50\") +\n  geom_ribbon(aes(ymin = q025, ymax = q975), alpha = 0.15, fill = \"steelblue\") +\n  geom_ribbon(aes(ymin = q10, ymax = q90), alpha = 0.3, fill = \"steelblue\") +\n  geom_line(aes(y = median_est), color = \"steelblue\", linewidth = 0.8) +\n  facet_wrap(~parameter, scales = \"free\") +\n  labs(x = \"True value\", y = \"Estimated value\")\n\n\n\n\n\n\nFigure 2: Binned parameter recovery. Line = median estimate per bin; dark ribbon = 80% interval; light ribbon = 95% interval.",
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Fitting: noisy-gradient (algo5), MLE"
+      "Model Diagnostics: noisy-gradient (algo5), MLE"
+    ]
+  },
+  {
+    "objectID": "notebooks/experiment-description.html",
+    "href": "notebooks/experiment-description.html",
+    "title": "Experiment Description & Data Codebook",
+    "section": "",
+    "text": "This page describes the experimental design of Experiment 1 and provides codebooks for both the raw and preprocessed data files.",
+    "crumbs": [
+      "Home",
+      "Experiment Description & Codebook"
+    ]
+  },
+  {
+    "objectID": "notebooks/experiment-description.html#overview",
+    "href": "notebooks/experiment-description.html#overview",
+    "title": "Experiment Description & Data Codebook",
+    "section": "",
+    "text": "This page describes the experimental design of Experiment 1 and provides codebooks for both the raw and preprocessed data files.",
+    "crumbs": [
+      "Home",
+      "Experiment Description & Codebook"
+    ]
+  },
+  {
+    "objectID": "notebooks/experiment-description.html#experiment-1",
+    "href": "notebooks/experiment-description.html#experiment-1",
+    "title": "Experiment Description & Data Codebook",
+    "section": "Experiment 1",
+    "text": "Experiment 1\n\nMotivation\nIn the standard continuous reproduction paradigm, participants study a visual feature (e.g., a color) and later reproduce it on a continuous response scale (e.g., a color wheel). The angular error between the response and the target indexes memory precision — but a single trial’s error is just a sample from an underlying distribution, not a direct readout of that trial’s memory quality.\nTo obtain a trial-level uncertainty estimate, participants additionally drew a symmetric arc around their point response, indicating the range of values they consider plausible. An incentive-compatible scoring rule ensured that participants were motivated to set this arc thoughtfully.\n\n\nParticipants\nForty participants (four groups of 10) each completed two experimental sessions. The four groups differed in which experiment they performed in each session:\n\nSet size & Set size\nSet size & Time\nTime & Set size\nTime & Time.\n\nThus, some participants performed the same experiment twice, while others performed both experiments (see experimentorder and exp_cond below). Participants ranged in age from approximately 18–30 years.\n\n\n\nStimuli\nOn each trial, 1–8 colored circles appeared at evenly-spaced positions around a central fixation point. Colors were drawn from a 360° color wheel with a random offset on every trial (recorded in colorwheel0degree). Unused item slots were coded as 999 (= NA) in the raw data.\n\n\nProcedure\nEach trial proceeded as follows:\n\nEncoding — The memory array appeared for a fixed duration (encodingtime; 0.1 s, 0.5 s, or 1.5 s depending on condition).\nRetention interval — A blank delay followed (delay; 0.5 s, 1.0 s, 3.0 s, or 5.5 s depending on condition).\nPoint response — One item was cued (testposition). A color wheel appeared and the participant clicked to report the remembered color. The angular position of the response is recorded as responseangle.\nArc setting — The participant adjusted a symmetric arc centered on their point response, indicating the range of colors they believed could contain the target. The half-width of this arc (in degrees) is recorded as arcsize.\n\n\n\n\n\nScoring\nPoints on each trial were computed as:\n\\[\np = (\\pi - \\alpha) \\cdot \\mathbf{1}[|y| \\le \\alpha],\n\\]\nwhere \\(y\\) is the signed response error (difference between the response and the correct color, in radians) and \\(\\alpha\\) is the arc half-width (in radians). If the true color fell within the arc, the participant earned \\(\\pi - \\alpha\\) points; otherwise they earned 0. This creates an accuracy–confidence tradeoff: wider arcs are more likely to capture the target but yield fewer points.\n\n\nDesign\nThe experiment used two within-subject manipulations organized into separate session types:\n\n\n\n\n\n\n\n\n\nSession type\nManipulation\nVariable\nLevels\n\n\n\n\nSet size\nNumber of items in the memory array\nsetsize\n1, 2, 3, 4, 5, 6, 7, 8\n\n\nTime\nEncoding duration × retention interval\nencodingtime\n0.1 s, 0.5 s, 1.5 s\n\n\n\n\ndelay\n0.5 s, 1.0 s, 3.0 s, 5.5 s\n\n\n\nIn the set-size sessions, each block contained trials with all eight set sizes in random order (set size always 1 item in the time condition sessions). In the time sessions, encoding duration and retention interval were crossed factorially.",
+    "crumbs": [
+      "Home",
+      "Experiment Description & Codebook"
+    ]
+  },
+  {
+    "objectID": "notebooks/experiment-description.html#data-codebook-raw-data",
+    "href": "notebooks/experiment-description.html#data-codebook-raw-data",
+    "title": "Experiment Description & Data Codebook",
+    "section": "Data Codebook: Raw Data",
+    "text": "Data Codebook: Raw Data\nFile: data-raw/exp1_2021_data.csv Rows: 64,400 | Participants: 40\nAll angular variables (colors, positions, responses) are in degrees (0–360 for colors; signed for errors).\n\nTrial identification\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\nsubject\nint\nParticipant identifier (numeric)\n\n\nage\nint\nParticipant age in years\n\n\nexperimentorder\nint\nWhich session this was for the participant (1 = first visit, 2 = second)\n\n\nblocknumber\nint\nBlock number within the session\n\n\ntrialnumber\nint\nTrial number within the block\n\n\n\n\n\nStimulus display\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\nsetsize\nint\nNumber of items displayed (1–8)\n\n\nposition1–position8\nint\nScreen position index for each item (1–8); NA for unused slots\n\n\np1color–p8color\nint\nColor of each item in degrees on the color wheel (0–360); 999 = unused slot\n\n\ncolorwheel0degree\nchr\nRGB values at the 0° position of the color wheel (random offset each trial)\n\n\ncolorwheel0degreeR\nnum\nRed channel of the color wheel 0° position\n\n\ncolorwheel0degreeG\nnum\nGreen channel of the color wheel 0° position\n\n\ncolorwheel0degreeB\nnum\nBlue channel of the color wheel 0° position\n\n\n\n\n\nTest probe\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\ntestposition\nint\nPosition index of the probed item (1–8)\n\n\ncolorcorrectangle\nint\nCorrect color of the probed item, in degrees on the color wheel\n\n\nposition\nint\nScreen position of the probed item (appears to be NA in set-size sessions)\n\n\npcolor\nint\nProbed item color (alternative coding; NA in set-size sessions)\n\n\n\n\n\nResponse\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\nresponseangle\nint\nParticipant’s point response on the color wheel, in degrees\n\n\nanglediff\nint\nSigned response error: responseangle − colorcorrectangle (degrees, −180 to 179)\n\n\narcsize\nnum\nArc half-width set by the participant (degrees, 0–233.75)\n\n\npoints\nnum\nPoints earned on this trial (0 if miss; based on degree-scale formula)\n\n\npointstotal\nnum\nCumulative points earned up to and including this trial\n\n\nrtclick1\nnum\nResponse time for the point response click (seconds)\n\n\nrtclick2\nnum\nResponse time for the arc-width adjustment click (seconds)\n\n\n\n\n\nColor-space transformations\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\nRawAnglePosition\nint\nRaw angular position on the wheel before correction\n\n\nCorrectedWheelAngle\nint\nWheel angle corrected for the random offset\n\n\nanglediff_c\nnum\nCorrected response error (degrees)\n\n\npresentedColor\nint\nTarget color expressed in the canonical (unrotated) color space (degrees)\n\n\nresponseColor\nint\nResponse color expressed in the canonical (unrotated) color space (degrees)\n\n\n\n\n\nExperimental conditions\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\nencodingtime\nnum\nDuration of the memory display (seconds): 0.1, 0.5, or 1.5\n\n\ndelay\nnum\nRetention interval (seconds): 0.5, 1.0, 3.0, or 5.5\n\n\nexp_type\nchr\nSession type on the current visit: \"SetS\" (set-size) or \"Time\" (time)\n\n\npart1_type\nchr\nSession type during first visit: \"SetS\" or \"Time\"\n\n\npart2_type\nchr\nSession type during second visit: \"SetS\" or \"Time\"\n\n\nexp_cond\nchr\nCombined session-order label: \"SetS_SetS\", \"SetS_Time\", \"Time_SetS\", \"Time_Time\"",
+    "crumbs": [
+      "Home",
+      "Experiment Description & Codebook"
+    ]
+  },
+  {
+    "objectID": "notebooks/experiment-description.html#data-codebook-preprocessed-data",
+    "href": "notebooks/experiment-description.html#data-codebook-preprocessed-data",
+    "title": "Experiment Description & Data Codebook",
+    "section": "Data Codebook: Preprocessed Data",
+    "text": "Data Codebook: Preprocessed Data\nFile: output/exp1_data.csv Rows: 64,365 (35 trials with arcsize &gt; 180° removed) | Participants: 40\nPreprocessing is performed by preprocess_exp1_data() in R/data-functions.R. The following transformations are applied:\n\n999 → NA: Sentinel values in unused item slots are replaced with NA.\nDegree-to-radian conversion: All angular color and response variables (columns matching p[1-8]color, *[Aa]ngle*, and *Color) are converted from degrees to radians via bmm::deg2rad() and wrapped to \\([-\\pi, \\pi]\\) via bmm::wrap().\nArc filtering: Trials where arcsize &gt; 180° are removed (these represent arcs covering more than the full semicircle).\nColumn renaming:\n\nanglediff → resperr (response error, now in radians)\narcsize → arc (arc width, converted to the full arc in radians: arc = deg2rad(arcsize × 2); i.e., this is the full arc, not the half-width)\n\n\n\nKey differences from raw data\n\n\n\n\n\n\n\n\nVariable\nRaw data\nPreprocessed data\n\n\n\n\nresperr\nanglediff: degrees, −180–179\nRadians, wrapped to \\([-\\pi, \\pi]\\)\n\n\narc\narcsize: half-width, degrees\nFull arc width in radians (\\([0, 2\\pi]\\))\n\n\nColors\nDegrees (0–360)\nRadians, wrapped to \\([-\\pi, \\pi]\\)\n\n\nFiltering\nAll 64,400 trials\n64,365 trials (35 extreme-arc trials removed)\n\n\n\nAll other columns retain their original names and semantics, with the same radian conversion applied to angular variables.",
+    "crumbs": [
+      "Home",
+      "Experiment Description & Codebook"
+    ]
+  },
+  {
+    "objectID": "notebooks/experiment-description.html#full-technical-details",
+    "href": "notebooks/experiment-description.html#full-technical-details",
+    "title": "Experiment Description & Data Codebook",
+    "section": "Full technical details",
+    "text": "Full technical details\n\nParticipants\nForty students (26 female) from Sun Yat-sen University aged between 18 and 24 years (M=20) were recruited to participate in this study. They all had a normal or corrected-to-normal vision. The participants received 30 CNY per hour after completing the experiment. Participants gave written informed consent before their participation. The experimental protocol was approved by the institutional review board at the Department of Psychology, Sun Yat-sen University. There are two experiments, the Set size experiment, and the Time experiment. On two separate days (1-22 days between experiments, M=4), participants were randomly assigned to perform one of the two experiments. That is, there were four groups regarding different combinations of these two experiments. Each participant completed two Set size experiments / Set size then Time experiments / Time then Set size experiments / two Time experiments.\n\n\nStimuli and apparatus\nThe program of each experiment was prepared under MATLAB 2019a with PsychToolbox extensions and implemented on a Windows 10 (64-bit) desktop computer with a 27-inch LCD (60Hz of refresh rate) and a standard QWERTY keyboard in a dark laboratory room with acoustic shielding. The monitor was placed 57 cm away from the participant. Participants were shown colored dots (1.26° radius) of eccentricity 5.3° on a gray background (20 cd/m2), which occurred at one of the eight potential locations selected from an octagon. The color wheel was 1° thick and was centered on the monitor with a radius of 8°. It consisted of 360 equidistant colors from the CIE Lab space (centered at L = 54, a = 18, and b = 8; radius of 59). The sample colors were randomly selected with a minimum difference of 15 degrees from the color wheel. All colors had equal luminance (roughly 20 cd/m2).\n\n\nProcedure\n\nSet size experiment\nA trial began with a 500-ms fixation (Figure 1). In the memory display, there were 1~8 colored dots. After a 1000-ms blank screen, participants reported the color of the item probed by a white circle on a color wheel, by clicking the left mouse button. A bar of the clicked color (length = 1°, thickness = 0.5°) would occur on the clicked location. Then they reported the uncertainty of their memory by adjusting the arc width centered on their first click (arc thickness = 0.5°, radius = 9°). If the true color was within their reported arc, participants got points inversely related to the arc size (points = 180 – arc width, where arc width is the size in degrees of one-half the symmetric arc). If the arc did not include the presented color, they got 0 points to discourage giving very small intervals. The total points and the points of the current trial would be presented on the screen until they pressed the space key. There was a 1000-ms interval between trials.\nThere was a 1-min break every 80 trials. There were 10 practice trials and 800 trials (10 blocks) in the formal experiment with 100 trials for each set size condition. Within each block, there was roughly an equal number of trials for each set size, and that the order of set sizes was randomized.\n\n\nTime experiment\nA trial began with a 500-ms fixation (Figure 2). In the memory display, there was always one colored dot, randomly occurring on one of the eight fixed locations. The colored dot was presented for 100ms/ 500ms/ 1500ms. Then there was a blank screen for 0.5s/ 3s/ 5.5s. Participants then reported the color of the item probed by a white circle on a color wheel, by clicking the left mouse button. Then they reported the uncertainty of their memory by adjusting the arc width centered on their first click. The points would be calculated and presented in the same way with Set size experiment. There was a 1000-ms interval between trials. There was a 1-min break every 81 trials. There were 10 practice trials and 810 trials (10 blocks) in the formal experiment with 100 trials for each time condition (9 conditions, encoding time:100ms/ 500ms/ 1500ms, delay duration: 0.5s/ 3s/ 5.5s). Within each block, there was roughly an equal number of trials for each condition, and that the order of conditions was randomized.",
+    "crumbs": [
+      "Home",
+      "Experiment Description & Codebook"
     ]
   },
   {
@@ -353,6 +419,102 @@
       "Home",
       "Data Exploration",
       "Exp 1: Exploratory Analysis"
+    ]
+  },
+  {
+    "objectID": "notebooks/fitting-rl-algorithms-algo4-mle.html",
+    "href": "notebooks/fitting-rl-algorithms-algo4-mle.html",
+    "title": "Model diagnostics: contraction-expansion (algo4) with logit noise, MLE",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(bmm)\nsource(\"R/arc-models.R\")\nsource(\"R/utils.R\")\nsource(\"R/math.R\")",
+    "crumbs": [
+      "Home",
+      "Theory & Modeling",
+      "Model Diagnostics: contraction-expansion (algo4), MLE"
+    ]
+  },
+  {
+    "objectID": "notebooks/fitting-rl-algorithms-algo4-mle.html#task-and-model-summary",
+    "href": "notebooks/fitting-rl-algorithms-algo4-mle.html#task-and-model-summary",
+    "title": "Model diagnostics: contraction-expansion (algo4) with logit noise, MLE",
+    "section": "Task and model summary",
+    "text": "Task and model summary\nOn each trial a participant reports a remembered color (continuous response) and sets a symmetric arc of half-width \\(a_t \\in (0,\\pi)\\) around it. Points are awarded as \\[\np_t = (\\pi - a_t)\\,\\mathbf{1}\\!\\bigl[|y_t| \\le a_t\\bigr],\n\\] where \\(y_t\\) is the signed response error. Wider arcs are safer but earn fewer points, creating an accuracy–confidence tradeoff. Empirically, participants’ arc widths are near-optimal given their error distributions.\nResponse errors are modelled by the Signal Discrimination Model (SDM): \\[\ny_t \\sim \\text{SDM}(c,\\kappa).\n\\]\nDeterministic arc-width update (algo4). On each trial the arc contracts toward 0 on a hit and expands toward \\(\\pi\\) on a miss, with step-size \\(\\delta \\in (0,1)\\): \\[\n\\tilde{a}_{t+1} = a_t\\,(1-\\delta) + \\mathbf{1}\\!\\bigl[|y_t|&gt;a_t\\bigr]\\,\\delta\\,\\pi.\n\\]\nLogit-noise stochastic extension. To make the model estimable, we add Gaussian noise on the unconstrained logit scale. Define \\[\n\\tilde{x}_{t+1} = \\operatorname{logit}\\!\\left(\\tilde{a}_{t+1}/\\pi\\right),\n\\] then the stochastic transition is \\[\nx_{t+1} = \\tilde{x}_{t+1} + \\varepsilon_t, \\qquad \\varepsilon_t \\sim \\mathcal{N}(0,\\sigma_\\varepsilon^2),\n\\] so that \\(a_{t+1} = \\pi\\,\\sigma(x_{t+1})\\) is guaranteed to lie in \\((0,\\pi)\\) without clipping.\nJoint log-likelihood. Because \\(x_{t+1} \\mid a_t, y_t\\) is normal, the full log-likelihood decomposes as \\[\n\\ell(\\theta) =\n\\underbrace{\\sum_{t=1}^{T}\\log f_{\\text{SDM}}(y_t \\mid c,\\kappa)}_{\\text{response errors}}\n\\;+\\;\n\\underbrace{\\sum_{t=1}^{T-1}\\log\\phi\\!\\left(x_{t+1};\\; \\tilde{x}_{t+1},\\; \\sigma_\\varepsilon\\right)}_{\\text{arc transitions}},\n\\] with fitted parameter vector \\(\\theta=(c,\\kappa,\\delta,\\sigma_\\varepsilon)\\). Below we verify identifiability via simulation-based parameter recovery and maximum-likelihood estimation with optim.",
+    "crumbs": [
+      "Home",
+      "Theory & Modeling",
+      "Model Diagnostics: contraction-expansion (algo4), MLE"
+    ]
+  },
+  {
+    "objectID": "notebooks/fitting-rl-algorithms-algo4-mle.html#simulate-data",
+    "href": "notebooks/fitting-rl-algorithms-algo4-mle.html#simulate-data",
+    "title": "Model diagnostics: contraction-expansion (algo4) with logit noise, MLE",
+    "section": "Simulate data",
+    "text": "Simulate data\nGenerate a single subject’s worth of data from the algo4 logit-noise model with known parameters. We use run_arc_algorithm which feeds SDM-generated response errors y through the update function trial by trial.\n\ntrue_pars &lt;- list(c = 6, kappa = 3, delta = 0.1, sigma_e = 0.2)\n\nset.seed(4233)\nsim &lt;- run_arc_algorithm(\n  arc_update_fun = algo4_logit_noise(\n    delta = true_pars$delta,\n    sigma_e = true_pars$sigma_e\n  ),\n  c = true_pars$c,\n  kappa = true_pars$kappa,\n  init_arc = pi / 8,\n  n_trials = 1000\n)\n\npar(mfrow = c(1, 3))\nplot(sim$a, type = \"l\", xlab = \"Trial\", ylab = \"Arc width\")\nhist(sim$a, xlab = \"Arc width\")\nhist(sim$y, xlab = \"Response error\")\n\n\n\n\n\n\npar(mfrow = c(1, 1))",
+    "crumbs": [
+      "Home",
+      "Theory & Modeling",
+      "Model Diagnostics: contraction-expansion (algo4), MLE"
+    ]
+  },
+  {
+    "objectID": "notebooks/fitting-rl-algorithms-algo4-mle.html#log-likelihood",
+    "href": "notebooks/fitting-rl-algorithms-algo4-mle.html#log-likelihood",
+    "title": "Model diagnostics: contraction-expansion (algo4) with logit noise, MLE",
+    "section": "Log-likelihood",
+    "text": "Log-likelihood\nThe joint log-likelihood has two additive components:\n\n\nSDM component — the density of each response error \\(y_t\\)\n\n\nArc-transition component — a normal density on the logit scale for the arc update from trial \\(t\\) to \\(t+1\\)\n\n\nThe functions algo4_loglik, par_to_unconstrained_algo4, par_from_unconstrained_algo4, and neg_loglik_algo4 are defined in R/arc-models.R (loaded above). Parameters \\(c\\), \\(\\kappa\\), and \\(\\sigma_\\varepsilon\\) are strictly positive (estimated on the log scale); \\(\\delta\n\\in (0,1)\\) is estimated on the logit scale.",
+    "crumbs": [
+      "Home",
+      "Theory & Modeling",
+      "Model Diagnostics: contraction-expansion (algo4), MLE"
+    ]
+  },
+  {
+    "objectID": "notebooks/fitting-rl-algorithms-algo4-mle.html#fit-with-optim",
+    "href": "notebooks/fitting-rl-algorithms-algo4-mle.html#fit-with-optim",
+    "title": "Model diagnostics: contraction-expansion (algo4) with logit noise, MLE",
+    "section": "Fit with optim\n",
+    "text": "Fit with optim\n\nWe initialise at perturbed values (not the truth) to verify that the optimiser can recover the generating parameters.\n\ninit_pars &lt;- list(c = 3, kappa = 5, delta = 0.05, sigma_e = 0.5)\ntheta0 &lt;- par_to_unconstrained_algo4(init_pars)\n\nfit &lt;- optim(\n  par = theta0,\n  fn = neg_loglik_algo4,\n  y = sim$y,\n  a = sim$a,\n  method = \"Nelder-Mead\",\n  control = list(maxit = 5000, reltol = 1e-10)\n)\n\nfit$convergence  # 0 = success\n\n[1] 0",
+    "crumbs": [
+      "Home",
+      "Theory & Modeling",
+      "Model Diagnostics: contraction-expansion (algo4), MLE"
+    ]
+  },
+  {
+    "objectID": "notebooks/fitting-rl-algorithms-algo4-mle.html#compare-estimated-vs-true-parameters",
+    "href": "notebooks/fitting-rl-algorithms-algo4-mle.html#compare-estimated-vs-true-parameters",
+    "title": "Model diagnostics: contraction-expansion (algo4) with logit noise, MLE",
+    "section": "Compare estimated vs true parameters",
+    "text": "Compare estimated vs true parameters\n\nestimated &lt;- par_from_unconstrained_algo4(fit$par)\n\ncomparison &lt;- tibble(\n  parameter = names(true_pars),\n  initial = unlist(init_pars),\n  true_value = unlist(true_pars),\n  estimated = unlist(estimated)\n)\ncomparison\n\n# A tibble: 4 × 4\n  parameter initial true_value estimated\n  &lt;chr&gt;       &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;\n1 c            3           6       5.99 \n2 kappa        5           3       3.11 \n3 delta        0.05        0.1     0.103\n4 sigma_e      0.5         0.2     0.195",
+    "crumbs": [
+      "Home",
+      "Theory & Modeling",
+      "Model Diagnostics: contraction-expansion (algo4), MLE"
+    ]
+  },
+  {
+    "objectID": "notebooks/fitting-rl-algorithms-algo4-mle.html#likelihood-profile-at-the-mle",
+    "href": "notebooks/fitting-rl-algorithms-algo4-mle.html#likelihood-profile-at-the-mle",
+    "title": "Model diagnostics: contraction-expansion (algo4) with logit noise, MLE",
+    "section": "Likelihood profile at the MLE",
+    "text": "Likelihood profile at the MLE\nA quick sanity check: evaluate the likelihood over a grid around each MLE estimate while holding the others fixed, to confirm we are at a peak.\n\nbest_theta &lt;- fit$par\npar_names &lt;- c(\"c\", \"kappa\", \"delta\", \"sigma_e\")\n\nprofiles &lt;- purrr::map_dfr(seq_along(par_names), \\(j) {\n  grid &lt;- seq(best_theta[j] - 1, best_theta[j] + 1, length.out = 80)\n  ll_vals &lt;- sapply(grid, \\(v) {\n    theta_tmp &lt;- best_theta\n    theta_tmp[j] &lt;- v\n    -neg_loglik_algo4(theta_tmp, y = sim$y, a = sim$a)\n  })\n\n  if (par_names[j] == \"delta\") {\n    value &lt;- inv_logit(grid)\n  } else {\n    value &lt;- exp(grid)\n  }\n\n  tibble(\n    parameter = par_names[j],\n    theta_unconstrained = grid,\n    value = value,\n    loglik = ll_vals\n  )\n})\n\nggplot(profiles, aes(x = value, y = loglik)) +\n  geom_line() +\n  geom_vline(data = comparison, aes(xintercept = estimated), linetype = \"dashed\", color = \"blue\") +\n  geom_vline(data = comparison, aes(xintercept = true_value), linetype = \"dotted\", color = \"red\") +\n  facet_wrap(~parameter, scales = \"free\") +\n  labs(x = \"Parameter value\", y = \"Log-likelihood\",\n       caption = \"Blue dashed = MLE, Red dotted = true value\")",
+    "crumbs": [
+      "Home",
+      "Theory & Modeling",
+      "Model Diagnostics: contraction-expansion (algo4), MLE"
+    ]
+  },
+  {
+    "objectID": "notebooks/fitting-rl-algorithms-algo4-mle.html#parameter-recovery",
+    "href": "notebooks/fitting-rl-algorithms-algo4-mle.html#parameter-recovery",
+    "title": "Model diagnostics: contraction-expansion (algo4) with logit noise, MLE",
+    "section": "Parameter recovery",
+    "text": "Parameter recovery\nSample 10000 parameter sets uniformly, simulate data for each, fit via MLE, and check whether the true values are recovered.\n\nn_recovery &lt;- 10000\nn_trials &lt;- 1000\nset.seed(2026)\n\nrecovery_true &lt;- tibble(\n  iter = seq_len(n_recovery),\n  c = runif(n_recovery, 1, 10),\n  kappa = runif(n_recovery, 1, 10),\n  delta = runif(n_recovery, 0.01, 0.5),\n  sigma_e = runif(n_recovery, 0.01, 1)\n)\n\nfit_one &lt;- function(iter, c, kappa, delta, sigma_e) {\n  sim &lt;- run_arc_algorithm(\n    arc_update_fun = algo4_logit_noise(delta = delta, sigma_e = sigma_e),\n    c = c, kappa = kappa, init_arc = pi / 2, n_trials = n_trials\n  )\n\n  theta0 &lt;- par_to_unconstrained_algo4(list(\n    c = 4, kappa = 4, delta = 0.1, sigma_e = 0.3\n  ))\n\n  fit &lt;- tryCatch(\n    optim(par = theta0, fn = neg_loglik_algo4, y = sim$y, a = sim$a,\n          method = \"Nelder-Mead\",\n          control = list(maxit = 5000, reltol = 1e-10)),\n    error = \\(e) list(par = rep(NA_real_, 4), convergence = 99)\n  )\n\n  est &lt;- par_from_unconstrained_algo4(fit$par)\n  tibble(\n    iter = iter,\n    c_est = est$c, kappa_est = est$kappa,\n    delta_est = est$delta, sigma_e_est = est$sigma_e,\n    converged = fit$convergence == 0\n  )\n}\n\nrecovery_est &lt;- with_cache(\"output/algo4_recovery_est.rds\", {\n  purrr::pmap_dfr(recovery_true, fit_one)\n})\n\nTag iterations where at least one estimate exceeds 4× the max true generating value:\n\nest_cols &lt;- c(\"c_est\", \"kappa_est\", \"delta_est\", \"sigma_e_est\")\ntrue_cols &lt;- c(\"c\", \"kappa\", \"delta\", \"sigma_e\")\nthresholds &lt;- 4 * sapply(true_cols, \\(col) max(recovery_true[[col]]))\noutlier_mat &lt;- sapply(seq_along(est_cols), \\(j) {\n  recovery_est[[est_cols[j]]] &gt; thresholds[j]\n})\nrecovery_est$bad &lt;- rowSums(outlier_mat, na.rm = TRUE) &gt; 0\n\nJoin true and estimated values and reshape for plotting:\n\nrecovery_df &lt;- recovery_true |&gt;\n  left_join(recovery_est, by = \"iter\") |&gt;\n  pivot_longer(\n    cols = c(c, kappa, delta, sigma_e),\n    names_to = \"parameter\",\n    values_to = \"true_value\"\n  ) |&gt;\n  mutate(\n    estimated = case_when(\n      parameter == \"c\" ~ c_est,\n      parameter == \"kappa\" ~ kappa_est,\n      parameter == \"delta\" ~ delta_est,\n      parameter == \"sigma_e\" ~ sigma_e_est\n    )\n  ) |&gt;\n  select(iter, parameter, true_value, estimated, converged, bad)\n\ncat(\"Converged:\", sum(recovery_est$converged), \"/\", n_recovery,\n    sprintf(\"(%.1f%%)\", 100 * mean(recovery_est$converged)), \"\\n\")\n\nConverged: 10000 / 10000 (100.0%) \n\ncat(\"Bad parameter estimates:\", sum(recovery_est$bad), \"/\", n_recovery,\n    sprintf(\"(%.1f%%)\", 100 * mean(recovery_est$bad)), \"\\n\")\n\nBad parameter estimates: 51 / 10000 (0.5%) \n\n\nCorrelations between true and estimated values (converged runs only):\n\nrecovery_df |&gt;\n  filter(converged, !bad) |&gt;\n  group_by(parameter) |&gt;\n  summarise(\n    r = cor(true_value, estimated),\n    rmse = sqrt(mean((true_value - estimated)^2)),\n    bias = mean(estimated - true_value),\n    .groups = \"drop\"\n  )\n\n# A tibble: 4 × 4\n  parameter     r    rmse        bias\n  &lt;chr&gt;     &lt;dbl&gt;   &lt;dbl&gt;       &lt;dbl&gt;\n1 c         0.892 1.49     0.238     \n2 delta     0.999 0.00664  0.00000732\n3 kappa     0.959 0.757   -0.0368    \n4 sigma_e   0.999 0.0130  -0.000504  \n\n\n\nplot_df &lt;- recovery_df |&gt; filter(converged, !bad)\n\ncor_labels &lt;- plot_df |&gt;\n  group_by(parameter) |&gt;\n  summarise(\n    r = cor(true_value, estimated),\n    x = -Inf, y = Inf,\n    .groups = \"drop\"\n  ) |&gt;\n  mutate(label = sprintf(\"r = %.2f\", r))\n\nplot_df |&gt;\n  ggplot(aes(x = true_value, y = estimated)) +\n  geom_abline(linetype = \"dashed\", color = \"grey50\") +\n  geom_point(aes(color = converged), alpha = 0.1, size = 1.5) +\n  geom_text(data = cor_labels, aes(x = x, y = y, label = label),\n            hjust = -0.1, vjust = 1.3, inherit.aes = FALSE, size = 4) +\n  facet_wrap(~parameter, scales = \"free\") +\n  scale_color_manual(values = c(\"TRUE\" = \"steelblue\", \"FALSE\" = \"red\")) +\n  labs(x = \"True value\", y = \"Estimated value\", color = \"Converged\")\n\n\n\n\n\n\nFigure 1: Parameter recovery for the contraction-expansion model with logit noise. Each point is one simulated dataset. The dashed line is the identity.\n\n\n\n\nBinned summary: for each parameter, true values are split into 20 equal-width bins. Within each bin, we show the median estimate (line) and 80%/95% intervals (ribbons).\n\nbinned_df &lt;- plot_df |&gt;\n  group_by(parameter) |&gt;\n  mutate(bin = cut(true_value, breaks = 20, labels = FALSE)) |&gt;\n  group_by(parameter, bin) |&gt;\n  summarise(\n    true_mid = mean(true_value),\n    median_est = median(estimated),\n    q025 = quantile(estimated, 0.025),\n    q10 = quantile(estimated, 0.10),\n    q90 = quantile(estimated, 0.90),\n    q975 = quantile(estimated, 0.975),\n    .groups = \"drop\"\n  )\n\nggplot(binned_df, aes(x = true_mid)) +\n  geom_abline(linetype = \"dashed\", color = \"grey50\") +\n  geom_ribbon(aes(ymin = q025, ymax = q975), alpha = 0.15, fill = \"steelblue\") +\n  geom_ribbon(aes(ymin = q10, ymax = q90), alpha = 0.3, fill = \"steelblue\") +\n  geom_line(aes(y = median_est), color = \"steelblue\", linewidth = 0.8) +\n  facet_wrap(~parameter, scales = \"free\") +\n  labs(x = \"True value\", y = \"Estimated value\")\n\n\n\n\n\n\nFigure 2: Binned parameter recovery. Line = median estimate per bin; dark ribbon = 80% interval; light ribbon = 95% interval.",
+    "crumbs": [
+      "Home",
+      "Theory & Modeling",
+      "Model Diagnostics: contraction-expansion (algo4), MLE"
     ]
   },
   {
