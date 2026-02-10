@@ -1,31 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://venpopov.github.io/arc-width-vwm/notebooks/honig-explore.html</loc>
-    <lastmod>2026-02-03T08:47:27.115Z</lastmod>
-  </url>
-  <url>
-    <loc>https://venpopov.github.io/arc-width-vwm/notebooks/reinforcement-learning-arc.html</loc>
-    <lastmod>2026-02-03T09:54:15.292Z</lastmod>
+    <loc>https://venpopov.github.io/arc-width-vwm/notebooks/sequential-dependencies.html</loc>
+    <lastmod>2026-02-10T08:09:05.052Z</lastmod>
   </url>
   <url>
     <loc>https://venpopov.github.io/arc-width-vwm/notebooks/optimal-arc-response.html</loc>
-    <lastmod>2026-01-20T13:05:34.894Z</lastmod>
+    <lastmod>2026-02-10T08:07:22.154Z</lastmod>
   </url>
   <url>
-    <loc>https://venpopov.github.io/arc-width-vwm/index.html</loc>
-    <lastmod>2026-02-02T09:55:51.262Z</lastmod>
-  </url>
-  <url>
-    <loc>https://venpopov.github.io/arc-width-vwm/notebooks/exp1-eda.html</loc>
-    <lastmod>2026-02-03T08:47:15.296Z</lastmod>
-  </url>
-  <url>
-    <loc>https://venpopov.github.io/arc-width-vwm/notebooks/sequential-dependencies.html</loc>
-    <lastmod>2026-02-03T10:17:24.627Z</lastmod>
+    <loc>https://venpopov.github.io/arc-width-vwm/notebooks/fitting-rl-algorithms-algo5-mle.html</loc>
+    <lastmod>2026-02-10T08:24:38.607Z</lastmod>
   </url>
   <url>
     <loc>https://venpopov.github.io/arc-width-vwm/notebooks/exp1-by-subject.html</loc>
-    <lastmod>2026-02-02T13:00:24.117Z</lastmod>
+    <lastmod>2026-02-09T20:36:13.334Z</lastmod>
+  </url>
+  <url>
+    <loc>https://venpopov.github.io/arc-width-vwm/index.html</loc>
+    <lastmod>2026-02-10T08:32:33.855Z</lastmod>
+  </url>
+  <url>
+    <loc>https://venpopov.github.io/arc-width-vwm/notebooks/exp1-eda.html</loc>
+    <lastmod>2026-02-09T20:36:13.332Z</lastmod>
+  </url>
+  <url>
+    <loc>https://venpopov.github.io/arc-width-vwm/notebooks/honig-explore.html</loc>
+    <lastmod>2026-02-09T20:36:13.339Z</lastmod>
+  </url>
+  <url>
+    <loc>https://venpopov.github.io/arc-width-vwm/notebooks/reinforcement-learning-arc.html</loc>
+    <lastmod>2026-02-10T08:07:44.447Z</lastmod>
   </url>
 </urlset>
