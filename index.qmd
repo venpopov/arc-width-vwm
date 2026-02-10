@@ -16,6 +16,10 @@ where $y$ is the signed response error and $\alpha$ is the half-width of the arc
 
 This website documents analyses, simulations, and model-fitting results.
 
+## Repository
+
+Source code and data is available on [GitHub](https://github.com/venpopov/arc-width-vwm). Shared R functions live in `R/`, Stan model snippets in `stan/`, preprocessed data in `output/`, and raw data in `data-raw/`. 
+
 ## Datasets
 
 - **Experiment 1** — 20 participants, manipulating set size (1–8 items) and encoding time / retention interval across two sessions.
@@ -59,10 +63,6 @@ Initial empirical results were presented at Psychonomics 2021:
 ```{=html}
 <iframe width="560" height="315" src="https://www.youtube.com/embed/t-rtxVRyI_4?si=k7c7Bgb8KCFcyXq-" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 ```
-
-## Repository
-
-Source code is available on [GitHub](https://github.com/venpopov/arc-width-vwm). Shared R functions live in `R/`, Stan model snippets in `stan/`, preprocessed data in `output/`, and raw data in `data-raw/`.
 
 ## People
 

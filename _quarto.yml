@@ -14,10 +14,12 @@ execute:
 website:
   title: "Arc width and continuous reproduction"
   repo-url: https://github.com/venpopov/arc-width-vwm
+  repo-actions: [edit, source, issue]
   navbar:
     left:
       - href: index.qmd
         text: Home
+
 
   sidebar:
     style: docked
@@ -25,9 +27,7 @@ website:
     contents:
       - text: "Home"
         href: index.qmd
-      - text: "Experiment Description & Codebook"
-        href: notebooks/experiment-description.qmd
-      - section: "Experiment Description"
+      - section: "Project details"
         contents:
           - text: "Experiment Description & Data Codebook"
             href: notebooks/experiment-description.qmd
@@ -45,10 +45,12 @@ website:
             href: notebooks/optimal-arc-response.qmd
           - text: "RL Algorithms: Exploration"
             href: notebooks/reinforcement-learning-arc.qmd
-          - text: "Model Diagnostics: contraction-expansion (algo4), MLE"
-            href: notebooks/fitting-rl-algorithms-algo4-mle.qmd
-          - text: "Model Diagnostics: noisy-gradient (algo5), MLE"
-            href: notebooks/fitting-rl-algorithms-algo5-mle.qmd
+          - section: Model diagnostics
+            contents:
+              - text: "Noisy contraction-expansion (algo4), MLE"
+                href: notebooks/fitting-rl-algorithms-algo4-mle.qmd
+              - text: "Stochastic gradient ascent (algo5), MLE"
+                href: notebooks/fitting-rl-algorithms-algo5-mle.qmd
       - section: "Empirical Tests"
         contents:
           - text: "Sequential Dependencies"
@@ -61,6 +63,8 @@ format:
     code-link: true
     code-copy: true
     code-overflow: scroll
+    grid:
+      sidebar-width: 400px
 
 
 
