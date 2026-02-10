@@ -71,7 +71,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-9e05abaf0c4d7ef785fecc2ac9f6505e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../site_libs/bootstrap/bootstrap-21621a7fe632017267fd7ae91c064aca.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -152,7 +152,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/fitting-rl-algorithms-algo5-mle.html">Model Diagnostics: noisy-gradient (algo5), MLE</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/fitting-rl-algorithms-algo4-mle.html">Model diagnostics</a></li><li class="breadcrumb-item"><a href="../notebooks/fitting-rl-algorithms-algo5-mle.html">Stochastic gradient ascent (algo5), MLE</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -174,16 +174,10 @@ window.Quarto = {
  <span class="menu-text">Home</span></a>
   </div>
 </li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../notebooks/experiment-description.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Experiment Description &amp; Codebook</span></a>
-  </div>
-</li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
             <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
- <span class="menu-text">Experiment Description</span></a>
+ <span class="menu-text">Project details</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
@@ -247,29 +241,40 @@ window.Quarto = {
  <span class="menu-text">RL Algorithms: Exploration</span></a>
   </div>
 </li>
-          <li class="sidebar-item">
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Model diagnostics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 show">
+<li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../notebooks/fitting-rl-algorithms-algo4-mle.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Model Diagnostics: contraction-expansion (algo4), MLE</span></a>
+ <span class="menu-text">Noisy contraction-expansion (algo4), MLE</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../notebooks/fitting-rl-algorithms-algo5-mle.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Model Diagnostics: noisy-gradient (algo5), MLE</span></a>
+ <span class="menu-text">Stochastic gradient ascent (algo5), MLE</span></a>
   </div>
+</li>
+      </ul>
 </li>
       </ul>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
  <span class="menu-text">Empirical Tests</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../notebooks/sequential-dependencies.html" class="sidebar-item-text sidebar-link">
@@ -293,10 +298,10 @@ window.Quarto = {
   <li><a href="#compare-estimated-vs-true-parameters" id="toc-compare-estimated-vs-true-parameters" class="nav-link" data-scroll-target="#compare-estimated-vs-true-parameters">Compare estimated vs true parameters</a></li>
   <li><a href="#likelihood-profile-at-the-mle" id="toc-likelihood-profile-at-the-mle" class="nav-link" data-scroll-target="#likelihood-profile-at-the-mle">Likelihood profile at the MLE</a></li>
   <li><a href="#parameter-recovery" id="toc-parameter-recovery" class="nav-link" data-scroll-target="#parameter-recovery">Parameter recovery</a></li>
-  </ul></nav>
+  </ul><div class="toc-actions"><ul><li><a href="https://github.com/venpopov/arc-width-vwm/edit/main/notebooks/fitting-rl-algorithms-algo5-mle.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/blob/main/notebooks/fitting-rl-algorithms-algo5-mle.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/fitting-rl-algorithms-algo5-mle.html">Model Diagnostics: noisy-gradient (algo5), MLE</a></li></ol></nav><div class="quarto-title">
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Modeling</a></li><li class="breadcrumb-item"><a href="../notebooks/fitting-rl-algorithms-algo4-mle.html">Model diagnostics</a></li><li class="breadcrumb-item"><a href="../notebooks/fitting-rl-algorithms-algo5-mle.html">Stochastic gradient ascent (algo5), MLE</a></li></ol></nav><div class="quarto-title">
 <h1 class="title">Model diagnostics: noisy-gradient (algo5), MLE</h1>
 </div>
 
@@ -1052,4 +1057,4 @@ Figure&nbsp;2: Binned parameter recovery. Line = median estimate per bin; dark r
 
 
 
-</body></html>
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/venpopov/arc-width-vwm/edit/main/notebooks/fitting-rl-algorithms-algo5-mle.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/blob/main/notebooks/fitting-rl-algorithms-algo5-mle.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

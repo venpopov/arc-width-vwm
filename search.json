@@ -128,7 +128,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: noisy-gradient (algo5), MLE"
+      "Model diagnostics",
+      "Stochastic gradient ascent (algo5), MLE"
     ]
   },
   {
@@ -140,7 +141,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: noisy-gradient (algo5), MLE"
+      "Model diagnostics",
+      "Stochastic gradient ascent (algo5), MLE"
     ]
   },
   {
@@ -152,7 +154,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: noisy-gradient (algo5), MLE"
+      "Model diagnostics",
+      "Stochastic gradient ascent (algo5), MLE"
     ]
   },
   {
@@ -164,7 +167,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: noisy-gradient (algo5), MLE"
+      "Model diagnostics",
+      "Stochastic gradient ascent (algo5), MLE"
     ]
   },
   {
@@ -176,7 +180,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: noisy-gradient (algo5), MLE"
+      "Model diagnostics",
+      "Stochastic gradient ascent (algo5), MLE"
     ]
   },
   {
@@ -188,7 +193,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: noisy-gradient (algo5), MLE"
+      "Model diagnostics",
+      "Stochastic gradient ascent (algo5), MLE"
     ]
   },
   {
@@ -200,7 +206,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: noisy-gradient (algo5), MLE"
+      "Model diagnostics",
+      "Stochastic gradient ascent (algo5), MLE"
     ]
   },
   {
@@ -212,7 +219,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: noisy-gradient (algo5), MLE"
+      "Model diagnostics",
+      "Stochastic gradient ascent (algo5), MLE"
     ]
   },
   {
@@ -223,7 +231,8 @@
     "text": "This page describes the experimental design of Experiment 1 and provides codebooks for both the raw and preprocessed data files.",
     "crumbs": [
       "Home",
-      "Experiment Description & Codebook"
+      "Project details",
+      "Experiment Description & Data Codebook"
     ]
   },
   {
@@ -234,7 +243,8 @@
     "text": "This page describes the experimental design of Experiment 1 and provides codebooks for both the raw and preprocessed data files.",
     "crumbs": [
       "Home",
-      "Experiment Description & Codebook"
+      "Project details",
+      "Experiment Description & Data Codebook"
     ]
   },
   {
@@ -245,7 +255,8 @@
     "text": "Experiment 1\n\nMotivation\nIn the standard continuous reproduction paradigm, participants study a visual feature (e.g., a color) and later reproduce it on a continuous response scale (e.g., a color wheel). The angular error between the response and the target indexes memory precision — but a single trial’s error is just a sample from an underlying distribution, not a direct readout of that trial’s memory quality.\nTo obtain a trial-level uncertainty estimate, participants additionally drew a symmetric arc around their point response, indicating the range of values they consider plausible. An incentive-compatible scoring rule ensured that participants were motivated to set this arc thoughtfully.\n\n\nParticipants\nForty participants (four groups of 10) each completed two experimental sessions. The four groups differed in which experiment they performed in each session:\n\nSet size & Set size\nSet size & Time\nTime & Set size\nTime & Time.\n\nThus, some participants performed the same experiment twice, while others performed both experiments (see experimentorder and exp_cond below). Participants ranged in age from approximately 18–30 years.\n\n\n\nStimuli\nOn each trial, 1–8 colored circles appeared at evenly-spaced positions around a central fixation point. Colors were drawn from a 360° color wheel with a random offset on every trial (recorded in colorwheel0degree). Unused item slots were coded as 999 (= NA) in the raw data.\n\n\nProcedure\nEach trial proceeded as follows:\n\nEncoding — The memory array appeared for a fixed duration (encodingtime; 0.1 s, 0.5 s, or 1.5 s depending on condition).\nRetention interval — A blank delay followed (delay; 0.5 s, 1.0 s, 3.0 s, or 5.5 s depending on condition).\nPoint response — One item was cued (testposition). A color wheel appeared and the participant clicked to report the remembered color. The angular position of the response is recorded as responseangle.\nArc setting — The participant adjusted a symmetric arc centered on their point response, indicating the range of colors they believed could contain the target. The half-width of this arc (in degrees) is recorded as arcsize.\n\n\n\n\n\nScoring\nPoints on each trial were computed as:\n\\[\np = (\\pi - \\alpha) \\cdot \\mathbf{1}[|y| \\le \\alpha],\n\\]\nwhere \\(y\\) is the signed response error (difference between the response and the correct color, in radians) and \\(\\alpha\\) is the arc half-width (in radians). If the true color fell within the arc, the participant earned \\(\\pi - \\alpha\\) points; otherwise they earned 0. This creates an accuracy–confidence tradeoff: wider arcs are more likely to capture the target but yield fewer points.\n\n\nDesign\nThe experiment used two within-subject manipulations organized into separate session types:\n\n\n\n\n\n\n\n\n\nSession type\nManipulation\nVariable\nLevels\n\n\n\n\nSet size\nNumber of items in the memory array\nsetsize\n1, 2, 3, 4, 5, 6, 7, 8\n\n\nTime\nEncoding duration × retention interval\nencodingtime\n0.1 s, 0.5 s, 1.5 s\n\n\n\n\ndelay\n0.5 s, 1.0 s, 3.0 s, 5.5 s\n\n\n\nIn the set-size sessions, each block contained trials with all eight set sizes in random order (set size always 1 item in the time condition sessions). In the time sessions, encoding duration and retention interval were crossed factorially.",
     "crumbs": [
       "Home",
-      "Experiment Description & Codebook"
+      "Project details",
+      "Experiment Description & Data Codebook"
     ]
   },
   {
@@ -256,7 +267,8 @@
     "text": "Data Codebook: Raw Data\nFile: data-raw/exp1_2021_data.csv Rows: 64,400 | Participants: 40\nAll angular variables (colors, positions, responses) are in degrees (0–360 for colors; signed for errors).\n\nTrial identification\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\nsubject\nint\nParticipant identifier (numeric)\n\n\nage\nint\nParticipant age in years\n\n\nexperimentorder\nint\nWhich session this was for the participant (1 = first visit, 2 = second)\n\n\nblocknumber\nint\nBlock number within the session\n\n\ntrialnumber\nint\nTrial number within the block\n\n\n\n\n\nStimulus display\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\nsetsize\nint\nNumber of items displayed (1–8)\n\n\nposition1–position8\nint\nScreen position index for each item (1–8); NA for unused slots\n\n\np1color–p8color\nint\nColor of each item in degrees on the color wheel (0–360); 999 = unused slot\n\n\ncolorwheel0degree\nchr\nRGB values at the 0° position of the color wheel (random offset each trial)\n\n\ncolorwheel0degreeR\nnum\nRed channel of the color wheel 0° position\n\n\ncolorwheel0degreeG\nnum\nGreen channel of the color wheel 0° position\n\n\ncolorwheel0degreeB\nnum\nBlue channel of the color wheel 0° position\n\n\n\n\n\nTest probe\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\ntestposition\nint\nPosition index of the probed item (1–8)\n\n\ncolorcorrectangle\nint\nCorrect color of the probed item, in degrees on the color wheel\n\n\nposition\nint\nScreen position of the probed item (appears to be NA in set-size sessions)\n\n\npcolor\nint\nProbed item color (alternative coding; NA in set-size sessions)\n\n\n\n\n\nResponse\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\nresponseangle\nint\nParticipant’s point response on the color wheel, in degrees\n\n\nanglediff\nint\nSigned response error: responseangle − colorcorrectangle (degrees, −180 to 179)\n\n\narcsize\nnum\nArc half-width set by the participant (degrees, 0–233.75)\n\n\npoints\nnum\nPoints earned on this trial (0 if miss; based on degree-scale formula)\n\n\npointstotal\nnum\nCumulative points earned up to and including this trial\n\n\nrtclick1\nnum\nResponse time for the point response click (seconds)\n\n\nrtclick2\nnum\nResponse time for the arc-width adjustment click (seconds)\n\n\n\n\n\nColor-space transformations\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\nRawAnglePosition\nint\nRaw angular position on the wheel before correction\n\n\nCorrectedWheelAngle\nint\nWheel angle corrected for the random offset\n\n\nanglediff_c\nnum\nCorrected response error (degrees)\n\n\npresentedColor\nint\nTarget color expressed in the canonical (unrotated) color space (degrees)\n\n\nresponseColor\nint\nResponse color expressed in the canonical (unrotated) color space (degrees)\n\n\n\n\n\nExperimental conditions\n\n\n\n\n\n\n\n\nVariable\nType\nDescription\n\n\n\n\nencodingtime\nnum\nDuration of the memory display (seconds): 0.1, 0.5, or 1.5\n\n\ndelay\nnum\nRetention interval (seconds): 0.5, 1.0, 3.0, or 5.5\n\n\nexp_type\nchr\nSession type on the current visit: \"SetS\" (set-size) or \"Time\" (time)\n\n\npart1_type\nchr\nSession type during first visit: \"SetS\" or \"Time\"\n\n\npart2_type\nchr\nSession type during second visit: \"SetS\" or \"Time\"\n\n\nexp_cond\nchr\nCombined session-order label: \"SetS_SetS\", \"SetS_Time\", \"Time_SetS\", \"Time_Time\"",
     "crumbs": [
       "Home",
-      "Experiment Description & Codebook"
+      "Project details",
+      "Experiment Description & Data Codebook"
     ]
   },
   {
@@ -267,7 +279,8 @@
     "text": "Data Codebook: Preprocessed Data\nFile: output/exp1_data.csv Rows: 64,365 (35 trials with arcsize &gt; 180° removed) | Participants: 40\nPreprocessing is performed by preprocess_exp1_data() in R/data-functions.R. The following transformations are applied:\n\n999 → NA: Sentinel values in unused item slots are replaced with NA.\nDegree-to-radian conversion: All angular color and response variables (columns matching p[1-8]color, *[Aa]ngle*, and *Color) are converted from degrees to radians via bmm::deg2rad() and wrapped to \\([-\\pi, \\pi]\\) via bmm::wrap().\nArc filtering: Trials where arcsize &gt; 180° are removed (these represent arcs covering more than the full semicircle).\nColumn renaming:\n\nanglediff → resperr (response error, now in radians)\narcsize → arc (arc width, converted to the full arc in radians: arc = deg2rad(arcsize × 2); i.e., this is the full arc, not the half-width)\n\n\n\nKey differences from raw data\n\n\n\n\n\n\n\n\nVariable\nRaw data\nPreprocessed data\n\n\n\n\nresperr\nanglediff: degrees, −180–179\nRadians, wrapped to \\([-\\pi, \\pi]\\)\n\n\narc\narcsize: half-width, degrees\nFull arc width in radians (\\([0, 2\\pi]\\))\n\n\nColors\nDegrees (0–360)\nRadians, wrapped to \\([-\\pi, \\pi]\\)\n\n\nFiltering\nAll 64,400 trials\n64,365 trials (35 extreme-arc trials removed)\n\n\n\nAll other columns retain their original names and semantics, with the same radian conversion applied to angular variables.",
     "crumbs": [
       "Home",
-      "Experiment Description & Codebook"
+      "Project details",
+      "Experiment Description & Data Codebook"
     ]
   },
   {
@@ -278,7 +291,8 @@
     "text": "Full technical details\n\nParticipants\nForty students (26 female) from Sun Yat-sen University aged between 18 and 24 years (M=20) were recruited to participate in this study. They all had a normal or corrected-to-normal vision. The participants received 30 CNY per hour after completing the experiment. Participants gave written informed consent before their participation. The experimental protocol was approved by the institutional review board at the Department of Psychology, Sun Yat-sen University. There are two experiments, the Set size experiment, and the Time experiment. On two separate days (1-22 days between experiments, M=4), participants were randomly assigned to perform one of the two experiments. That is, there were four groups regarding different combinations of these two experiments. Each participant completed two Set size experiments / Set size then Time experiments / Time then Set size experiments / two Time experiments.\n\n\nStimuli and apparatus\nThe program of each experiment was prepared under MATLAB 2019a with PsychToolbox extensions and implemented on a Windows 10 (64-bit) desktop computer with a 27-inch LCD (60Hz of refresh rate) and a standard QWERTY keyboard in a dark laboratory room with acoustic shielding. The monitor was placed 57 cm away from the participant. Participants were shown colored dots (1.26° radius) of eccentricity 5.3° on a gray background (20 cd/m2), which occurred at one of the eight potential locations selected from an octagon. The color wheel was 1° thick and was centered on the monitor with a radius of 8°. It consisted of 360 equidistant colors from the CIE Lab space (centered at L = 54, a = 18, and b = 8; radius of 59). The sample colors were randomly selected with a minimum difference of 15 degrees from the color wheel. All colors had equal luminance (roughly 20 cd/m2).\n\n\nProcedure\n\nSet size experiment\nA trial began with a 500-ms fixation (Figure 1). In the memory display, there were 1~8 colored dots. After a 1000-ms blank screen, participants reported the color of the item probed by a white circle on a color wheel, by clicking the left mouse button. A bar of the clicked color (length = 1°, thickness = 0.5°) would occur on the clicked location. Then they reported the uncertainty of their memory by adjusting the arc width centered on their first click (arc thickness = 0.5°, radius = 9°). If the true color was within their reported arc, participants got points inversely related to the arc size (points = 180 – arc width, where arc width is the size in degrees of one-half the symmetric arc). If the arc did not include the presented color, they got 0 points to discourage giving very small intervals. The total points and the points of the current trial would be presented on the screen until they pressed the space key. There was a 1000-ms interval between trials.\nThere was a 1-min break every 80 trials. There were 10 practice trials and 800 trials (10 blocks) in the formal experiment with 100 trials for each set size condition. Within each block, there was roughly an equal number of trials for each set size, and that the order of set sizes was randomized.\n\n\nTime experiment\nA trial began with a 500-ms fixation (Figure 2). In the memory display, there was always one colored dot, randomly occurring on one of the eight fixed locations. The colored dot was presented for 100ms/ 500ms/ 1500ms. Then there was a blank screen for 0.5s/ 3s/ 5.5s. Participants then reported the color of the item probed by a white circle on a color wheel, by clicking the left mouse button. Then they reported the uncertainty of their memory by adjusting the arc width centered on their first click. The points would be calculated and presented in the same way with Set size experiment. There was a 1000-ms interval between trials. There was a 1-min break every 81 trials. There were 10 practice trials and 810 trials (10 blocks) in the formal experiment with 100 trials for each time condition (9 conditions, encoding time:100ms/ 500ms/ 1500ms, delay duration: 0.5s/ 3s/ 5.5s). Within each block, there was roughly an equal number of trials for each condition, and that the order of conditions was randomized.",
     "crumbs": [
       "Home",
-      "Experiment Description & Codebook"
+      "Project details",
+      "Experiment Description & Data Codebook"
     ]
   },
   {
@@ -350,6 +364,16 @@
     ]
   },
   {
+    "objectID": "index.html#repository",
+    "href": "index.html#repository",
+    "title": "Arc width and continuous reproduction",
+    "section": "Repository",
+    "text": "Repository\nSource code and data is available on GitHub. Shared R functions live in R/, Stan model snippets in stan/, preprocessed data in output/, and raw data in data-raw/.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
     "objectID": "index.html#datasets",
     "href": "index.html#datasets",
     "title": "Arc width and continuous reproduction",
@@ -390,16 +414,6 @@
     ]
   },
   {
-    "objectID": "index.html#repository",
-    "href": "index.html#repository",
-    "title": "Arc width and continuous reproduction",
-    "section": "Repository",
-    "text": "Repository\nSource code is available on GitHub. Shared R functions live in R/, Stan model snippets in stan/, preprocessed data in output/, and raw data in data-raw/.",
-    "crumbs": [
-      "Home"
-    ]
-  },
-  {
     "objectID": "index.html#people",
     "href": "index.html#people",
     "title": "Arc width and continuous reproduction",
@@ -430,7 +444,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: contraction-expansion (algo4), MLE"
+      "Model diagnostics",
+      "Noisy contraction-expansion (algo4), MLE"
     ]
   },
   {
@@ -442,7 +457,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: contraction-expansion (algo4), MLE"
+      "Model diagnostics",
+      "Noisy contraction-expansion (algo4), MLE"
     ]
   },
   {
@@ -454,7 +470,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: contraction-expansion (algo4), MLE"
+      "Model diagnostics",
+      "Noisy contraction-expansion (algo4), MLE"
     ]
   },
   {
@@ -466,7 +483,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: contraction-expansion (algo4), MLE"
+      "Model diagnostics",
+      "Noisy contraction-expansion (algo4), MLE"
     ]
   },
   {
@@ -478,7 +496,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: contraction-expansion (algo4), MLE"
+      "Model diagnostics",
+      "Noisy contraction-expansion (algo4), MLE"
     ]
   },
   {
@@ -490,7 +509,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: contraction-expansion (algo4), MLE"
+      "Model diagnostics",
+      "Noisy contraction-expansion (algo4), MLE"
     ]
   },
   {
@@ -502,7 +522,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: contraction-expansion (algo4), MLE"
+      "Model diagnostics",
+      "Noisy contraction-expansion (algo4), MLE"
     ]
   },
   {
@@ -514,7 +535,8 @@
     "crumbs": [
       "Home",
       "Theory & Modeling",
-      "Model Diagnostics: contraction-expansion (algo4), MLE"
+      "Model diagnostics",
+      "Noisy contraction-expansion (algo4), MLE"
     ]
   },
   {
