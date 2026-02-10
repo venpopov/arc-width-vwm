@@ -27,6 +27,10 @@ website:
         href: index.qmd
       - text: "Experiment Description & Codebook"
         href: notebooks/experiment-description.qmd
+      - section: "Experiment Description"
+        contents:
+          - text: "Experiment Description & Data Codebook"
+            href: notebooks/experiment-description.qmd
       - section: "Data Exploration"
         contents:
           - text: "Exp 1: Exploratory Analysis"
