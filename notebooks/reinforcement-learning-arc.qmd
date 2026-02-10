@@ -5,7 +5,7 @@ execute:
   cache: true
 ---
 
-```{r setup}
+```{r setup, cache = FALSE}
 #| message: false
 #| cache: false
 # Load useful packages and custom functions
@@ -18,6 +18,11 @@ source("R/arc-models.R")
 source("R/utils.R")
 source("R/math.R")
 ```
+
+::: {.callout-note}
+## Prerequisites
+This notebook builds on the optimality analysis in [Optimal Arc Width (SDM)](optimal-arc-response.qmd), which shows that participants are near-optimal. Here we ask: *how* might they learn to be optimal via trial-by-trial reinforcement learning?
+:::
 
 The analyses so far [show that subject arc behavior is near optimal](optimal-arc-response.html), if we assume perfect knowledge about the response error distribution. This doesn't mean that subjects have such knowledge. It might be possible to learn from the feedback on each trial and to adjust the arc width in a way that reaches optimal behavior.
 

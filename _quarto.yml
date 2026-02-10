@@ -4,6 +4,7 @@ project:
   execute-dir: project
   render:
     - "!AGENTS.md"
+    - "!archive/"
     - "**/*.qmd"
 
 execute:
@@ -24,8 +25,26 @@ website:
     contents:
       - text: "Home"
         href: index.qmd
-      - section: "Notebooks"
-        contents: notebooks/*
+      - section: "Data Exploration"
+        contents:
+          - text: "Exp 1: Exploratory Analysis"
+            href: notebooks/exp1-eda.qmd
+          - text: "Exp 1: By-Subject Diagnostics"
+            href: notebooks/exp1-by-subject.qmd
+          - text: "Honig et al.: Data Exploration"
+            href: notebooks/honig-explore.qmd
+      - section: "Theory & Modeling"
+        contents:
+          - text: "Optimal Arc Width (SDM)"
+            href: notebooks/optimal-arc-response.qmd
+          - text: "RL Algorithms: Exploration"
+            href: notebooks/reinforcement-learning-arc.qmd
+          - text: "Model Fitting: noisy-gradient (algo5), MLE"
+            href: notebooks/fitting-rl-algorithms-algo5-mle.qmd
+      - section: "Empirical Tests"
+        contents:
+          - text: "Sequential Dependencies"
+            href: notebooks/sequential-dependencies.qmd
 
 format:
   html:

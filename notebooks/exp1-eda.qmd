@@ -3,6 +3,15 @@ title: "Exp. 1: Exploratory Data Analysis"
 format: html
 ---
 
+Experiment 1 tested whether arc width tracks the same manipulations known to affect memory precision. Four groups of 10 participants completed two sessions each. Two groups performed a **set-size experiment** (1–8 items), and two performed a **time experiment** (encoding duration $\times$ retention interval, all set size 1). On each trial participants made a point response on a color wheel and then set an arc around it. Points were awarded as $(\pi - \alpha)\cdot\mathbf{1}[|y| \le \alpha]$.
+
+Below we examine whether set size, encoding time, and retention interval affect arc width in the same way they affect point response precision, and we fit two-component mixture models to the point responses.
+
+::: {.callout-note}
+## Data source
+Preprocessed data: `output/exp1_data.csv` (produced by `R/data-functions.R`).
+:::
+
 ```{r setup}
 #| message: FALSE
 #| include: false

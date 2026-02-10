@@ -2,24 +2,30 @@
 title: "Sequential dependencies"
 ---
 
-## Raw sequential dependencies
-
-We saw that some reinforcement learning algorithms can find the optimal reward point. They do this by generally contracting the arc if the previous trial was a hit, and expanding it if it was a miss. Do we see this in the data? We know there are some sequential dependencies, although they are of a different kind.
-
 ```{r}
 #| label: setup
 #| code-overflow: wrap
 #| code-fold: true
 #| code-summary: "Load packages and define helper functions"
 #| message: false
+#| cache: false
 
 library(tidyverse)
 library(bmm)
 source("R/utils.R")
+source("R/arc-models.R")
+source("R/math.R")
 
 ```
 
-We see that if the arc given on the previous trial is bigger, so is the arc on the current trial:
+::: {.callout-note}
+## Prerequisites
+This notebook tests empirical predictions of the RL algorithms developed in [RL Algorithms: Exploration](reinforcement-learning-arc.qmd). The arc-width task and optimality framework are introduced in [Optimal Arc Width (SDM)](optimal-arc-response.qmd).
+:::
+
+## Raw sequential dependencies
+
+We saw that some reinforcement learning algorithms can find the optimal reward point. They do this by generally contracting the arc if the previous trial was a hit, and expanding it if it was a miss. Do we see this in the data? We know there are some sequential dependencies, although they are of a different kind.
 
 ```{r}
 #| warning: false
@@ -291,37 +297,6 @@ boot_percentiles |>
 Maybe my intuition is incorrect, and this is what we expect with the adaptation algorithm? Let's see the expected data for a simulated agent using our algorithm 4 / 5. We will compare their expansion likelihood ratio when using the adaptation vs shuffled bootstrap.
 
 ```{r}
-run_arc_algorithm <- function(arc_update_fun, c = 4, kappa = 3, init_arc = pi/2, n_trials = 1e5) {
-  y <- rsdm(n_trials, 0, c = c, kappa = kappa)
-
-  a <- rep(0, n_trials)
-  a[1] <- init_arc
-  
-  for (i in seq_len(n_trials-1)) {
-    hit <- sign((abs(y[i]) <= a[i]) - 0.5)  # 1 if hit, -1 if miss
-    a[i+1] <- arc_update_fun(a = a[i], hit = hit, y = y[i], i = i)
-  }
-  list(phit = mean(abs(y) <= a), y = y, a = a)  
-}
-
-algo4 <- function(delta) \(a, y, ...) a * (1 - delta) + (abs(y) > a) * pi * delta
-
-algo5 <- function(tau = 0.025, delta0 = 0.1, delta_pow = 0.5) {
-  force(tau); force(delta0); force(delta_pow)
-
-  function(a, y, i, ...) {
-    # learning rate schedule
-    delta <- delta0 / (i + 1) ^ delta_pow
-
-    z <- (a - abs(y)) / tau
-    s <- 1 / (1 + exp(-z))        
-
-    grad <- -s + (pi - a) * s * (1 - s) / tau
-    a + delta * grad
-  }
-}
-
-
 sim_algo4 <- algo4(delta = 0.01) |> run_arc_algorithm(n_trials = 1000, init_arc = 1)
 sim_algo4 <- data.frame(resperr = sim_algo4$y, arc = sim_algo4$a * 2)
 sim_algo5 <- algo5() |> run_arc_algorithm(n_trials = 1000)

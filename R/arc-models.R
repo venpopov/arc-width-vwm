@@ -53,18 +53,16 @@ algo3 <- function(delta) {
 
 algo4 <- function(delta) {
   force(delta)
-  force(sd)
 
   \(a, y, ...) {
     a * (1 - delta) + (abs(y) > a) * pi * delta
   }
 }
 
-algo5 <- function(tau = 0.05, delta0 = 0.1, delta_pow = 0.5) {
+algo5 <- function(tau = 0.025, delta0 = 0.1, delta_pow = 0.5) {
   force(tau)
   force(delta0)
   force(delta_pow)
-  force(sd)
 
   \(a, y, i, ...) {
     # learning rate schedule
@@ -94,4 +92,56 @@ algo5_noisy_grad <- function(tau = 0.05, delta0 = 0.1, delta_pow = 0.5, sigma_g 
     x_new <- x + delta * (grad + rnorm(1, sd = sigma_g))
     inv_logit(x_new) * pi
   }
+}
+
+# --- Log-likelihood for the noisy-gradient model (algo5) ---
+
+algo5_loglik <- function(y, a, c, kappa, tau, delta0, delta_pow = 0.5, sigma_g) {
+  T_ <- length(y)
+  x <- logit(a / pi)
+
+  ll_y <- sum(dsdm(y, mu = 0, c = c, kappa = kappa, log = TRUE))
+
+  idx <- seq_len(T_ - 1)
+  delta_t <- delta0 / (idx + 1)^delta_pow
+
+  z <- (a[idx] - abs(y[idx])) / tau
+  s <- 1 / (1 + exp(-z))
+  grad <- -s + (pi - a[idx]) * s * (1 - s) / tau
+
+  mu_x <- x[idx] + delta_t * grad
+  sd_x <- delta_t * sigma_g
+
+  ll_a <- sum(dnorm(x[idx + 1], mean = mu_x, sd = sd_x, log = TRUE))
+
+  ll_y + ll_a
+}
+
+par_to_unconstrained <- function(pars) {
+  log(unlist(pars[c("c", "kappa", "tau", "delta0", "sigma_g")]))
+}
+
+par_from_unconstrained <- function(theta) {
+  vals <- exp(theta)
+  list(
+    c = vals[1], kappa = vals[2], tau = vals[3],
+    delta0 = vals[4], sigma_g = vals[5]
+  )
+}
+
+neg_loglik <- function(theta, y, a) {
+  pars <- par_from_unconstrained(theta)
+  ll <- tryCatch(
+    algo5_loglik(y, a,
+      c = pars$c, kappa = pars$kappa, tau = pars$tau,
+      delta0 = pars$delta0, delta_pow = 0.5,
+      sigma_g = pars$sigma_g
+    ),
+    error = \(e) -Inf,
+    warning = \(w) -Inf
+  )
+  if (!is.finite(ll)) {
+    return(1e10)
+  }
+  -ll
 }

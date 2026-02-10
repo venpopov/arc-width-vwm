@@ -1,7 +1,16 @@
 ---
-title: "Explore Honig et al. data"
+title: "Honig et al.: Data Exploration"
 author: "Ven Popov"
 ---
+
+Honig et al. (2020) asked 12 participants to perform ~1200 trials of the arc-width task across four sessions, always with set size 4. Sessions 1 and 4 used uniformly distributed color stimuli; sessions 2 and 3 used normally distributed stimuli. This dataset provides a replication check and a within-subject reliability test because of the large trial count per participant.
+
+This notebook is a preliminary exploration of the Honig dataset — observation counts and basic distributions. More detailed analyses using this data appear in the [sequential dependencies](sequential-dependencies.qmd) notebook.
+
+::: {.callout-note}
+## Data source
+Preprocessed data: `output/honig_data.csv` (produced by `R/data-functions.R`).
+:::
 
 ```{r setup, warning=FALSE, message=FALSE}
 library(tidyverse)

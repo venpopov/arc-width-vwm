@@ -1,6 +1,13 @@
 ---
-title: "By subject performance"
+title: "Exp 1: By-Subject Diagnostics"
 ---
+
+This notebook shows per-subject distributions of point response error and arc width from Experiment 1. The goal is to visually inspect individual differences — some participants may have much tighter or wider distributions than others, or may show unusual patterns (e.g., near-uniform responses suggesting inattention). There are 20 participants, some contributing to more than one experimental session.
+
+::: {.callout-note}
+## Data source
+Preprocessed data: `output/exp1_data.csv`.
+:::
 
 ```{r}
 #| message: false

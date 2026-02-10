@@ -3,7 +3,7 @@ title: "Model fits: noisy-gradient (algo5), MLE"
 format: html
 ---
 
-```{r setup}
+```{r setup, cache = FALSE}
 #| message: false
 library(tidyverse)
 library(bmm)
@@ -11,6 +11,11 @@ source("R/arc-models.R")
 source("R/utils.R")
 source("R/math.R")
 ```
+
+::: {.callout-note}
+## Prerequisites
+This notebook fits the noisy-gradient model developed in [RL Algorithms: Exploration](reinforcement-learning-arc.qmd). The SDM model and optimality derivation are described in [Optimal Arc Width (SDM)](optimal-arc-response.qmd).
+:::
 
 ## Task and model summary
 
@@ -20,7 +25,7 @@ p_t = (\pi - a_t)\,\mathbf{1}\!\bigl[|y_t| \le a_t\bigr],
 $$
 where $y_t$ is the signed response error. Wider arcs are safer but earn fewer points, creating an accuracy–confidence tradeoff. [Empirically, participants' arc widths are near-optimal](optimal-arc-response.html) given their error distributions.
 
-**Response errors** are modelled by the Signal Detection Model (SDM):
+**Response errors** are modelled by the [Signal Discrimination Model](https://venpopov.github.io/bmm/articles/bmm_sdm_simple.html) (SDM):
 $$
 y_t \sim \text{SDM}(c,\kappa).
 $$
@@ -82,61 +87,7 @@ The joint log-likelihood has two additive components:
 2. **Arc-transition component** — a normal density on the logit scale for the
    arc update from trial $t$ to $t+1$
 
-```{r}
-algo5_loglik <- function(y, a, c, kappa, tau, delta0, delta_pow = 0.5, sigma_g) {
-  T_ <- length(y)
-  x <- logit(a / pi)
-
-  # SDM log-likelihood for all y
-  ll_y <- sum(dsdm(y, mu = 0, c = c, kappa = kappa, log = TRUE))
-
-  # Arc-transition log-likelihood for t = 1..(T-1)
-  # predicted x_{t+1} given (a_t, y_t)
-  idx <- seq_len(T_ - 1)
-  delta_t <- delta0 / (idx + 1)^delta_pow
-
-  z <- (a[idx] - abs(y[idx])) / tau
-  s <- 1 / (1 + exp(-z))
-  grad <- -s + (pi - a[idx]) * s * (1 - s) / tau
-
-  mu_x <- x[idx] + delta_t * grad
-  sd_x <- delta_t * sigma_g
-
-  ll_a <- sum(dnorm(x[idx + 1], mean = mu_x, sd = sd_x, log = TRUE))
-
-  ll_y + ll_a
-}
-```
-
-## Parameter transformations
-
-All six parameters are strictly positive, so we estimate on the log scale and
-exponentiate back.
-
-```{r}
-par_to_unconstrained <- function(pars) {
-  log(unlist(pars[c("c", "kappa", "tau", "delta0", "sigma_g")]))
-}
-
-par_from_unconstrained <- function(theta) {
-  vals <- exp(theta)
-  list(c = vals[1], kappa = vals[2], tau = vals[3],
-       delta0 = vals[4], sigma_g = vals[5])
-}
-
-neg_loglik <- function(theta, y, a) {
-  pars <- par_from_unconstrained(theta)
-  ll <- tryCatch(
-    algo5_loglik(y, a, c = pars$c, kappa = pars$kappa, tau = pars$tau,
-                 delta0 = pars$delta0, delta_pow = 0.5,
-                 sigma_g = pars$sigma_g),
-    error = \(e) -Inf,
-    warning = \(w) -Inf
-  )
-  if (!is.finite(ll)) return(1e10)
-  -ll
-}
-```
+The functions `algo5_loglik`, `par_to_unconstrained`, `par_from_unconstrained`, and `neg_loglik` are defined in `R/arc-models.R` (loaded above). All five parameters are strictly positive, so we estimate on the log scale and exponentiate back.
 
 ## Fit with `optim`
 

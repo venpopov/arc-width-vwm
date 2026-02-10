@@ -8,9 +8,7 @@ with_cache <- function(path, expr, force = FALSE) {
 }
 
 theme_Publication <- function(base_size = 14) {
-  library(grid)
-  library(ggthemes)
-  (theme_foundation(base_size = base_size)
+  (ggthemes::theme_foundation(base_size = base_size)
   + theme(
       plot.title = element_text(
         face = "bold",
@@ -143,7 +141,6 @@ pal_runs <- function(n) grDevices::hcl.colors(n, palette = "Spectral", rev = TRU
 pal_algs <- function(n) grDevices::hcl.colors(n, palette = "Dark 3")
 
 # --- Spaghetti plotting for single runs ---
-# ugly overly-complicated function written by ChatGPT which I'm too lazy to simplify
 spaghetti_single_runs <- function(
   alg_list, # named list of update functions, e.g. list(simple=algo4(...), boundary=..., smooth=...)
   cs = c(0, 2, 8, 16),

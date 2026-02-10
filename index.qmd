@@ -2,14 +2,63 @@
 title: "Arc width and continuous reproduction"
 ---
 
-This website presents results of analyses and simulations for the arc width project. Will be updated as we go.
+## Project overview
 
-The links in the left navigation bar present results from notebooks stored in the notebooks folder of the [github repository](https://github.com/venpopov/arc-width-vwm)
+In the standard continuous reproduction paradigm, participants study a visual feature (e.g., a color) and later reproduce it on a continuous scale (e.g., a color wheel). The angular error between the response and the target is taken as a measure of memory precision — but a single trial's error is just a sample from a distribution, not a direct measure of that trial's memory quality.
 
-Initial empirical results from this project were presented at Psychonomics 2021 and the video is available here:
+In the **uncertainty estimation procedure**, participants additionally draw a symmetric **arc** around their point response, indicating the range of plausible values consistent with their memory. Participants are incentivized to set the arc wisely: points are awarded as
+
+$$
+p = (\pi - \alpha) \cdot \mathbf{1}[|y| \le \alpha],
+$$
+
+where $y$ is the signed response error and $\alpha$ is the half-width of the arc. Wider arcs are safer (more likely to capture the target) but earn fewer points, creating an **accuracy–confidence tradeoff**.
+
+This website documents analyses, simulations, and model-fitting results.
+
+## Datasets
+
+- **Experiment 1** — 20 participants, manipulating set size (1–8 items) and encoding time / retention interval across two sessions.
+- **Honig et al. (2020)** — 12 participants, set size 4, ~1200 trials across four sessions.
+
+## Guide to the notebooks
+
+The sidebar groups notebooks into three sections. Here is the recommended reading order:
+
+### Data Exploration
+
+1. [**Exp 1: Exploratory Analysis**](notebooks/exp1-eda.qmd) — Effects of set size, encoding time, and retention interval on point response error and arc width. Fits two-component mixture models and shows that arc width is affected by the same manipulations as response error.
+2. [**Exp 1: By-Subject Diagnostics**](notebooks/exp1-by-subject.qmd) — Per-subject distributions of response error and arc width to inspect individual differences and outliers.
+3. [**Honig et al.: Data Exploration**](notebooks/honig-explore.qmd) — Preliminary exploration of the Honig et al. dataset.
+
+### Theory & Modeling
+
+4. [**Optimal Arc Width (SDM)**](notebooks/optimal-arc-response.qmd) — Derives the theoretically optimal arc width for any given memory error distribution. Fits the Signal Detection Model (SDM) and shows that empirical arc widths are remarkably close to optimal. *Key notebook.*
+5. [**RL Algorithms: Exploration**](notebooks/reinforcement-learning-arc.qmd) — Develops and simulates five reinforcement learning algorithms (algo1–5) for trial-by-trial arc-width adaptation, progressing from simple heuristics to a noisy stochastic-gradient model. *Key notebook.*
+6. [**Model Fitting: MLE & Recovery**](notebooks/fitting-rl-algorithms-algo5-mle.qmd) — Implements maximum-likelihood estimation for the noisy-gradient model (algo5), validates identifiability via 10,000-iteration parameter recovery.
+
+### Empirical Tests
+
+7. [**Sequential Dependencies**](notebooks/sequential-dependencies.qmd) — Tests whether participants actually adapt arc width after hits/misses, as predicted by the RL models. Controls for regression to the mean via bootstrap shuffling.
+
+## Key concepts
+
+- **[SDM (Signal Discrimination Model)](https://venpopov.github.io/bmm/articles/bmm_sdm_simple.html)** — A model of memory where recall errors follow a distribution parameterized by memory strength $c$ and precision $\kappa$.
+- **Arc width** — The confidence interval participants set around their response; $\alpha$ is the half-width in radians.
+- **Algorithms 1–5** — A progression of reinforcement learning update rules, from simple multiplicative adjustments to a stochastic gradient ascent model operating on logit-transformed arcs.
+
+## Presentation
+
+Initial empirical results were presented at Psychonomics 2021:
 
 ```{=html}
 <iframe width="560" height="315" src="https://www.youtube.com/embed/t-rtxVRyI_4?si=k7c7Bgb8KCFcyXq-" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 ```
 
-Most of the results reported in the video can be found in the notebooks in the left sidebar.
+## Repository
+
+Source code is available on [GitHub](https://github.com/venpopov/arc-width-vwm). Shared R functions live in `R/`, Stan model snippets in `stan/`, preprocessed data in `output/`, and raw data in `data-raw/`.
+
+## People
+
+Ven Popov, Klaus Oberauer, Huichao Ji & Wanke Pan

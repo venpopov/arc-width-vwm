@@ -6,20 +6,35 @@
 
 <!-- badges: end -->
 
-This repo contains data and code for the Arc-width project.
+This repository contains data, code, and analyses for a project studying **uncertainty estimation in visual working memory**. In the arc-width procedure, participants reproduce a remembered color on a color wheel and then indicate their uncertainty by drawing a symmetric arc around their response. Points are awarded as $p = (\pi - \alpha) \cdot \mathbf{1}[|y| \le \alpha]$, creating an accuracy–confidence tradeoff.
+
+## Reports
+
+Rendered notebooks are available at **[venpopov.github.io/arc-width-vwm/](https://venpopov.github.io/arc-width-vwm/)**.
 
 ## How to download and replicate
 
-1.  You can clone the current repository or download the [.zip](https://github.com/venpopov/guilty-goose/archive/refs/heads/master.zip) archive.
+1.  Clone the repository or download the [.zip](https://github.com/venpopov/arc-width-vwm/archive/refs/heads/main.zip) archive.
 2.  Open the `guilty-goose.Rproj` file in RStudio.
-3.  Run the following code to install the required packages:
+3.  Restore package dependencies:
 
 ``` r
 renv::restore()
 ```
 
-`renv` is a package that creates a reproduction environment for R projects. It will install the packages listed in the `renv.lock` file, which are the packages used in the project. The `renv::restore()` command will install the packages in a separate library, so it will not interfere with your global library.
+`renv` creates a reproducible environment for R projects. It will install the packages listed in the `renv.lock` file into a project-local library.
 
-## Reports
+## Repository structure
 
-You can find the rendered notebooks with various findings at [venpopov.github.io/arc-width-vwm/](https://venpopov.github.io/arc-width-vwm/ "https://venpopov.github.io/arc-width-vwm/")
+```
+R/                   Shared functions (sourced by notebooks)
+stan/                Stan code snippets (included via stanvar() in brms)
+notebooks/           Quarto notebooks — the main analysis documents
+data-raw/            Raw experimental data (do not modify)
+output/              Computed artifacts (.csv, .rds, .h5)
+archive/             Preserved but inactive code
+meta/                Project management and audit documents
+docs/                Auto-generated Quarto site (do not edit)
+_freeze/             Auto-generated Quarto cache (do not edit)
+reference/           Collaborator-shared or legacy scripts
+```

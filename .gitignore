@@ -13,3 +13,4 @@ _freeze
 *_cache/
 
 **/*.quarto_ipynb
+.ipynb_checkpoints/

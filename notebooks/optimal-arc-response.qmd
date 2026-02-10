@@ -1,7 +1,6 @@
 ---
 title: "Optimal arc to maximize reward"
 format: html
-editor: visual
 execute: 
   cache: true
 ---
@@ -76,22 +75,7 @@ library(ggplot2)
 library(tidyr)
 library(dplyr)
 
-# the optimum alpha is the root of this equation
-# it can be used with any distribution by providing the cdf and pdf functions
-optimum_equation <- function(alpha, cdf, pdf) {
-  (pi - alpha)*pdf(alpha) - cdf(alpha) + 0.5
-}
-
-# returns a data.frame with one row and two columns with the optimal alpha and phit
-find_optimum_sdm <- function(c, kappa) {
-  solution <- uniroot(
-    optimum_equation, 
-    cdf = \(x) psdm(x, c = c, kappa = kappa), 
-    pdf = \(x) dsdm(x, c = c, kappa = kappa), 
-    lower = 0, upper = pi-0.0001
-    )
-  data.frame(alpha = solution$root, phit = 2*psdm(solution$root, c = c, kappa = kappa)-1)
-}
+source("R/arc-models.R")
 
 find_optimum_sdm(c = 4, kappa = 4)
 ```
