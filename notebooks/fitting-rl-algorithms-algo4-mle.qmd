@@ -1,5 +1,5 @@
 ---
-title: "Model diagnostics: noisy-gradient (algo5), MLE"
+title: "Model diagnostics: contraction-expansion (algo4) with logit noise, MLE"
 format: html
 ---
 
@@ -14,7 +14,7 @@ source("R/math.R")
 
 ::: {.callout-note}
 ## Prerequisites
-This notebook fits the noisy-gradient model developed in [RL Algorithms: Exploration](reinforcement-learning-arc.qmd). The SDM model and optimality derivation are described in [Optimal Arc Width (SDM)](optimal-arc-response.qmd).
+This notebook fits the contraction-expansion model (algo4) with logit-scale noise, developed in [RL Algorithms: Exploration](reinforcement-learning-arc.qmd). The SDM model and optimality derivation are described in [Optimal Arc Width (SDM)](optimal-arc-response.qmd).
 :::
 
 ## Task and model summary
@@ -30,45 +30,48 @@ $$
 y_t \sim \text{SDM}(c,\kappa).
 $$
 
-**Arc-width updates** follow a noisy stochastic-gradient rule on the logit-reparameterized arc $x_t = \operatorname{logit}(a_t/\pi)$. We do this on the unconstrained $x_t$ so that despite adding random noise, responses that get mapped back to $a_{t+1} = \operatorname{invlogit}(x_{t+1})\pi$ are in the right range, $(0,\pi)$, without needing to truncate.  Define a soft hit indicator and gradient:
+**Deterministic arc-width update (algo4).** On each trial the arc contracts toward 0 on a hit and expands toward $\pi$ on a miss, with step-size $\delta \in (0,1)$:
 $$
-s_t = \sigma\!\left(\frac{a_t - |y_t|}{\tau}\right), \qquad
-g_t = -s_t + (\pi - a_t)\,\frac{s_t(1-s_t)}{\tau},
-$$
-with a decaying learning rate $\delta_t = \delta_0/(t+1)^{0.5}$. The state transition is
-$$
-x_{t+1} = x_t + \delta_t\bigl(g_t + \varepsilon_t\bigr), \qquad \varepsilon_t \sim \mathcal{N}(0,\sigma_g^2).
+\tilde{a}_{t+1} = a_t\,(1-\delta) + \mathbf{1}\!\bigl[|y_t|>a_t\bigr]\,\delta\,\pi.
 $$
 
-**Joint log-likelihood.** Because $x_{t+1} \mid x_t, y_t$ is normal, the full log-likelihood decomposes as
+**Logit-noise stochastic extension.** To make the model estimable, we add Gaussian noise on the unconstrained logit scale. Define
+$$
+\tilde{x}_{t+1} = \operatorname{logit}\!\left(\tilde{a}_{t+1}/\pi\right),
+$$
+then the stochastic transition is
+$$
+x_{t+1} = \tilde{x}_{t+1} + \varepsilon_t, \qquad \varepsilon_t \sim \mathcal{N}(0,\sigma_\varepsilon^2),
+$$
+so that $a_{t+1} = \pi\,\sigma(x_{t+1})$ is guaranteed to lie in $(0,\pi)$ without clipping.
+
+**Joint log-likelihood.** Because $x_{t+1} \mid a_t, y_t$ is normal, the full log-likelihood decomposes as
 $$
 \ell(\theta) =
 \underbrace{\sum_{t=1}^{T}\log f_{\text{SDM}}(y_t \mid c,\kappa)}_{\text{response errors}}
 \;+\;
-\underbrace{\sum_{t=1}^{T-1}\log\phi\!\left(x_{t+1};\; x_t + \delta_t\, g_t,\; \delta_t\,\sigma_g\right)}_{\text{arc transitions}},
+\underbrace{\sum_{t=1}^{T-1}\log\phi\!\left(x_{t+1};\; \tilde{x}_{t+1},\; \sigma_\varepsilon\right)}_{\text{arc transitions}},
 $$
-with fitted parameter vector $\theta=(c,\kappa,\tau,\delta_0,\sigma_g)$. The exponent $\delta_{\text{pow}}=0.5$ is fixed. Below we verify identifiability via simulation-based parameter recovery and maximum-likelihood estimation with `optim`.
+with fitted parameter vector $\theta=(c,\kappa,\delta,\sigma_\varepsilon)$. Below we verify identifiability via simulation-based parameter recovery and maximum-likelihood estimation with `optim`.
 
 ## Simulate data
 
-Generate a single subject's worth of data from the noisy-gradient model with
+Generate a single subject's worth of data from the algo4 logit-noise model with
 known parameters. We use `run_arc_algorithm` which feeds SDM-generated response
 errors `y` through the update function trial by trial.
 
 ```{r}
-true_pars <- list(c = 6, kappa = 3, tau = 0.025, delta0 = 0.1, sigma_g = 2)
+true_pars <- list(c = 6, kappa = 3, delta = 0.1, sigma_e = 0.2)
 
 set.seed(4233)
 sim <- run_arc_algorithm(
-  arc_update_fun = algo5_noisy_grad(
-    tau = true_pars$tau,
-    delta0 = true_pars$delta0,
-    delta_pow = 0.5,
-    sigma_g = true_pars$sigma_g
+  arc_update_fun = algo4_logit_noise(
+    delta = true_pars$delta,
+    sigma_e = true_pars$sigma_e
   ),
   c = true_pars$c,
   kappa = true_pars$kappa,
-  init_arc = pi/8,
+  init_arc = pi / 8,
   n_trials = 1000
 )
 
@@ -87,7 +90,11 @@ The joint log-likelihood has two additive components:
 2. **Arc-transition component** — a normal density on the logit scale for the
    arc update from trial $t$ to $t+1$
 
-The functions `algo5_loglik`, `par_to_unconstrained`, `par_from_unconstrained`, and `neg_loglik` are defined in `R/arc-models.R` (loaded above). All five parameters are strictly positive, so we estimate on the log scale and exponentiate back.
+The functions `algo4_loglik`, `par_to_unconstrained_algo4`,
+`par_from_unconstrained_algo4`, and `neg_loglik_algo4` are defined in
+`R/arc-models.R` (loaded above). Parameters $c$, $\kappa$, and
+$\sigma_\varepsilon$ are strictly positive (estimated on the log scale); $\delta
+\in (0,1)$ is estimated on the logit scale.
 
 ## Fit with `optim`
 
@@ -95,12 +102,12 @@ We initialise at perturbed values (not the truth) to verify that the optimiser
 can recover the generating parameters.
 
 ```{r}
-init_pars <- list(c = 3, kappa = 5, tau = 0.05, delta0 = 0.05, sigma_g = 1)
-theta0 <- par_to_unconstrained(init_pars)
+init_pars <- list(c = 3, kappa = 5, delta = 0.05, sigma_e = 0.5)
+theta0 <- par_to_unconstrained_algo4(init_pars)
 
 fit <- optim(
   par = theta0,
-  fn = neg_loglik,
+  fn = neg_loglik_algo4,
   y = sim$y,
   a = sim$a,
   method = "Nelder-Mead",
@@ -113,7 +120,7 @@ fit$convergence  # 0 = success
 ## Compare estimated vs true parameters
 
 ```{r}
-estimated <- par_from_unconstrained(fit$par)
+estimated <- par_from_unconstrained_algo4(fit$par)
 
 comparison <- tibble(
   parameter = names(true_pars),
@@ -133,19 +140,26 @@ estimate while holding the others fixed, to confirm we are at a peak.
 #| fig-width: 9
 #| fig-height: 6
 best_theta <- fit$par
-par_names <- c("c", "kappa", "tau", "delta0", "sigma_g")
+par_names <- c("c", "kappa", "delta", "sigma_e")
 
 profiles <- purrr::map_dfr(seq_along(par_names), \(j) {
   grid <- seq(best_theta[j] - 1, best_theta[j] + 1, length.out = 80)
   ll_vals <- sapply(grid, \(v) {
     theta_tmp <- best_theta
     theta_tmp[j] <- v
-    -neg_loglik(theta_tmp, y = sim$y, a = sim$a)
+    -neg_loglik_algo4(theta_tmp, y = sim$y, a = sim$a)
   })
+
+  if (par_names[j] == "delta") {
+    value <- inv_logit(grid)
+  } else {
+    value <- exp(grid)
+  }
+
   tibble(
     parameter = par_names[j],
     theta_unconstrained = grid,
-    value = exp(grid),
+    value = value,
     loglik = ll_vals
   )
 })
@@ -174,39 +188,37 @@ recovery_true <- tibble(
   iter = seq_len(n_recovery),
   c = runif(n_recovery, 1, 10),
   kappa = runif(n_recovery, 1, 10),
-  tau = runif(n_recovery, 0.001, 0.05),
-  delta0 = runif(n_recovery, 0.01, 0.2),
-  sigma_g = runif(n_recovery, 0, 10)
+  delta = runif(n_recovery, 0.01, 0.5),
+  sigma_e = runif(n_recovery, 0.01, 1)
 )
 
-fit_one <- function(iter, c, kappa, tau, delta0, sigma_g) {
+fit_one <- function(iter, c, kappa, delta, sigma_e) {
   sim <- run_arc_algorithm(
-    arc_update_fun = algo5_noisy_grad(tau = tau, delta0 = delta0,
-                                       delta_pow = 0.5, sigma_g = sigma_g),
+    arc_update_fun = algo4_logit_noise(delta = delta, sigma_e = sigma_e),
     c = c, kappa = kappa, init_arc = pi / 2, n_trials = n_trials
   )
 
-  theta0 <- par_to_unconstrained(list(
-    c = 4, kappa = 4, tau = 0.02, delta0 = 0.08, sigma_g = 3
+  theta0 <- par_to_unconstrained_algo4(list(
+    c = 4, kappa = 4, delta = 0.1, sigma_e = 0.3
   ))
 
   fit <- tryCatch(
-    optim(par = theta0, fn = neg_loglik, y = sim$y, a = sim$a,
+    optim(par = theta0, fn = neg_loglik_algo4, y = sim$y, a = sim$a,
           method = "Nelder-Mead",
           control = list(maxit = 5000, reltol = 1e-10)),
-    error = \(e) list(par = rep(NA_real_, 5), convergence = 99)
+    error = \(e) list(par = rep(NA_real_, 4), convergence = 99)
   )
 
-  est <- par_from_unconstrained(fit$par)
+  est <- par_from_unconstrained_algo4(fit$par)
   tibble(
     iter = iter,
-    c_est = est$c, kappa_est = est$kappa, tau_est = est$tau,
-    delta0_est = est$delta0, sigma_g_est = est$sigma_g,
+    c_est = est$c, kappa_est = est$kappa,
+    delta_est = est$delta, sigma_e_est = est$sigma_e,
     converged = fit$convergence == 0
   )
 }
 
-recovery_est <- with_cache("output/algo5_recovery_est.rds", {
+recovery_est <- with_cache("output/algo4_recovery_est.rds", {
   purrr::pmap_dfr(recovery_true, fit_one)
 })
 ```
@@ -214,8 +226,8 @@ recovery_est <- with_cache("output/algo5_recovery_est.rds", {
 Tag iterations where at least one estimate exceeds 4× the max true generating value:
 
 ```{r}
-est_cols <- c("c_est", "kappa_est", "tau_est", "delta0_est", "sigma_g_est")
-true_cols <- c("c", "kappa", "tau", "delta0", "sigma_g")
+est_cols <- c("c_est", "kappa_est", "delta_est", "sigma_e_est")
+true_cols <- c("c", "kappa", "delta", "sigma_e")
 thresholds <- 4 * sapply(true_cols, \(col) max(recovery_true[[col]]))
 outlier_mat <- sapply(seq_along(est_cols), \(j) {
   recovery_est[[est_cols[j]]] > thresholds[j]
@@ -229,7 +241,7 @@ Join true and estimated values and reshape for plotting:
 recovery_df <- recovery_true |>
   left_join(recovery_est, by = "iter") |>
   pivot_longer(
-    cols = c(c, kappa, tau, delta0, sigma_g),
+    cols = c(c, kappa, delta, sigma_e),
     names_to = "parameter",
     values_to = "true_value"
   ) |>
@@ -237,9 +249,8 @@ recovery_df <- recovery_true |>
     estimated = case_when(
       parameter == "c" ~ c_est,
       parameter == "kappa" ~ kappa_est,
-      parameter == "tau" ~ tau_est,
-      parameter == "delta0" ~ delta0_est,
-      parameter == "sigma_g" ~ sigma_g_est
+      parameter == "delta" ~ delta_est,
+      parameter == "sigma_e" ~ sigma_e_est
     )
   ) |>
   select(iter, parameter, true_value, estimated, converged, bad)
@@ -261,14 +272,14 @@ recovery_df |>
     rmse = sqrt(mean((true_value - estimated)^2)),
     bias = mean(estimated - true_value),
     .groups = "drop"
-  ) 
+  )
 ```
 
 ```{r}
 #| fig-width: 10
 #| fig-height: 8
 #| label: fig-recovery
-#| fig-cap: "Parameter recovery for the noisy-gradient model. Each point is one simulated dataset. The dashed line is the identity."
+#| fig-cap: "Parameter recovery for the contraction-expansion model with logit noise. Each point is one simulated dataset. The dashed line is the identity."
 
 plot_df <- recovery_df |> filter(converged, !bad)
 
@@ -324,5 +335,3 @@ ggplot(binned_df, aes(x = true_mid)) +
   facet_wrap(~parameter, scales = "free") +
   labs(x = "True value", y = "Estimated value")
 ```
-
-

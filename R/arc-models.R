@@ -94,6 +94,64 @@ algo5_noisy_grad <- function(tau = 0.05, delta0 = 0.1, delta_pow = 0.5, sigma_g 
   }
 }
 
+# --- Algo4 with logit-scale noise ---
+
+algo4_logit_noise <- function(delta = 0.1, sigma_e = 0.2) {
+  force(delta)
+  force(sigma_e)
+
+  \(a, y, ...) {
+    a_det <- a * (1 - delta) + (abs(y) > a) * pi * delta
+    x_det <- logit(a_det / pi)
+    x_new <- x_det + rnorm(1, sd = sigma_e)
+    inv_logit(x_new) * pi
+  }
+}
+
+algo4_loglik <- function(y, a, c, kappa, delta, sigma_e) {
+  T_ <- length(y)
+  x <- logit(a / pi)
+
+  ll_y <- sum(dsdm(y, mu = 0, c = c, kappa = kappa, log = TRUE))
+
+  idx <- seq_len(T_ - 1)
+  a_det <- a[idx] * (1 - delta) + (abs(y[idx]) > a[idx]) * pi * delta
+  x_det <- logit(a_det / pi)
+
+  ll_a <- sum(dnorm(x[idx + 1], mean = x_det, sd = sigma_e, log = TRUE))
+
+  ll_y + ll_a
+}
+
+par_to_unconstrained_algo4 <- function(pars) {
+  c(log(pars$c), log(pars$kappa), logit(pars$delta), log(pars$sigma_e))
+}
+
+par_from_unconstrained_algo4 <- function(theta) {
+  list(
+    c = exp(theta[1]),
+    kappa = exp(theta[2]),
+    delta = inv_logit(theta[3]),
+    sigma_e = exp(theta[4])
+  )
+}
+
+neg_loglik_algo4 <- function(theta, y, a) {
+  pars <- par_from_unconstrained_algo4(theta)
+  ll <- tryCatch(
+    algo4_loglik(y, a,
+      c = pars$c, kappa = pars$kappa,
+      delta = pars$delta, sigma_e = pars$sigma_e
+    ),
+    error = \(e) -Inf,
+    warning = \(w) -Inf
+  )
+  if (!is.finite(ll)) {
+    return(1e10)
+  }
+  -ll
+}
+
 # --- Log-likelihood for the noisy-gradient model (algo5) ---
 
 algo5_loglik <- function(y, a, c, kappa, tau, delta0, delta_pow = 0.5, sigma_g) {
