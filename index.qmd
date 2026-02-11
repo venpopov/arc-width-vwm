@@ -4,7 +4,7 @@ title: "Arc width and continuous reproduction"
 
 ## Project overview
 
-In the standard continuous reproduction paradigm, participants study a visual feature (e.g., a color) and later reproduce it on a continuous scale (e.g., a color wheel). The angular error between the response and the target is taken as a measure of memory precision — but a single trial's error is just a sample from a distribution, not a direct measure of that trial's memory quality.
+In the standard [continuous reproduction paradigm](https://venpopov.github.io/bmm/articles/bmm_vwm_crt.html), participants study a visual feature (e.g., a color) and later reproduce it on a continuous scale (e.g., a color wheel). The angular error between the response and the target is taken as a measure of memory precision — but a single trial's error is just a sample from a distribution, not a direct measure of that trial's memory quality.
 
 In the **uncertainty estimation procedure**, participants additionally draw a symmetric **arc** around their point response, indicating the range of plausible values consistent with their memory. Participants are incentivized to set the arc wisely: points are awarded as
 
