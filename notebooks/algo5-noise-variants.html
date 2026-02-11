@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Algo5 noise variants: identifiability and convergence – Arc width and continuous reproduction</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-21621a7fe632017267fd7ae91c064aca.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script><script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script><script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+</head>
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Arc width and continuous reproduction</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+<li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+</ul>
+</div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Model derivations</a></li><li class="breadcrumb-item"><a href="../notebooks/algo5-noise-variants.html">Algo5 Noise Variants</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto"><div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Project details</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/experiment-description.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Experiment Description &amp; Data Codebook</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Data Exploration</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/exp1-eda.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exp 1: Exploratory Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/exp1-by-subject.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Exp 1: By-Subject Diagnostics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/honig-explore.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Honig et al.: Data Exploration</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Theory &amp; Model derivations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/optimal-arc-response.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Optimal Arc Width (SDM)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/reinforcement-learning-arc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">RL Algorithms: Exploration</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/algo5-noise-variants.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Algo5 Noise Variants</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Model diagnostics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/diagnostics-algo4-mle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Contraction-expansion (algo4), MLE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/diagnostics-algo4-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Contraction-expansion (algo4), Bayesian</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/diagnostics-algo5-mle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Stochastic gradient ascent (algo5), MLE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/diagnostics-algo5-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Stochastic gradient ascent (algo5), Bayesian</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Model Fits</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/fit-algo4-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algo4 Bayesian fit (Exp 1)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/fit-algo5-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algo5 Bayesian fit (Exp 1)</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Empirical Tests</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/sequential-dependencies.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Sequential Dependencies</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+    </ul>
+</div>
+</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+   
+  <ul>
+<li><a href="#motivation" id="toc-motivation" class="nav-link active" data-scroll-target="#motivation">Motivation</a></li>
+  <li><a href="#reference-current-model-gradient-scaled-noise" id="toc-reference-current-model-gradient-scaled-noise" class="nav-link" data-scroll-target="#reference-current-model-gradient-scaled-noise">Reference: current model (gradient-scaled noise)</a></li>
+  <li><a href="#proposal-1-constant-noise" id="toc-proposal-1-constant-noise" class="nav-link" data-scroll-target="#proposal-1-constant-noise">Proposal 1: Constant noise</a></li>
+  <li>
+<a href="#proposal-2-langevin-noise-scaling" id="toc-proposal-2-langevin-noise-scaling" class="nav-link" data-scroll-target="#proposal-2-langevin-noise-scaling">Proposal 2: Langevin noise scaling</a>
+  <ul class="collapse">
+<li><a href="#direct-comparison-noise-scaling-regimes" id="toc-direct-comparison-noise-scaling-regimes" class="nav-link" data-scroll-target="#direct-comparison-noise-scaling-regimes">Direct comparison: noise scaling regimes</a></li>
+  </ul>
+</li>
+  <li><a href="#proposal-3-reparametrize-the-existing-model" id="toc-proposal-3-reparametrize-the-existing-model" class="nav-link" data-scroll-target="#proposal-3-reparametrize-the-existing-model">Proposal 3: Reparametrize the existing model</a></li>
+  <li><a href="#proposal-4-fix-tau" id="toc-proposal-4-fix-tau" class="nav-link" data-scroll-target="#proposal-4-fix-tau">Proposal 4: Fix <span class="math inline">\(\tau\)</span></a></li>
+  <li><a href="#comparison-across-all-proposals-langevin-vs-noise-gradient-vs-fixed-tau" id="toc-comparison-across-all-proposals-langevin-vs-noise-gradient-vs-fixed-tau" class="nav-link" data-scroll-target="#comparison-across-all-proposals-langevin-vs-noise-gradient-vs-fixed-tau">Comparison across all proposals: Langevin vs noise-gradient vs fixed-tau</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  </ul><div class="toc-actions"><ul><li><a href="https://github.com/venpopov/arc-width-vwm/edit/main/notebooks/algo5-noise-variants.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/blob/main/notebooks/algo5-noise-variants.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../notebooks/optimal-arc-response.html">Theory &amp; Model derivations</a></li><li class="breadcrumb-item"><a href="../notebooks/algo5-noise-variants.html">Algo5 Noise Variants</a></li></ol></nav><div class="quarto-title">
+<h1 class="title">Algo5 noise variants: identifiability and convergence</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header><div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/venpopov/bmm">bmm</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org">tidyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"R/arc-models.R"</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"R/utils.R"</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="st">"R/math.R"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Prerequisites
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This notebook follows up on the <a href="reinforcement-learning-arc.html#stochastic-algorithms">stochastic algorithms section</a> of the RL exploration notebook. The identifiability problem diagnosed here is documented in <code>meta/2026-02-10_algo5-identifiability-analysis.md</code>.</p>
+</div>
+</div>
+<section id="motivation" class="level1"><h1>Motivation</h1>
+<p>The noisy-gradient model (algo5) with gradient-scaled noise has good parameter recovery in simulation but shows <strong>bimodal posterior behavior</strong> when fitted to real data via MCMC. Chains get stuck exploring one of two modes:</p>
+<table class="caption-top table">
+<thead><tr class="header">
+<th>Mode</th>
+<th><span class="math inline">\(\tau\)</span></th>
+<th><span class="math inline">\(\delta_0\)</span></th>
+<th><span class="math inline">\(\sigma_g\)</span></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>A</td>
+<td>high</td>
+<td>high</td>
+<td>low</td>
+</tr>
+<tr class="even">
+<td>B</td>
+<td>low</td>
+<td>low</td>
+<td>high</td>
+</tr>
+</tbody>
+</table>
+<p>This arises from a <strong>three-way multiplicative ridge</strong> in the likelihood. The arc transition is:</p>
+<p><span class="math display">\[
+x_{t+1} \sim \mathcal{N}\!\left(x_t + \delta_t\, g_t(\tau),\; (\delta_t\,\sigma_g)^2\right)
+\]</span></p>
+<p>where <span class="math inline">\(g_t \approx C/\tau\)</span> near the decision boundary, so the mean depends on <span class="math inline">\(\delta_0/\tau\)</span> and the variance on <span class="math inline">\((\delta_0 \sigma_g)^2\)</span>. The approximate invariance</p>
+<p><span class="math display">\[
+(\tau, \delta_0, \sigma_g) \to (\lambda\tau,\; \lambda\delta_0,\; \sigma_g/\lambda)
+\]</span></p>
+<p>preserves both, creating a ridge that MCMC struggles to traverse.</p>
+<p>This notebook investigates <strong>alternative noise formulations</strong> that maintain the gradient-ascent spirit of algo5 while improving estimation geometry. For each variant we check convergence behavior in forward simulation — a prerequisite before attempting estimation.</p>
+</section><section id="reference-current-model-gradient-scaled-noise" class="level1"><h1>Reference: current model (gradient-scaled noise)</h1>
+<p>The current model scales noise by the learning rate: <span class="math inline">\(\text{SD} = \delta_t \sigma_g\)</span>. Because the noise decays with <span class="math inline">\(\delta_t\)</span>, even large <span class="math inline">\(\sigma_g\)</span> does not prevent convergence.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ribbon_summary_runs</span><span class="op">(</span></span>
+<span>  alg_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>    deterministic <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    sigma_g_0.5   <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>    sigma_g_1     <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    sigma_g_2     <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    sigma_g_5     <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  cs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  n_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  n_runs <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  add_oracle <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  oracle_fun <span class="op">=</span> \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">find_optimum_sdm</span><span class="op">(</span><span class="va">c</span>, kappa <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/ref-noisy-grad-ribbon-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">spaghetti_single_runs</span><span class="op">(</span></span>
+<span>  alg_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>noisy_grad <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  cs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">8</span>, <span class="fl">16</span><span class="op">)</span>,</span>
+<span>  n_trials <span class="op">=</span> <span class="fl">800</span>,</span>
+<span>  n_runs <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  init_arc <span class="op">=</span> <span class="va">pi</span> <span class="op">/</span> <span class="fl">2</span>,</span>
+<span>  plot_what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"reward"</span>, <span class="st">"hit"</span>, <span class="st">"a"</span><span class="op">)</span>,</span>
+<span>  add_oracle <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  oracle_fun <span class="op">=</span> \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">find_optimum_sdm</span><span class="op">(</span><span class="va">c</span>, kappa <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">123</span></span>
+<span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/ref-noisy-grad-spaghetti-1.png" class="img-fluid figure-img" width="864"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="proposal-1-constant-noise" class="level1"><h1>Proposal 1: Constant noise</h1>
+<p>Replace <span class="math inline">\(\delta_t \sigma_g\)</span> with a constant <span class="math inline">\(\sigma_w\)</span>:</p>
+<p><span class="math display">\[
+x_{t+1} = x_t + \delta_t\, g_t(\tau) + \sigma_w\, \varepsilon_t
+\]</span></p>
+<p>This completely decouples <span class="math inline">\(\sigma_w\)</span> from <span class="math inline">\(\delta_0\)</span>, breaking the variance ridge. However, since <span class="math inline">\(\sigma_w\)</span> does not decay, the noise dominates late-trial dynamics where <span class="math inline">\(\delta_t \to 0\)</span>. This is equivalent to the “logit noise” variant explored earlier, which was shown to destroy algo5’s convergence.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ribbon_summary_runs</span><span class="op">(</span></span>
+<span>  alg_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>    deterministic  <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    sigma_w_0.01   <span class="op">=</span> <span class="fu">algo5_const_noise</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_w <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span>,</span>
+<span>    sigma_w_0.05   <span class="op">=</span> <span class="fu">algo5_const_noise</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_w <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span>,</span>
+<span>    sigma_w_0.1    <span class="op">=</span> <span class="fu">algo5_const_noise</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_w <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>    sigma_w_0.2    <span class="op">=</span> <span class="fu">algo5_const_noise</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_w <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  cs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  n_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  n_runs <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  add_oracle <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  oracle_fun <span class="op">=</span> \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">find_optimum_sdm</span><span class="op">(</span><span class="va">c</span>, kappa <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/p1-const-ribbon-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">spaghetti_single_runs</span><span class="op">(</span></span>
+<span>  alg_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>const_noise <span class="op">=</span> <span class="fu">algo5_const_noise</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_w <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  cs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">8</span>, <span class="fl">16</span><span class="op">)</span>,</span>
+<span>  n_trials <span class="op">=</span> <span class="fl">800</span>,</span>
+<span>  n_runs <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  init_arc <span class="op">=</span> <span class="va">pi</span> <span class="op">/</span> <span class="fl">2</span>,</span>
+<span>  plot_what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"reward"</span>, <span class="st">"hit"</span>, <span class="st">"a"</span><span class="op">)</span>,</span>
+<span>  add_oracle <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  oracle_fun <span class="op">=</span> \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">find_optimum_sdm</span><span class="op">(</span><span class="va">c</span>, kappa <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">123</span></span>
+<span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/p1-const-spaghetti-1.png" class="img-fluid figure-img" width="864"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>As expected, constant noise prevents convergence to a stable arc. Late-trial variability remains high because the noise floor <span class="math inline">\(\sigma_w\)</span> overwhelms the vanishing gradient step. This confirms the earlier finding from the logit-noise experiments. The model would be identifiable for estimation but generates unrealistic trajectories.</p>
+</section><section id="proposal-2-langevin-noise-scaling" class="level1"><h1>Proposal 2: Langevin noise scaling</h1>
+<p>Use <span class="math inline">\(\sqrt{\delta_t}\)</span> scaling instead of <span class="math inline">\(\delta_t\)</span>:</p>
+<p><span class="math display">\[
+x_{t+1} = x_t + \delta_t\, g_t(\tau) + \sqrt{\delta_t}\;\sigma_L\, \varepsilon_t
+\]</span></p>
+<p>The noise still decays but more slowly than the gradient step. Crucially, <span class="math inline">\(\delta_0\)</span> enters the mean <strong>linearly</strong> and the variance as <span class="math inline">\(\delta_0^{1/2}\)</span>, so the variance ridge <span class="math inline">\(\delta_0 \sigma_g = \text{const}\)</span> is replaced by <span class="math inline">\(\delta_0^{1/2} \sigma_L = \text{const}\)</span> — a much tighter constraint that breaks the three-way invariance. But sigma will have to be much smaller, otherwise convergence is once again destroyed.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ribbon_summary_runs</span><span class="op">(</span></span>
+<span>  alg_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>    deterministic  <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    sigma_L_0.5    <span class="op">=</span> <span class="fu">algo5_langevin</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_L <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>    sigma_L_1      <span class="op">=</span> <span class="fu">algo5_langevin</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_L <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    sigma_L_2      <span class="op">=</span> <span class="fu">algo5_langevin</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_L <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    sigma_L_5      <span class="op">=</span> <span class="fu">algo5_langevin</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_L <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  cs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  n_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  n_runs <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  add_oracle <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  oracle_fun <span class="op">=</span> \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">find_optimum_sdm</span><span class="op">(</span><span class="va">c</span>, kappa <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/p2-langevin-ribbon-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">spaghetti_single_runs</span><span class="op">(</span></span>
+<span>  alg_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>langevin <span class="op">=</span> <span class="fu">algo5_langevin</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_L <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  cs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">8</span>, <span class="fl">16</span><span class="op">)</span>,</span>
+<span>  n_trials <span class="op">=</span> <span class="fl">800</span>,</span>
+<span>  n_runs <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  init_arc <span class="op">=</span> <span class="va">pi</span> <span class="op">/</span> <span class="fl">2</span>,</span>
+<span>  plot_what <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"reward"</span>, <span class="st">"hit"</span>, <span class="st">"a"</span><span class="op">)</span>,</span>
+<span>  add_oracle <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  oracle_fun <span class="op">=</span> \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">find_optimum_sdm</span><span class="op">(</span><span class="va">c</span>, kappa <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">123</span></span>
+<span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/p2-langevin-spaghetti-1.png" class="img-fluid figure-img" width="864"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="direct-comparison-noise-scaling-regimes" class="level2"><h2 class="anchored" data-anchor-id="direct-comparison-noise-scaling-regimes">Direct comparison: noise scaling regimes</h2>
+<p>Compare all three noise scalings at matched effective noise levels. For a fair comparison at a “typical” trial (<span class="math inline">\(t = 100\)</span>, <span class="math inline">\(\delta_0 = 0.1\)</span>): <span class="math inline">\(\delta_t \approx 0.01\)</span>, so we match:</p>
+<ul>
+<li>Gradient-scaled: <span class="math inline">\(\delta_t \sigma_g = 0.01 \times 2 = 0.02\)</span>
+</li>
+<li>Langevin: <span class="math inline">\(\sqrt{\delta_t}\, \sigma_L = 0.1 \times 0.2 = 0.02\)</span>
+</li>
+<li>Constant: <span class="math inline">\(\sigma_w = 0.02\)</span>
+</li>
+</ul>
+<p>Interestingly, there is little difference between them, as the plot below shows. Perhaps constant noise might still work as long as we keep it low.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ribbon_summary_runs</span><span class="op">(</span></span>
+<span>  alg_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>    `grad-scaled (sig_g=2)` <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    `langevin (sig_L=0.2)`  <span class="op">=</span> <span class="fu">algo5_langevin</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_L <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>,</span>
+<span>    `constant (sig_w=0.02)` <span class="op">=</span> <span class="fu">algo5_const_noise</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_w <span class="op">=</span> <span class="fl">0.02</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  cs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  n_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  n_runs <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  add_oracle <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  oracle_fun <span class="op">=</span> \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">find_optimum_sdm</span><span class="op">(</span><span class="va">c</span>, kappa <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/p2-comparison-ribbon-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Here is how the resulting arc trajectory variance changes under the three models:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">sigma_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>  `grad-scaled` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  langevin      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.3</span>, <span class="fl">0.4</span>, <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>  constant      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.01</span>, <span class="fl">0.02</span>, <span class="fl">0.03</span>, <span class="fl">0.04</span>, <span class="fl">0.05</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">make_alg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>  `grad-scaled` <span class="op">=</span> \<span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="va">s</span><span class="op">)</span>,</span>
+<span>  langevin      <span class="op">=</span> \<span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="fu">algo5_langevin</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_L <span class="op">=</span> <span class="va">s</span><span class="op">)</span>,</span>
+<span>  constant      <span class="op">=</span> \<span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="fu">algo5_const_noise</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_w <span class="op">=</span> <span class="va">s</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">n_runs</span>   <span class="op">&lt;-</span> <span class="fl">200</span></span>
+<span><span class="va">n_trials</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
+<span><span class="va">cs</span>       <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span></span>
+<span><span class="va">kappa</span>    <span class="op">&lt;-</span> <span class="fl">3</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">var_df</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html">map_dfr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">sigma_grid</span><span class="op">)</span>, \<span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html">map_dfr</a></span><span class="op">(</span><span class="va">sigma_grid</span><span class="op">[[</span><span class="va">model</span><span class="op">]</span><span class="op">]</span>, \<span class="op">(</span><span class="va">sig</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html">map_dfr</a></span><span class="op">(</span><span class="va">cs</span>, \<span class="op">(</span><span class="va">c_val</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="va">within_vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">n_runs</span><span class="op">)</span>, \<span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="va">a</span> <span class="op">&lt;-</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span></span>
+<span>          arc_update_fun <span class="op">=</span> <span class="va">make_alg</span><span class="op">[[</span><span class="va">model</span><span class="op">]</span><span class="op">]</span><span class="op">(</span><span class="va">sig</span><span class="op">)</span>,</span>
+<span>          c <span class="op">=</span> <span class="va">c_val</span>, kappa <span class="op">=</span> <span class="va">kappa</span>,</span>
+<span>          init_arc <span class="op">=</span> <span class="va">pi</span> <span class="op">/</span> <span class="fl">2</span>, n_trials <span class="op">=</span> <span class="va">n_trials</span></span>
+<span>        <span class="op">)</span><span class="op">$</span><span class="va">a</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">var</a></span><span class="op">(</span><span class="va">a</span><span class="op">)</span></span>
+<span>      <span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span>      <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span></span>
+<span>        model <span class="op">=</span> <span class="va">model</span>,</span>
+<span>        sigma <span class="op">=</span> <span class="va">sig</span>,</span>
+<span>        c     <span class="op">=</span> <span class="va">c_val</span>,</span>
+<span>        var_a <span class="op">=</span> <span class="va">within_vars</span></span>
+<span>      <span class="op">)</span></span>
+<span>    <span class="op">}</span><span class="op">)</span></span>
+<span>  <span class="op">}</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">var_df</span><span class="op">$</span><span class="va">sigma_label</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">var_df</span><span class="op">$</span><span class="va">sigma</span><span class="op">)</span></span>
+<span><span class="va">var_df</span><span class="op">$</span><span class="va">c_label</span>     <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"c = "</span>, <span class="va">var_df</span><span class="op">$</span><span class="va">c</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">var_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">sigma_label</span>, y <span class="op">=</span> <span class="va">var_a</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html">geom_boxplot</a></span><span class="op">(</span>outlier.size <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="va">c_label</span> <span class="op">~</span> <span class="va">model</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span></span>
+<span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span>, y <span class="op">=</span> <span class="st">"Within-run Var(arc width)"</span>,</span>
+<span>    title <span class="op">=</span> <span class="st">"Within-run arc variance by noise model and sigma"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">13</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/p2-arc-distribution-variance-comparison-plot-1.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+</div>
+</section></section><section id="proposal-3-reparametrize-the-existing-model" class="level1"><h1>Proposal 3: Reparametrize the existing model</h1>
+<p>This proposal keeps the original generative model <strong>exactly</strong> but estimates <span class="math inline">\((\phi, \omega, \tau)\)</span> instead of <span class="math inline">\((\tau, \delta_0, \sigma_g)\)</span>:</p>
+<p><span class="math display">\[
+\phi = \delta_0/\tau, \quad \omega = \delta_0 \cdot \sigma_g
+\]</span></p>
+<p>Since the generative model is identical, simulations are the same as the reference. What changes is the posterior geometry during estimation. The ridge direction <span class="math inline">\((\lambda\tau, \lambda\delta_0, \sigma_g/\lambda)\)</span> maps to <span class="math inline">\((\lambda\tau, \phi, \omega)\)</span> — only <span class="math inline">\(\tau\)</span> moves while <span class="math inline">\(\phi\)</span> and <span class="math inline">\(\omega\)</span> stay fixed. This concentrates the degeneracy in one dimension.</p>
+<p>No simulation needed here — we plot the original model’s ridge structure instead.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">lambda_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">5</span>, length.out <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">tau0</span> <span class="op">&lt;-</span> <span class="fl">0.025</span>; <span class="va">delta0_0</span> <span class="op">&lt;-</span> <span class="fl">0.1</span>; <span class="va">sigma_g0</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
+<span></span>
+<span><span class="va">original</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span></span>
+<span>  lambda <span class="op">=</span> <span class="va">lambda_grid</span>,</span>
+<span>  tau    <span class="op">=</span> <span class="va">tau0</span> <span class="op">*</span> <span class="va">lambda_grid</span>,</span>
+<span>  delta0 <span class="op">=</span> <span class="va">delta0_0</span> <span class="op">*</span> <span class="va">lambda_grid</span>,</span>
+<span>  sigma_g <span class="op">=</span> <span class="va">sigma_g0</span> <span class="op">/</span> <span class="va">lambda_grid</span>,</span>
+<span>  phi    <span class="op">=</span> <span class="va">delta0_0</span> <span class="op">/</span> <span class="va">tau0</span>,</span>
+<span>  omega  <span class="op">=</span> <span class="va">delta0_0</span> <span class="op">*</span> <span class="va">sigma_g0</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">original</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">tau</span>, y <span class="op">=</span> <span class="va">delta0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">original</span>, <span class="va">lambda</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"red"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Original: tau-delta ridge"</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">delta</span><span class="op">[</span><span class="fl">0</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">original</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">delta0</span>, y <span class="op">=</span> <span class="va">sigma_g</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">original</span>, <span class="va">lambda</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"red"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Original: delta-sigma_g ridge"</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">delta</span><span class="op">[</span><span class="fl">0</span><span class="op">]</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">[</span><span class="va">g</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">original</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">tau</span>, y <span class="op">=</span> <span class="va">phi</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">original</span>, <span class="va">lambda</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"red"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Reparametrized: tau vs phi"</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">phi</span> <span class="op">==</span> <span class="va">delta</span><span class="op">[</span><span class="fl">0</span><span class="op">]</span><span class="op">/</span><span class="va">tau</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">original</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">tau</span>, y <span class="op">=</span> <span class="va">omega</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">original</span>, <span class="va">lambda</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"red"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Reparametrized: tau vs omega"</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">omega</span> <span class="op">==</span> <span class="va">delta</span><span class="op">[</span><span class="fl">0</span><span class="op">]</span> <span class="op">%.%</span> <span class="va">sigma</span><span class="op">[</span><span class="va">g</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com">patchwork</a></span><span class="op">)</span></span>
+<span><span class="op">(</span><span class="va">p1</span> <span class="op">|</span> <span class="va">p2</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">p3</span> <span class="op">|</span> <span class="va">p4</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/p3-ridge-visualization-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In the original parametrization, the ridge sweeps through both <span class="math inline">\(\tau\)</span>–<span class="math inline">\(\delta_0\)</span> and <span class="math inline">\(\delta_0\)</span>–<span class="math inline">\(\sigma_g\)</span> panels (top row). In the reparametrized space (bottom row), <span class="math inline">\(\phi\)</span> and <span class="math inline">\(\omega\)</span> are <strong>flat</strong> along the ridge — MCMC only needs to marginalize over <span class="math inline">\(\tau\)</span>.</p>
+</section><section id="proposal-4-fix-tau" class="level1"><h1>Proposal 4: Fix <span class="math inline">\(\tau\)</span>
+</h1>
+<p>The temperature <span class="math inline">\(\tau\)</span> controls gradient smoothness but has little direct scientific meaning. Fixing it at a small value eliminates one parameter and the <span class="math inline">\(\tau\)</span>–<span class="math inline">\(\delta_0\)</span> coupling entirely. The model reduces to a two-parameter arc transition <span class="math inline">\((c, \kappa, \delta_0, \sigma_g)\)</span> with the same geometry as algo4.</p>
+<p>We verify that convergence behavior is mostly insensitive to the choice of <span class="math inline">\(\tau &lt;= 0.05\)</span>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ribbon_summary_runs</span><span class="op">(</span></span>
+<span>  alg_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>    `tau=0.005` <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.005</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    `tau=0.01`  <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.01</span>,  delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    `tau=0.025` <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    `tau=0.05`  <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.05</span>,  delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    `tau=0.1`   <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.1</span>,   delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  cs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  n_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  n_runs <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  add_oracle <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  oracle_fun <span class="op">=</span> \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">find_optimum_sdm</span><span class="op">(</span><span class="va">c</span>, kappa <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/p4-fix-tau-ribbon-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>If convergence and asymptotic behavior are similar across a range of <span class="math inline">\(\tau\)</span> values, the parameter adds little information and can safely be fixed.</p>
+<p>The question is whether and how much <span class="math inline">\(\tau\)</span> adds to the observed variance of the arcs. Let’s test that:</p>
+<p>Here is how the resulting arc trajectory variance changes with tau:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tau_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.005</span><span class="op">)</span></span>
+<span><span class="va">n_runs</span>   <span class="op">&lt;-</span> <span class="fl">200</span></span>
+<span><span class="va">n_trials</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
+<span><span class="va">cs</span>       <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span></span>
+<span><span class="va">kappa</span>    <span class="op">&lt;-</span> <span class="fl">3</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">var_df</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html">map_dfr</a></span><span class="op">(</span><span class="va">tau_grid</span>, \<span class="op">(</span><span class="va">tau</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html">map_dfr</a></span><span class="op">(</span><span class="va">cs</span>, \<span class="op">(</span><span class="va">c_val</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">within_vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">n_runs</span><span class="op">)</span>, \<span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="va">a</span> <span class="op">&lt;-</span> <span class="fu">run_arc_algorithm</span><span class="op">(</span></span>
+<span>        arc_update_fun <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="va">tau</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>        c <span class="op">=</span> <span class="va">c_val</span>, kappa <span class="op">=</span> <span class="va">kappa</span>,</span>
+<span>        init_arc <span class="op">=</span> <span class="va">pi</span> <span class="op">/</span> <span class="fl">2</span>, n_trials <span class="op">=</span> <span class="va">n_trials</span></span>
+<span>      <span class="op">)</span><span class="op">$</span><span class="va">a</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">var</a></span><span class="op">(</span><span class="va">a</span><span class="op">)</span></span>
+<span>    <span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>tau <span class="op">=</span> <span class="va">tau</span>, c <span class="op">=</span> <span class="va">c_val</span>, var_a <span class="op">=</span> <span class="va">within_vars</span><span class="op">)</span></span>
+<span>  <span class="op">}</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">var_df</span><span class="op">$</span><span class="va">tau_label</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">var_df</span><span class="op">$</span><span class="va">tau</span><span class="op">)</span></span>
+<span><span class="va">var_df</span><span class="op">$</span><span class="va">c_label</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"c = "</span>, <span class="va">var_df</span><span class="op">$</span><span class="va">c</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">var_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">tau_label</span>, y <span class="op">=</span> <span class="va">var_a</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html">geom_boxplot</a></span><span class="op">(</span>outlier.size <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">c_label</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span></span>
+<span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span>, y <span class="op">=</span> <span class="st">"Within-run Var(arc width)"</span>,</span>
+<span>    title <span class="op">=</span> <span class="st">"Within-run arc variance by tau"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">13</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/p4-arc-variance-tau-dependence-plot-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="comparison-across-all-proposals-langevin-vs-noise-gradient-vs-fixed-tau" class="level1"><h1>Comparison across all proposals: Langevin vs noise-gradient vs fixed-tau</h1>
+<p>The proposals that maintain convergence (Langevin, reparametrize, fix-tau) produce identical or nearly identical forward trajectories — they differ only in estimation geometry. Compare the two models with genuinely different dynamics:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">ribbon_summary_runs</span><span class="op">(</span></span>
+<span>  alg_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>    `noisy-grad`    <span class="op">=</span> <span class="fu">algo5_noisy_grad</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_g <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    `langevin`      <span class="op">=</span> <span class="fu">algo5_langevin</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_L <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
+<span>    `const-noise`   <span class="op">=</span> <span class="fu">algo5_const_noise</span><span class="op">(</span>tau <span class="op">=</span> <span class="fl">0.025</span>, delta0 <span class="op">=</span> <span class="fl">0.1</span>, sigma_w <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  cs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  n_trials <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  n_runs <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  add_oracle <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  oracle_fun <span class="op">=</span> \<span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="fu">find_optimum_sdm</span><span class="op">(</span><span class="va">c</span>, kappa <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="algo5-noise-variants_files/figure-html/all-proposals-ribbon-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="summary" class="level1"><h1>Summary</h1>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 17%">
+<col style="width: 19%">
+<col style="width: 25%">
+<col style="width: 21%">
+</colgroup>
+<thead><tr class="header">
+<th>Variant</th>
+<th>Noise SD</th>
+<th>Converges?</th>
+<th>Ridge broken?</th>
+<th>Parameters</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Current (gradient-scaled)</td>
+<td><span class="math inline">\(\delta_t \sigma_g\)</span></td>
+<td>Yes</td>
+<td>No — three-way ridge</td>
+<td><span class="math inline">\(\tau, \delta_0, \sigma_g\)</span></td>
+</tr>
+<tr class="even">
+<td>Proposal 1 (constant)</td>
+<td><span class="math inline">\(\sigma_w\)</span></td>
+<td>No</td>
+<td>Yes — fully</td>
+<td><span class="math inline">\(\tau, \delta_0, \sigma_w\)</span></td>
+</tr>
+<tr class="odd">
+<td>Proposal 2 (Langevin)</td>
+<td><span class="math inline">\(\sqrt{\delta_t}\,\sigma_L\)</span></td>
+<td>Yes</td>
+<td>Partially — weakened</td>
+<td><span class="math inline">\(\tau, \delta_0, \sigma_L\)</span></td>
+</tr>
+<tr class="even">
+<td>Proposal 3 (reparametrize)</td>
+<td><span class="math inline">\(\delta_t \sigma_g\)</span></td>
+<td>Yes</td>
+<td>Concentrated in <span class="math inline">\(\tau\)</span>
+</td>
+<td><span class="math inline">\(\phi, \omega, \tau\)</span></td>
+</tr>
+<tr class="odd">
+<td>Proposal 4 (fix <span class="math inline">\(\tau\)</span>)</td>
+<td><span class="math inline">\(\delta_t \sigma_g\)</span></td>
+<td>Yes</td>
+<td>Yes — <span class="math inline">\(\tau\)</span> eliminated</td>
+<td><span class="math inline">\(\delta_0, \sigma_g\)</span></td>
+</tr>
+<tr class="even">
+<td>Proposal 5 (error-correction)</td>
+<td><span class="math inline">\(\sigma_w\)</span></td>
+<td>Depends on <span class="math inline">\(\sigma_w\)</span>
+</td>
+<td>N/A — no <span class="math inline">\(\tau\)</span>
+</td>
+<td><span class="math inline">\(\delta_0, \sigma_w\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendations:</strong></p>
+<ol type="1">
+<li>
+<strong>Proposal 2 (Langevin)</strong> is the best single change — it preserves convergence and substantially weakens the ridge.</li>
+<li>
+<strong>Proposal 4 (fix <span class="math inline">\(\tau\)</span>)</strong> is the simplest fix if <span class="math inline">\(\tau\)</span> sensitivity analysis confirms stability.</li>
+<li>
+<strong>Proposal 3 (reparametrize)</strong> can be combined with any noise variant to further improve estimation.</li>
+<li>
+<strong>Proposal 5 (error-correction)</strong> is worth exploring as a simpler alternative that avoids the gradient machinery entirely.</li>
+</ol>
+
+
+</section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/venpopov\.github\.io\/arc-width-vwm\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/venpopov/arc-width-vwm/edit/main/notebooks/algo5-noise-variants.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/blob/main/notebooks/algo5-noise-variants.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

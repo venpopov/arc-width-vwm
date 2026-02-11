@@ -241,6 +241,12 @@ window.Quarto = {
  <span class="menu-text">RL Algorithms: Exploration</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/algo5-noise-variants.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algo5 Noise Variants</span></a>
+  </div>
+</li>
       </ul>
 </li>
         <li class="sidebar-item sidebar-item-section">
@@ -291,6 +297,12 @@ window.Quarto = {
   <div class="sidebar-item-container"> 
   <a href="../notebooks/fit-algo4-bayes.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Algo4 Bayesian fit (Exp 1)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../notebooks/fit-algo5-bayes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Algo5 Bayesian fit (Exp 1)</span></a>
   </div>
 </li>
       </ul>
@@ -776,7 +788,7 @@ F-statistic: 150.3 on 1 and 7 DF,  p-value: 5.51e-06</code></pre>
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/venpopov\.github\.io\/arc-width-vwm\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
