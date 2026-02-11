@@ -385,3 +385,13 @@ ribbon_summary_runs <- function(
 
   p
 }
+
+sdm4_pars_from_brmsfit <- function(fit) {
+  est <- fixef(fit)[-1, 1]
+  list(
+    c = exp(est["c_Intercept"]),
+    kappa = exp(est["kappa_Intercept"]),
+    delta = inv_logit(est["delta_Intercept"]),
+    sigma_e = exp(est["asigma_Intercept"])
+  )
+}

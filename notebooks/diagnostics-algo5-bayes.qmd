@@ -71,7 +71,7 @@ sdm_algo5 <- custom_family(
   links = c("tan_half", "identity", "log", "log", "log", "log"),
   type = "real",
   loop = FALSE,
-  vars = "vreal1"
+  vars = c("vreal1", "vreal2", "vreal3")
 )
 
 stanvars <- sdm_base_stanvars() +
@@ -130,7 +130,8 @@ sim <- run_arc_algorithm(
   n_trials = 1000
 )
 
-sim_data <- tibble(y = sim$y, a = sim$a)
+sim_data <- tibble(y = sim$y, a = sim$a) |>
+  mutate(a_next = lead(a, default = -1), trial = row_number())
 
 par(mfrow = c(1, 3))
 plot(sim$a, type = "l", xlab = "Trial", ylab = "Arc width")
@@ -146,7 +147,7 @@ We fit the model using `brms` with the custom family.
 ```{r}
 #| label: fit-sim
 fit_sim <- brm(
-  bf(y | vreal(a) ~ 1, c ~ 1, kappa ~ 1, tau ~ 1, delta ~ 1, sigmag ~ 1),
+  bf(y | vreal(a, a_next, trial) ~ 1, c ~ 1, kappa ~ 1, tau ~ 1, delta ~ 1, sigmag ~ 1),
   prior = prior,
   data = sim_data, family = sdm_algo5, stanvars = stanvars,
   backend = "cmdstanr", cores = 4, init = init_algo5_brm,
@@ -254,11 +255,12 @@ fit_one_bayes <- function(iter, c, kappa, tau, delta0, sigma_g) {
     ),
     c = c, kappa = kappa, init_arc = pi / 2, n_trials = n_trials
   )
-  sim_data <- tibble(y = sim$y, a = sim$a)
+  sim_data <- tibble(y = sim$y, a = sim$a) |>
+    mutate(a_next = lead(a, default = -1), trial = row_number())
   
   fit <- tryCatch(
     brm(
-      bf(y | vreal(a) ~ 1, c ~ 1, kappa ~ 1, tau ~ 1, delta ~ 1, sigmag ~ 1),
+      bf(y | vreal(a, a_next, trial) ~ 1, c ~ 1, kappa ~ 1, tau ~ 1, delta ~ 1, sigmag ~ 1),
       prior = prior,
       data = sim_data, family = sdm_algo5, stanvars = stanvars,
       backend = "cmdstanr", cores = 4, init = init_algo5_brm,
@@ -408,4 +410,176 @@ ggplot(binned_df, aes(x = true_mid)) +
   geom_line(aes(y = median_est), color = "steelblue", linewidth = 0.8) +
   facet_wrap(~parameter, scales = "free") +
   labs(x = "True value", y = "Estimated value")
+```
+
+## Hierarchical recovery
+
+Simulate 100 subjects whose parameters are drawn from population-level
+distributions centered on the true parameters defined earlier. Random effects
+are drawn on the linear predictor scale (log for all algo5 parameters except c
+which uses identity), then transformed to natural scale for simulation.
+
+```{r}
+#| label: hier-recovery-simulate
+n_subjects <- 100
+n_trials_per_subj <- 1000
+
+pop_intercepts <- list(
+  c = log(true_pars$c),
+  kappa = log(true_pars$kappa),
+  tau = log(true_pars$tau),
+  delta = log(true_pars$delta),
+  sigmag = log(true_pars$sigma_g)
+)
+
+re_sds_true <- list(c = 0.2, kappa = 0.3, tau = 0.3, delta = 0.3, sigmag = 0.3)
+
+set.seed(2026)
+true_re <- tibble(
+  subject = seq_len(n_subjects),
+  re_c = rnorm(n_subjects, 0, re_sds_true$c),
+  re_kappa = rnorm(n_subjects, 0, re_sds_true$kappa),
+  re_tau = rnorm(n_subjects, 0, re_sds_true$tau),
+  re_delta = rnorm(n_subjects, 0, re_sds_true$delta),
+  re_sigmag = rnorm(n_subjects, 0, re_sds_true$sigmag)
+) |>
+  mutate(
+    c = exp(pop_intercepts$c + re_c),
+    kappa = exp(pop_intercepts$kappa + re_kappa),
+    tau = exp(pop_intercepts$tau + re_tau),
+    delta = exp(pop_intercepts$delta + re_delta),
+    sigma_g = exp(pop_intercepts$sigmag + re_sigmag)
+  )
+
+hier_sim_data <- pmap_dfr(
+  true_re,
+  \(subject, c, kappa, tau, delta, sigma_g, ...) {
+    sim <- run_arc_algorithm(
+      arc_update_fun = algo5_noisy_grad(
+        tau = tau, delta0 = delta, delta_pow = 0.5, sigma_g = sigma_g
+      ),
+      c = c, kappa = kappa,
+      init_arc = pi / 4, n_trials = n_trials_per_subj
+    )
+    tibble(subject = subject, y = sim$y, a = sim$a)
+  }
+) |>
+  group_by(subject) |>
+  mutate(a_next = lead(a, default = -1), trial = row_number()) |>
+  ungroup()
+```
+
+### Fit the hierarchical model
+
+```{r}
+#| label: hier-recovery-fit
+hier_fit <- brm(
+    bf(
+      y | vreal(a, a_next, trial) ~ 1,
+      c ~ 1 + (1 | subject),
+      kappa ~ 1 + (1 | subject),
+      tau ~ 1 + (1 | subject),
+      delta ~ 1 + (1 | subject),
+      sigmag ~ 1 + (1 | subject)
+    ),
+    prior = prior,
+    data = hier_sim_data, family = sdm_algo5, stanvars = stanvars,
+    backend = "cmdstanr", cores = 4, init = init_algo5_brm, file = "output/algo5_bayes_hier_recovery.rds"
+  )
+```
+
+```{r}
+#| label: hier-recovery-summary
+summary(hier_fit)
+```
+
+### Compare population-level parameters
+
+```{r}
+#| label: hier-recovery-fixef
+fe <- fixef(hier_fit)
+pop_comparison <- tibble(
+  parameter = c("c", "kappa", "tau", "delta", "sigmag"),
+  true_intercept = unlist(pop_intercepts),
+  est_intercept = fe[c("c_Intercept", "kappa_Intercept", "tau_Intercept",
+                       "delta_Intercept", "sigmag_Intercept"), "Estimate"]
+)
+pop_comparison
+```
+
+Compare estimated group-level SDs to the true generating SDs:
+
+```{r}
+#| label: hier-recovery-sd
+sd_est <- VarCorr(hier_fit)$subject$sd
+sd_comparison <- tibble(
+  parameter = c("c", "kappa", "tau", "delta", "sigmag"),
+  true_sd = unlist(re_sds_true),
+  est_sd = sd_est[, "Estimate"]
+)
+sd_comparison
+```
+
+### Compare subject-level random effects
+
+```{r}
+#| label: hier-recovery-ranef
+re <- ranef(hier_fit)$subject
+
+est_re <- tibble(
+  subject = seq_len(n_subjects),
+  re_c_est = re[, "Estimate", "c_Intercept"],
+  re_kappa_est = re[, "Estimate", "kappa_Intercept"],
+  re_tau_est = re[, "Estimate", "tau_Intercept"],
+  re_delta_est = re[, "Estimate", "delta_Intercept"],
+  re_sigmag_est = re[, "Estimate", "sigmag_Intercept"]
+)
+
+compare_re <- true_re |>
+  select(subject, re_c, re_kappa, re_tau, re_delta, re_sigmag) |>
+  left_join(est_re, by = "subject")
+
+re_long <- bind_rows(
+  tibble(parameter = "c", true = compare_re$re_c, estimated = compare_re$re_c_est),
+  tibble(parameter = "kappa", true = compare_re$re_kappa, estimated = compare_re$re_kappa_est),
+  tibble(parameter = "tau", true = compare_re$re_tau, estimated = compare_re$re_tau_est),
+  tibble(parameter = "delta", true = compare_re$re_delta, estimated = compare_re$re_delta_est),
+  tibble(parameter = "sigmag", true = compare_re$re_sigmag, estimated = compare_re$re_sigmag_est)
+)
+```
+
+```{r}
+#| label: hier-recovery-re-cor
+re_long |>
+  group_by(parameter) |>
+  summarise(
+    r = cor(true, estimated, use = "complete.obs"),
+    rmse = sqrt(mean((true - estimated)^2, na.rm = TRUE)),
+    bias = mean(estimated - true, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 10
+#| label: fig-hier-recovery-re
+#| fig-cap: "Hierarchical recovery of subject-level random effects (linear predictor scale). Each point is one subject. The dashed line is the identity."
+
+cor_labels <- re_long |>
+  group_by(parameter) |>
+  summarise(
+    r = cor(true, estimated, use = "complete.obs"),
+    x = -Inf, y = Inf,
+    .groups = "drop"
+  ) |>
+  mutate(label = sprintf("r = %.2f", r))
+
+ggplot(re_long, aes(x = true, y = estimated)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  geom_point(alpha = 0.6, color = "steelblue") +
+  geom_text(data = cor_labels, aes(x = x, y = y, label = label),
+            hjust = -0.1, vjust = 1.3, inherit.aes = FALSE, size = 4) +
+  facet_wrap(~parameter, scales = "free") +
+  labs(x = "True random effect", y = "Estimated random effect")
 ```

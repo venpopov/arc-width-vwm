@@ -1,5 +1,5 @@
 ---
-title: "Fitting algo4 to experimental data (Bayesian)"
+title: "Fitting algo5 to experimental data (Bayesian)"
 format: html
 ---
 
@@ -17,46 +17,60 @@ source("R/math.R")
 
 ::: {.callout-note}
 ## Prerequisites
-This notebook fits the contraction-expansion model (algo4) with logit-scale
+This notebook fits the noisy-gradient model (algo5) with logit-scale
 noise to real experimental data using full Bayesian inference. Model diagnostics
 and parameter recovery are in
-[algo4 Bayesian diagnostics](diagnostics-algo4-bayes.qmd). The MLE counterpart
-is in [algo4 MLE diagnostics](diagnostics-algo4-mle.qmd).
+[algo5 Bayesian diagnostics](diagnostics-algo5-bayes.qmd). The MLE counterpart
+is in [algo5 MLE diagnostics](diagnostics-algo5-mle.qmd).
 :::
 
 ## Model setup
 
 ```{r}
 #| label: define-family-stanvars-priors
-sdm_algo4 <- custom_family(
-  "sdm_algo4",
-  dpars = c("mu", "c", "kappa", "delta", "asigma"),
-  links = c("tan_half", "identity", "log", "logit", "log"),
+sdm_algo5 <- custom_family(
+  "sdm_algo5",
+  dpars = c("mu", "c", "kappa", "tau", "delta", "sigmag"),
+  links = c("tan_half", "identity", "log", "log", "log", "log"),
   type = "real",
   loop = FALSE,
-  vars = c("vreal1", "vreal2")
+  vars = c("vreal1", "vreal2", "vreal3")
 )
 
 stanvars <- sdm_base_stanvars() +
   stanvar(
-    scode = read_file("stan/sdm_algo4_likelihood.stan"),
+    scode = read_file("stan/sdm_algo5_likelihood.stan"),
     block = "functions"
   )
 
 prior <- set_prior("constant(0)", dpar = "mu", class = "Intercept") +
   set_prior("student_t(5, 2, 0.75)", dpar = "c", class = "Intercept") +
   set_prior("student_t(5, 1.75, 0.75)", dpar = "kappa", class = "Intercept") +
-  set_prior("normal(-3.5, 2)", dpar = "delta", class = "Intercept") +
-  set_prior("normal(-3.5, 2)", dpar = "asigma", class = "Intercept")
+  set_prior("normal(-3.5, 2)", dpar = "tau", class = "Intercept") +
+  set_prior("normal(-2.5, 2)", dpar = "delta", class = "Intercept") +
+  set_prior("normal(1, 1)", dpar = "sigmag", class = "Intercept")
 
+init_algo5_brm <- function() {
+  tau_init <- log(runif(1, 1e-6, 0.05))
+  delta_init <- log(runif(1, 1e-6, 0.2))
+  list(
+    Intercept_mu = 0,
+    Intercept_c = runif(1, 1, 2),
+    Intercept_kappa = runif(1, 0, 2),
+    Intercept_tau = tau_init,
+    Intercept_delta = delta_init,
+    Intercept_sigmag = runif(1, 0, 0.5)
+  )
+}
 
-fit_algo4_bayes <- function(data, file) {
+fit_algo5_bayes <- function(data, file, file_refit = "on_change") {
   brm(
-    bf(resperr | vreal(half_arc, arc_next) ~ 1, c ~ 1, kappa ~ 1, delta ~ 1, asigma ~ 1),
+    bf(resperr | vreal(half_arc, arc_next, trial) ~ 1,
+       c ~ 1, kappa ~ 1, tau ~ 1, delta ~ 1, sigmag ~ 1),
     prior = prior,
-    data = data, family = sdm_algo4, stanvars = stanvars,
-    backend = "cmdstanr", cores = 4, init = 0, file = file,
-    refresh = 0
+    data = data, family = sdm_algo5, stanvars = stanvars,
+    backend = "cmdstanr", cores = 4, init = init_algo5_brm, file = file,
+    refresh = 0, file_refit = file_refit
   )
 }
 ```
@@ -72,7 +86,10 @@ dat <- exp1 |>
   arrange(subject, blocknumber, trialnumber) |>
   mutate(half_arc = arc / 2, half_arc = if_else(half_arc > 0, half_arc, 1e-6)) |>
   group_by(subject) |>
-  mutate(arc_next = lead(half_arc, default = -1)) |>
+  mutate(
+    arc_next = lead(half_arc, default = -1),
+    trial = row_number()
+  ) |>
   ungroup()
 ```
 
@@ -83,7 +100,7 @@ Select one subject to test the pipeline:
 ```{r}
 #| label: fit-subject
 s1 <- dat |> filter(subject == 6)
-fit_s1 <- fit_algo4_bayes(s1, file = "output/fit-algo4-bayes-s6")
+fit_s1 <- fit_algo5_bayes(s1, file = "output/fit-algo5-bayes-s6", file_refit = "always")
 ```
 
 ```{r}
@@ -96,8 +113,8 @@ summary(fit_s1)
 ```{r}
 #| warning: false
 #| label: native-posterior-plot
-algo4_posterior_draws <- function(fit, n_draws = NULL) {
-  draws <- as_draws_df(fit) |> 
+algo5_posterior_draws <- function(fit, n_draws = NULL) {
+  draws <- as_draws_df(fit) |>
     select(starts_with("Intercept"), -Intercept)
 
   colnames(draws) <- gsub("Intercept_", "", colnames(draws))
@@ -109,12 +126,18 @@ algo4_posterior_draws <- function(fit, n_draws = NULL) {
   }
 
   draws |>
-    mutate(c = exp(c), kappa = exp(kappa), delta = inv_logit(delta), asigma = exp(asigma)) |> 
+    mutate(
+      c = exp(c),
+      kappa = exp(kappa),
+      tau = exp(tau),
+      delta = exp(delta),
+      sigmag = exp(sigmag)
+    ) |>
     slice(idx)
 }
 
-algo4_posterior_draws(fit_s1) |> 
-  pivot_longer(cols = everything(), names_to = "parameter", values_to = "est")  |> 
+algo5_posterior_draws(fit_s1) |>
+  pivot_longer(cols = everything(), names_to = "parameter", values_to = "est") |>
   ggplot(aes(est)) +
   stat_halfeye(normalize = "groups") +
   facet_wrap(~parameter, scales = "free")
@@ -125,12 +148,14 @@ algo4_posterior_draws(fit_s1) |>
 ```{r}
 #| label: ppc-helpers
 #| code-fold: true
-algo4_sim_from_draws <- function(draws, data) {
+algo5_sim_from_draws <- function(draws, data) {
   purrr::pmap(
     draws,
-    \(c, kappa, delta, asigma) {
+    \(c, kappa, tau, delta, sigmag) {
       run_arc_algorithm(
-        arc_update_fun = algo4_logit_noise(delta = delta, sigma_e = asigma),
+        arc_update_fun = algo5_noisy_grad(
+          tau = tau, delta0 = delta, delta_pow = 0.5, sigma_g = sigmag
+        ),
         c = c,
         kappa = kappa,
         init_arc = data$half_arc[1],
@@ -140,9 +165,9 @@ algo4_sim_from_draws <- function(draws, data) {
   )
 }
 
-plot_algo4_ppc <- function(fit, data, n_draws = 15) {
-  draws <- algo4_posterior_draws(fit, n_draws = n_draws)
-  sims <- algo4_sim_from_draws(draws, data)
+plot_algo5_ppc <- function(fit, data, n_draws = 15) {
+  draws <- algo5_posterior_draws(fit, n_draws = n_draws)
+  sims <- algo5_sim_from_draws(draws, data)
   posterior_col <- grDevices::adjustcolor("red", alpha.f = 0.3)
 
   oldpar <- par(no.readonly = TRUE)
@@ -166,9 +191,9 @@ plot_algo4_ppc <- function(fit, data, n_draws = 15) {
   invisible(sims)
 }
 
-plot_algo4_ppc_trajectories <- function(fit, data, n_draws = 15) {
-  draws <- algo4_posterior_draws(fit, n_draws = n_draws)
-  sims <- algo4_sim_from_draws(draws, data)
+plot_algo5_ppc_trajectories <- function(fit, data, n_draws = 15) {
+  draws <- algo5_posterior_draws(fit, n_draws = n_draws)
+  sims <- algo5_sim_from_draws(draws, data)
 
   oldpar <- par(no.readonly = TRUE)
   on.exit(par(oldpar), add = TRUE)
@@ -185,8 +210,8 @@ plot_algo4_ppc_trajectories <- function(fit, data, n_draws = 15) {
   invisible(sims)
 }
 
-summarize_algo4_posterior <- function(fit, subject_id) {
-  algo4_posterior_draws(fit) |>
+summarize_algo5_posterior <- function(fit, subject_id) {
+  algo5_posterior_draws(fit) |>
     pivot_longer(cols = everything(), names_to = "parameter", values_to = "est") |>
     group_by(parameter) |>
     summarise(
@@ -199,13 +224,13 @@ summarize_algo4_posterior <- function(fit, subject_id) {
 }
 ```
 
-We plot 15 posterior predictive distributions for response error and half arc-width. While the response distribution fits with the posterior prediction, the arc distribution from the model has too much variance.
+We plot 15 posterior predictive distributions for response error and half arc-width.
 
 ```{r}
 #| label: pp-arc-plot
 #| fig-width: 10
 #| fig-height: 4
-plot_algo4_ppc(fit_s1, s1, n_draws = 15)
+plot_algo5_ppc(fit_s1, s1, n_draws = 15)
 ```
 
 Here are different predicted arc trajectories with parameters drawn from the posterior vs the data (top left panel):
@@ -214,7 +239,7 @@ Here are different predicted arc trajectories with parameters drawn from the pos
 #| label: pp-arc-traj-grid
 #| fig-width: 10
 #| fig-height: 10
-plot_algo4_ppc_trajectories(fit_s1, s1, n_draws = 15)
+plot_algo5_ppc_trajectories(fit_s1, s1, n_draws = 15)
 ```
 
 
@@ -222,8 +247,7 @@ plot_algo4_ppc_trajectories(fit_s1, s1, n_draws = 15)
 
 ```{r}
 #| label: fit-all-subjects
-#| output: false
-subject_ids <- as.character(sort(unique(dat$subject)))
+subject_ids <- sort(unique(dat$subject))
 
 subject_data <- subject_ids |>
   set_names() |>
@@ -231,18 +255,18 @@ subject_data <- subject_ids |>
 
 fits_all <- imap(
   subject_data,
-  \(data, subject_id) fit_algo4_bayes(data, file = paste0("output/fit-algo4-bayes-s", subject_id))
+  \(data, subject_id) fit_algo5_bayes(data, file = paste0("output/fit-algo5-bayes-s", subject_id))
 )
 ```
 
-Posterior 95 BCI for all subjects and parameters
+Posterior 95% BCI for all subjects and parameters
 
 ```{r}
 #| label: posterior-summary
 #| warning: false
 posterior_smry <- imap_dfr(
   fits_all,
-  \(fit, subject_id) summarize_algo4_posterior(fit, subject_id)
+  \(fit, subject_id) summarize_algo5_posterior(fit, subject_id)
 )
 
 ggplot(posterior_smry, aes(subject, y = median)) +
@@ -251,7 +275,7 @@ ggplot(posterior_smry, aes(subject, y = median)) +
   facet_wrap(~parameter, scales = "free")
 ```
 
-Posterior predictives for all subjects shows bad fit to the arc distribution
+Posterior predictives for all subjects
 
 ```{r}
 #| label: ppc-all-subjects
@@ -261,32 +285,31 @@ Posterior predictives for all subjects shows bad fit to the arc distribution
 #| fig-show: hold
 iwalk(
   fits_all,
-  \(fit, subject_id) plot_algo4_ppc(fit, subject_data[[as.character(subject_id)]], n_draws = 15)
+  \(fit, subject_id) plot_algo5_ppc(fit, subject_data[[as.character(subject_id)]], n_draws = 15)
 )
 ```
 
 ## Hierarchical fit
 
-The likelihood now handles subject boundaries via the `arc_next` column: the last
+The likelihood handles subject boundaries via the `arc_next` column: the last
 trial of each subject has `arc_next = -1`, so the Stan code skips the arc-transition
 term for those rows. This makes it safe to stack all subjects' data.
-
-Skip for now, will run later
 
 ```{r}
 #| label: fit-hierarchical
 hfit <- brm(
   bf(
-    resperr | vreal(half_arc, arc_next) ~ 1,
+    resperr | vreal(half_arc, arc_next, trial) ~ 1,
     c ~ 1 + (1 | subject),
     kappa ~ 1 + (1 | subject),
+    tau ~ 1 + (1 | subject),
     delta ~ 1 + (1 | subject),
-    asigma ~ 1 + (1 | subject)
+    sigmag ~ 1 + (1 | subject)
   ),
   prior = prior,
-  data = dat, family = sdm_algo4, stanvars = stanvars,
-  backend = "cmdstanr", cores = 4, init = 0, refresh = 0,
-  file = "output/fit-algo4-bayes-hierarchical"
+  data = dat, family = sdm_algo5, stanvars = stanvars,
+  backend = "cmdstanr", cores = 4, init = init_algo5_brm,
+  file = "output/fit-algo5-bayes-hierarchical", refresh = 0
 )
 summary(hfit)
 ```
