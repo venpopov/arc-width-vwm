@@ -277,7 +277,7 @@ ggplot(posterior_smry, aes(subject, y = median)) +
 
 Posterior predictives for all subjects
 
-```{r}
+```r
 #| label: ppc-all-subjects
 #| warning: false
 #| fig-width: 10
@@ -295,7 +295,7 @@ The likelihood handles subject boundaries via the `arc_next` column: the last
 trial of each subject has `arc_next = -1`, so the Stan code skips the arc-transition
 term for those rows. This makes it safe to stack all subjects' data.
 
-```{r}
+```r
 #| label: fit-hierarchical
 hfit <- brm(
   bf(

@@ -8,6 +8,7 @@ format: html
 #| message: false
 library(tidyverse)
 library(ggdist)
+library(patchwork)
 library(brms)
 library(bmm)
 source("R/arc-models.R")
@@ -140,10 +141,16 @@ algo4_sim_from_draws <- function(draws, data) {
   )
 }
 
-plot_algo4_ppc <- function(fit, data, n_draws = 15) {
-  draws <- algo4_posterior_draws(fit, n_draws = n_draws)
+plot_algo4_ppc <- function(fit, data, n_draws = 15, draws = NULL) {
+  if (is.null(draws)) draws <- algo4_posterior_draws(fit, n_draws = n_draws)
   sims <- algo4_sim_from_draws(draws, data)
   posterior_col <- grDevices::adjustcolor("red", alpha.f = 0.3)
+
+  obs_median <- median(data$half_arc)
+  pred_medians <- vapply(sims, \(s) median(s$a), numeric(1))
+  pred_median_mid <- median(pred_medians)
+  optima <- purrr::pmap_dbl(draws, \(c, kappa, ...) find_optimum_sdm(c, kappa)$alpha)
+  optimum_mid <- median(optima)
 
   oldpar <- par(no.readonly = TRUE)
   on.exit(par(oldpar), add = TRUE)
@@ -154,7 +161,13 @@ plot_algo4_ppc <- function(fit, data, n_draws = 15) {
     lines(density(sim$a), col = posterior_col)
   }
   lines(density(data$half_arc), lwd = 2)
-  legend("topright", c("Data", "Posterior draws"), col = c("black", "red"), lty = 1, bty = "n")
+  abline(v = optimum_mid, col = "blue", lwd = 2, lty = 2)
+  abline(v = obs_median, col = "black", lwd = 2, lty = 3)
+  abline(v = pred_median_mid, col = "red", lwd = 2, lty = 3)
+  legend("topright",
+    c("Data", "Posterior draws", "Optimal", "Obs median", "Pred median"),
+    col = c("black", "red", "blue", "black", "red"),
+    lty = c(1, 1, 2, 3, 3), lwd = c(1, 1, 2, 2, 2), bty = "n")
 
   plot(density(data$resperr), main = "Response error distribution")
   for (sim in sims) {
@@ -259,19 +272,69 @@ Posterior predictives for all subjects shows bad fit to the arc distribution
 #| fig-width: 10
 #| fig-height: 4
 #| fig-show: hold
+
 iwalk(
   fits_all,
   \(fit, subject_id) plot_algo4_ppc(fit, subject_data[[as.character(subject_id)]], n_draws = 15)
 )
 ```
 
+### Predicted vs observed arc summary statistics
+
+```{r}
+#| label: ppc-median-mad-arc
+#| warning: false
+#| fig-width: 10
+#| fig-height: 5
+ppc_arc_summary <- imap_dfr(fits_all, \(fit, subject_id) {
+  data <- subject_data[[as.character(subject_id)]]
+  draws <- algo4_posterior_draws(fit, n_draws = 100)
+  sims <- algo4_sim_from_draws(draws, data)
+
+  tibble(
+    subject = subject_id,
+    pred_median = map_dbl(sims, \(s) median(s$a)),
+    pred_mad = map_dbl(sims, \(s) mad(s$a)),
+    obs_median = median(data$half_arc),
+    obs_mad = mad(data$half_arc)
+  )
+})
+
+ppc_arc_pred_smry <- ppc_arc_summary |>
+  group_by(subject, obs_median, obs_mad) |>
+  summarise(
+    pred_median_mid = median(pred_median),
+    pred_median_lo = quantile(pred_median, 0.025),
+    pred_median_hi = quantile(pred_median, 0.975),
+    pred_mad_mid = median(pred_mad),
+    pred_mad_lo = quantile(pred_mad, 0.025),
+    pred_mad_hi = quantile(pred_mad, 0.975),
+    .groups = "drop"
+  )
+
+p1 <- ggplot(ppc_arc_pred_smry, aes(x = obs_median, y = pred_median_mid)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  geom_pointrange(aes(ymin = pred_median_lo, ymax = pred_median_hi)) +
+  labs(x = "Observed median arc", y = "Predicted median arc",
+       title = "Median arc width") +
+  theme_minimal()
+
+p2 <- ggplot(ppc_arc_pred_smry, aes(x = obs_mad, y = pred_mad_mid)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  geom_pointrange(aes(ymin = pred_mad_lo, ymax = pred_mad_hi)) +
+  labs(x = "Observed MAD arc", y = "Predicted MAD arc",
+       title = "MAD of arc width") +
+  theme_minimal()
+
+p1 + p2
+```
+
+
 ## Hierarchical fit
 
 The likelihood now handles subject boundaries via the `arc_next` column: the last
 trial of each subject has `arc_next = -1`, so the Stan code skips the arc-transition
 term for those rows. This makes it safe to stack all subjects' data.
-
-Skip for now, will run later
 
 ```{r}
 #| label: fit-hierarchical
@@ -289,4 +352,149 @@ hfit <- brm(
   file = "output/fit-algo4-bayes-hierarchical"
 )
 summary(hfit)
+```
+
+### Extract subject-level posterior draws
+
+We use `coef()` to obtain posterior draws of the subject-level parameters
+(population intercept + subject-specific random effect), then transform them
+to the native scale.
+
+```{r}
+#| label: hier-subject-draws
+#| code-fold: true
+algo4_hier_subject_draws <- function(hfit, subject_id, n_draws = NULL) {
+  coefs <- coef(hfit, summary = FALSE)
+  idx <- if (is.null(n_draws)) TRUE else sample(nrow(coefs$subject[, , 1]), n_draws)
+
+  tibble(
+    c     = exp(coefs$subject[idx, subject_id, "c_Intercept"]),
+    kappa = exp(coefs$subject[idx, subject_id, "kappa_Intercept"]),
+    delta = inv_logit(coefs$subject[idx, subject_id, "delta_Intercept"]),
+    asigma = exp(coefs$subject[idx, subject_id, "asigma_Intercept"])
+  )
+}
+```
+
+### Population-level posterior draws
+
+```{r}
+#| label: hier-population-draws
+#| code-fold: true
+algo4_hier_population_draws <- function(hfit, n_draws = NULL) {
+  draws <- as_draws_df(hfit) |>
+    select(b_c_Intercept, b_kappa_Intercept, b_delta_Intercept, b_asigma_Intercept)
+
+  idx <- if (is.null(n_draws)) seq_len(nrow(draws)) else sample(nrow(draws), n_draws)
+
+  tibble(
+    c     = exp(draws$b_c_Intercept[idx]),
+    kappa = exp(draws$b_kappa_Intercept[idx]),
+    delta = inv_logit(draws$b_delta_Intercept[idx]),
+    asigma = exp(draws$b_asigma_Intercept[idx])
+  )
+}
+```
+
+### Overall posterior predictive check
+
+We simulate from the population-level parameters and overlay on the full
+dataset distributions.
+
+```{r}
+#| label: hier-ppc-overall
+#| fig-width: 10
+#| fig-height: 4
+hier_ppc_overall <- function(hfit, data, n_draws = 15) {
+  draws <- algo4_hier_population_draws(hfit, n_draws = n_draws)
+  sims <- algo4_sim_from_draws(draws, data)
+  posterior_col <- grDevices::adjustcolor("red", alpha.f = 0.3)
+
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar), add = TRUE)
+  par(mfrow = c(1, 2))
+
+  plot(density(data$half_arc), main = "Arc width distribution (overall)")
+  for (sim in sims) lines(density(sim$a), col = posterior_col)
+  lines(density(data$half_arc), lwd = 2)
+  legend("topright", c("Data", "Posterior draws"), col = c("black", "red"), lty = 1, bty = "n")
+
+  plot(density(data$resperr), main = "Response error distribution (overall)")
+  for (sim in sims) lines(density(sim$y), col = posterior_col)
+  lines(density(data$resperr), lwd = 2)
+  legend("topright", c("Data", "Posterior draws"), col = c("black", "red"), lty = 1, bty = "n")
+}
+
+hier_ppc_overall(hfit, dat, n_draws = 15)
+```
+
+### Per-subject posterior predictive checks
+
+For each subject we draw from their shrinkage-adjusted posteriors and
+simulate arc-width and response-error trajectories.
+
+```{r}
+#| label: hier-ppc-per-subject
+#| warning: false
+#| fig-width: 10
+#| fig-height: 4
+#| fig-show: hold
+iwalk(subject_data, \(data, subject_id) {
+  draws <- algo4_hier_subject_draws(hfit, subject_id, n_draws = 15)
+  sims <- algo4_sim_from_draws(draws, data)
+  posterior_col <- grDevices::adjustcolor("red", alpha.f = 0.3)
+
+  obs_median <- median(data$half_arc)
+  pred_medians <- vapply(sims, \(s) median(s$a), numeric(1))
+  pred_median_mid <- median(pred_medians)
+  optima <- purrr::pmap_dbl(draws, \(c, kappa, ...) find_optimum_sdm(c, kappa)$alpha)
+  optimum_mid <- median(optima)
+
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar), add = TRUE)
+  par(mfrow = c(1, 2))
+
+  plot(density(data$half_arc),
+       main = paste0("Arc width – Subject ", subject_id))
+  for (sim in sims) lines(density(sim$a), col = posterior_col)
+  lines(density(data$half_arc), lwd = 2)
+  abline(v = optimum_mid, col = "blue", lwd = 2, lty = 2)
+  abline(v = obs_median, col = "black", lwd = 2, lty = 3)
+  abline(v = pred_median_mid, col = "red", lwd = 2, lty = 3)
+  legend("topright",
+    c("Data", "Posterior draws", "Optimal", "Obs median", "Pred median"),
+    col = c("black", "red", "blue", "black", "red"),
+    lty = c(1, 1, 2, 3, 3), lwd = c(1, 1, 2, 2, 2), bty = "n")
+
+  plot(density(data$resperr),
+       main = paste0("Response error – Subject ", subject_id))
+  for (sim in sims) lines(density(sim$y), col = posterior_col)
+  lines(density(data$resperr), lwd = 2)
+  legend("topright", c("Data", "Posterior draws"), col = c("black", "red"), lty = 1, bty = "n")
+})
+```
+
+### Per-subject posterior parameter summary (hierarchical)
+
+```{r}
+#| label: hier-posterior-summary
+#| warning: false
+hier_posterior_smry <- imap_dfr(subject_data, \(data, subject_id) {
+  algo4_hier_subject_draws(hfit, subject_id) |>
+    pivot_longer(cols = everything(), names_to = "parameter", values_to = "est") |>
+    group_by(parameter) |>
+    summarise(
+      median = median(est),
+      lower = quantile(est, 0.025),
+      upper = quantile(est, 0.975),
+      .groups = "drop"
+    ) |>
+    mutate(subject = subject_id, .before = 1)
+})
+
+ggplot(hier_posterior_smry, aes(subject, y = median)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = lower, ymax = upper)) +
+  facet_wrap(~parameter, scales = "free") +
+  ggtitle("Hierarchical model: subject-level posteriors (native scale)")
 ```

@@ -3,9 +3,11 @@ title: "Algo5 noise variants: identifiability and convergence"
 format: html
 execute:
   cache: true
+editor:
+  render-on-save: true
 ---
 
-```{r cache = FALSE}
+```{r}
 #| label: init
 #| message: false
 #| cache: false
@@ -55,7 +57,8 @@ The current model scales noise by the learning rate: $\text{SD} = \delta_t \sigm
 
 ```{r}
 #| label: ref-noisy-grad-ribbon
-#| fig-asp: 0.5
+#| fig-asp: 0.8
+#| fig-width: 10
 ribbon_summary_runs(
   alg_list = list(
     deterministic = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 0),
@@ -102,7 +105,8 @@ This completely decouples $\sigma_w$ from $\delta_0$, breaking the variance ridg
 
 ```{r}
 #| label: p1-const-ribbon
-#| fig-asp: 0.5
+#| fig-asp: 0.8
+#| fig-width: 10
 ribbon_summary_runs(
   alg_list = list(
     deterministic  = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 0),
@@ -147,11 +151,12 @@ $$
 x_{t+1} = x_t + \delta_t\, g_t(\tau) + \sqrt{\delta_t}\;\sigma_L\, \varepsilon_t
 $$
 
-The noise still decays (preserving convergence) but more slowly than the gradient step. Crucially, $\delta_0$ enters the mean **linearly** and the variance as $\delta_0^{1/2}$, so the variance ridge $\delta_0 \sigma_g = \text{const}$ is replaced by $\delta_0^{1/2} \sigma_L = \text{const}$ --- a much tighter constraint that breaks the three-way invariance.
+The noise still decays but more slowly than the gradient step. Crucially, $\delta_0$ enters the mean **linearly** and the variance as $\delta_0^{1/2}$, so the variance ridge $\delta_0 \sigma_g = \text{const}$ is replaced by $\delta_0^{1/2} \sigma_L = \text{const}$ --- a much tighter constraint that breaks the three-way invariance. But sigma will have to be much smaller, otherwise convergence is once again destroyed.
 
 ```{r}
 #| label: p2-langevin-ribbon
-#| fig-asp: 0.5
+#| fig-asp: 0.8
+#| fig-width: 10
 ribbon_summary_runs(
   alg_list = list(
     deterministic  = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 0),
@@ -194,9 +199,12 @@ Compare all three noise scalings at matched effective noise levels. For a fair c
 - Langevin: $\sqrt{\delta_t}\, \sigma_L = 0.1 \times 0.2 = 0.02$
 - Constant: $\sigma_w = 0.02$
 
+Interestingly, there is little difference between them, as the plot below shows. Perhaps constant noise might still work as long as we keep it low.
+
 ```{r}
 #| label: p2-comparison-ribbon
-#| fig-asp: 0.5
+#| fig-asp: 0.8
+#| fig-width: 10
 ribbon_summary_runs(
   alg_list = list(
     `grad-scaled (sig_g=2)` = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2),
@@ -210,6 +218,71 @@ ribbon_summary_runs(
   oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
   seed = 1
 ) + ggplot2::theme(legend.position = "bottom")
+```
+
+
+Here is how the resulting arc trajectory variance changes under the three models:
+
+```{r}
+#| label: p2-arc-distribution-variance-comparison
+sigma_grid <- list(
+  `grad-scaled` = c(0.5, 1, 2, 5),
+  langevin      = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+  constant      = c(0, 0.01, 0.02, 0.03, 0.04, 0.05)
+)
+
+make_alg <- list(
+  `grad-scaled` = \(s) algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = s),
+  langevin      = \(s) algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = s),
+  constant      = \(s) algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = s)
+)
+
+n_runs   <- 200
+n_trials <- 1000
+cs       <- c(4, 8)
+kappa    <- 3
+
+set.seed(42)
+
+var_df <- purrr::map_dfr(names(sigma_grid), \(model) {
+  purrr::map_dfr(sigma_grid[[model]], \(sig) {
+    purrr::map_dfr(cs, \(c_val) {
+      within_vars <- vapply(seq_len(n_runs), \(r) {
+        a <- run_arc_algorithm(
+          arc_update_fun = make_alg[[model]](sig),
+          c = c_val, kappa = kappa,
+          init_arc = pi / 2, n_trials = n_trials
+        )$a
+        var(a)
+      }, numeric(1))
+      tibble(
+        model = model,
+        sigma = sig,
+        c     = c_val,
+        var_a = within_vars
+      )
+    })
+  })
+})
+
+var_df$sigma_label <- factor(var_df$sigma)
+var_df$c_label     <- paste0("c = ", var_df$c)
+```
+
+```{r}
+#| label: p2-arc-distribution-variance-comparison-plot
+#| dependson: p2-arc-distribution-variance-comparison
+#| fig-width: 12
+#| fig-height: 10
+ggplot(var_df, aes(x = sigma_label, y = var_a)) +
+  geom_boxplot(outlier.size = 0.8) +
+  facet_wrap(c_label ~ model, scales = "free") +
+  labs(
+    x = expression(sigma), y = "Within-run Var(arc width)",
+    title = "Within-run arc variance by noise model and sigma"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "bottom")
 ```
 
 # Proposal 3: Reparametrize the existing model
@@ -272,11 +345,12 @@ In the original parametrization, the ridge sweeps through both $\tau$--$\delta_0
 
 The temperature $\tau$ controls gradient smoothness but has little direct scientific meaning. Fixing it at a small value eliminates one parameter and the $\tau$--$\delta_0$ coupling entirely. The model reduces to a two-parameter arc transition $(c, \kappa, \delta_0, \sigma_g)$ with the same geometry as algo4.
 
-We verify that convergence behavior is insensitive to the choice of $\tau$:
+We verify that convergence behavior is mostly insensitive to the choice of $\tau <= 0.05$:
 
 ```{r}
 #| label: p4-fix-tau-ribbon
-#| fig-asp: 0.5
+#| fig-asp: 0.8
+#| fig-width: 10
 ribbon_summary_runs(
   alg_list = list(
     `tau=0.005` = algo5_noisy_grad(tau = 0.005, delta0 = 0.1, sigma_g = 2),
@@ -294,97 +368,54 @@ ribbon_summary_runs(
 ) + ggplot2::theme(legend.position = "bottom")
 ```
 
-```{r}
-#| label: p4-fix-tau-spaghetti
-#| fig-width: 9
-#| fig-height: 15
-spaghetti_single_runs(
-  alg_list = list(
-    `tau=0.01`  = algo5_noisy_grad(tau = 0.01, delta0 = 0.1, sigma_g = 2),
-    `tau=0.025` = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2)
-  ),
-  cs = c(0, 2, 4, 8, 16),
-  n_trials = 800,
-  n_runs = 10,
-  init_arc = pi / 2,
-  plot_what = c("reward", "hit", "a"),
-  add_oracle = TRUE,
-  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
-  seed = 123
-)
-```
-
 If convergence and asymptotic behavior are similar across a range of $\tau$ values, the parameter adds little information and can safely be fixed.
 
-# Proposal 5: Simpler stochastic arc model
+The question is whether and how much $\tau$ adds to the observed variance of the arcs. Let's test that:
 
-Instead of computing the reward gradient via a smooth approximation, use an **error-correction** rule on the logit scale. The arc tracks toward the observed error magnitude:
 
-$$
-x_{t+1} = x_t + \delta_t\,\bigl[\operatorname{logit}(|y_t|/\pi) - x_t\bigr] + \sigma_w\,\varepsilon_t
-$$
-
-This is an exponential smoother (leaky integrator) on the logit scale. Parameters: $(\delta_0, \sigma_w)$ --- no $\tau$, no gradient. The agent adjusts its arc toward wherever the last error landed in logit space.
-
-The tracked target $E[\operatorname{logit}(|y|/\pi)]$ is not the reward-optimal arc, but the two are correlated through the SDM error distribution.
+Here is how the resulting arc trajectory variance changes with tau:
 
 ```{r}
-#| label: p5-error-correction-ribbon
-#| fig-asp: 0.5
-ribbon_summary_runs(
-  alg_list = list(
-    deterministic  = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 0),
-    `ec_sw=0`      = algo_error_correction(delta0 = 0.1, sigma_w = 0),
-    `ec_sw=0.05`   = algo_error_correction(delta0 = 0.1, sigma_w = 0.05),
-    `ec_sw=0.1`    = algo_error_correction(delta0 = 0.1, sigma_w = 0.1),
-    `ec_sw=0.2`    = algo_error_correction(delta0 = 0.1, sigma_w = 0.2)
-  ),
-  cs = c(4, 8),
-  n_trials = 1000,
-  n_runs = 50,
-  add_oracle = TRUE,
-  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
-  seed = 1
-) + ggplot2::theme(legend.position = "bottom")
+#| label: p4-arc-variance-tau-dependence
+tau_grid <- seq(0.01, 0.05, 0.005)
+n_runs   <- 200
+n_trials <- 1000
+cs       <- c(4, 8)
+kappa    <- 3
+
+set.seed(42)
+
+var_df <- purrr::map_dfr(tau_grid, \(tau) {
+  purrr::map_dfr(cs, \(c_val) {
+    within_vars <- vapply(seq_len(n_runs), \(r) {
+      a <- run_arc_algorithm(
+        arc_update_fun = algo5_noisy_grad(tau = tau, delta0 = 0.1, sigma_g = 2),
+        c = c_val, kappa = kappa,
+        init_arc = pi / 2, n_trials = n_trials
+      )$a
+      var(a)
+    }, numeric(1))
+    tibble(tau = tau, c = c_val, var_a = within_vars)
+  })
+})
+
+var_df$tau_label <- factor(var_df$tau)
+var_df$c_label   <- paste0("c = ", var_df$c)
 ```
 
 ```{r}
-#| label: p5-error-correction-spaghetti
-#| fig-width: 9
-#| fig-height: 15
-spaghetti_single_runs(
-  alg_list = list(error_correction = algo_error_correction(delta0 = 0.1, sigma_w = 0.1)),
-  cs = c(0, 2, 4, 8, 16),
-  n_trials = 800,
-  n_runs = 10,
-  init_arc = pi / 2,
-  plot_what = c("reward", "hit", "a"),
-  add_oracle = TRUE,
-  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
-  seed = 123
-)
-```
-
-## Compare error-correction with algo4
-
-The error-correction model is conceptually similar to algo4 (both track $|y_t|$ rather than computing a gradient), but algo4 operates on the native scale while error-correction operates on the logit scale. Compare them head-to-head:
-
-```{r}
-#| label: p5-vs-algo4-ribbon
-#| fig-asp: 0.5
-ribbon_summary_runs(
-  alg_list = list(
-    algo4         = algo4(delta = 0.1),
-    `algo5 (det)` = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 0),
-    `ec (det)`    = algo_error_correction(delta0 = 0.1, sigma_w = 0)
-  ),
-  cs = c(2, 4, 8, 16),
-  n_trials = 1000,
-  n_runs = 50,
-  add_oracle = TRUE,
-  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
-  seed = 1
-) + ggplot2::theme(legend.position = "bottom")
+#| label: p4-arc-variance-tau-dependence-plot
+#| dependson: p4-arc-variance-tau-dependence
+#| fig-width: 10
+#| fig-height: 5
+ggplot(var_df, aes(x = tau_label, y = var_a)) +
+  geom_boxplot(outlier.size = 0.8) +
+  facet_wrap(~c_label, scales = "free_y") +
+  labs(
+    x = expression(tau), y = "Within-run Var(arc width)",
+    title = "Within-run arc variance by tau"
+  ) +
+  theme_minimal(base_size = 13)
 ```
 
 # Comparison across all proposals: Langevin vs noise-gradient vs fixed-tau
@@ -393,13 +424,13 @@ The proposals that maintain convergence (Langevin, reparametrize, fix-tau) produ
 
 ```{r}
 #| label: all-proposals-ribbon
-#| fig-asp: 0.5
+#| fig-asp: 0.8
+#| fig-width: 10
 ribbon_summary_runs(
   alg_list = list(
     `noisy-grad`    = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2),
-    `langevin`      = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 2),
-    `const-noise`   = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.05),
-    `error-correct` = algo_error_correction(delta0 = 0.1, sigma_w = 0.1)
+    `langevin`      = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 0.5),
+    `const-noise`   = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.05)
   ),
   cs = c(4, 8),
   n_trials = 1000,
