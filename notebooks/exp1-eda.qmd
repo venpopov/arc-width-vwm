@@ -13,7 +13,7 @@ Preprocessed data: `output/exp1_data.csv` (produced by `R/data-functions.R`).
 :::
 
 ```{r}
-#| label: setup
+#| label: init
 #| message: FALSE
 #| include: false
 knitr::opts_chunk$set(message = FALSE)

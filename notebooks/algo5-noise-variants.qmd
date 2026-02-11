@@ -1,0 +1,429 @@
+---
+title: "Algo5 noise variants: identifiability and convergence"
+format: html
+execute:
+  cache: true
+---
+
+```{r cache = FALSE}
+#| label: init
+#| message: false
+#| cache: false
+library(bmm)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+
+source("R/arc-models.R")
+source("R/utils.R")
+source("R/math.R")
+```
+
+::: {.callout-note}
+## Prerequisites
+This notebook follows up on the [stochastic algorithms section](reinforcement-learning-arc.html#stochastic-algorithms) of the RL exploration notebook. The identifiability problem diagnosed here is documented in `meta/2026-02-10_algo5-identifiability-analysis.md`.
+:::
+
+# Motivation
+
+The noisy-gradient model (algo5) with gradient-scaled noise has good parameter recovery in simulation but shows **bimodal posterior behavior** when fitted to real data via MCMC. Chains get stuck exploring one of two modes:
+
+| Mode | $\tau$ | $\delta_0$ | $\sigma_g$ |
+|------|--------|-----------|-----------|
+| A    | high   | high      | low       |
+| B    | low    | low       | high      |
+
+This arises from a **three-way multiplicative ridge** in the likelihood. The arc transition is:
+
+$$
+x_{t+1} \sim \mathcal{N}\!\left(x_t + \delta_t\, g_t(\tau),\; (\delta_t\,\sigma_g)^2\right)
+$$
+
+where $g_t \approx C/\tau$ near the decision boundary, so the mean depends on $\delta_0/\tau$ and the variance on $(\delta_0 \sigma_g)^2$. The approximate invariance
+
+$$
+(\tau, \delta_0, \sigma_g) \to (\lambda\tau,\; \lambda\delta_0,\; \sigma_g/\lambda)
+$$
+
+preserves both, creating a ridge that MCMC struggles to traverse.
+
+This notebook investigates **alternative noise formulations** that maintain the gradient-ascent spirit of algo5 while improving estimation geometry. For each variant we check convergence behavior in forward simulation --- a prerequisite before attempting estimation.
+
+# Reference: current model (gradient-scaled noise)
+
+The current model scales noise by the learning rate: $\text{SD} = \delta_t \sigma_g$. Because the noise decays with $\delta_t$, even large $\sigma_g$ does not prevent convergence.
+
+```{r}
+#| label: ref-noisy-grad-ribbon
+#| fig-asp: 0.5
+ribbon_summary_runs(
+  alg_list = list(
+    deterministic = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 0),
+    sigma_g_0.5   = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 0.5),
+    sigma_g_1     = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 1),
+    sigma_g_2     = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2),
+    sigma_g_5     = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 5)
+  ),
+  cs = c(4, 8),
+  n_trials = 1000,
+  n_runs = 50,
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 1
+) + ggplot2::theme(legend.position = "bottom")
+```
+
+```{r}
+#| label: ref-noisy-grad-spaghetti
+#| fig-width: 9
+#| fig-height: 15
+spaghetti_single_runs(
+  alg_list = list(noisy_grad = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2)),
+  cs = c(0, 2, 4, 8, 16),
+  n_trials = 800,
+  n_runs = 10,
+  init_arc = pi / 2,
+  plot_what = c("reward", "hit", "a"),
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 123
+)
+```
+
+# Proposal 1: Constant noise
+
+Replace $\delta_t \sigma_g$ with a constant $\sigma_w$:
+
+$$
+x_{t+1} = x_t + \delta_t\, g_t(\tau) + \sigma_w\, \varepsilon_t
+$$
+
+This completely decouples $\sigma_w$ from $\delta_0$, breaking the variance ridge. However, since $\sigma_w$ does not decay, the noise dominates late-trial dynamics where $\delta_t \to 0$. This is equivalent to the "logit noise" variant explored earlier, which was shown to destroy algo5's convergence.
+
+```{r}
+#| label: p1-const-ribbon
+#| fig-asp: 0.5
+ribbon_summary_runs(
+  alg_list = list(
+    deterministic  = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 0),
+    sigma_w_0.01   = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.01),
+    sigma_w_0.05   = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.05),
+    sigma_w_0.1    = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.1),
+    sigma_w_0.2    = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.2)
+  ),
+  cs = c(4, 8),
+  n_trials = 1000,
+  n_runs = 50,
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 1
+) + ggplot2::theme(legend.position = "bottom")
+```
+
+```{r}
+#| label: p1-const-spaghetti
+#| fig-width: 9
+#| fig-height: 15
+spaghetti_single_runs(
+  alg_list = list(const_noise = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.1)),
+  cs = c(0, 2, 4, 8, 16),
+  n_trials = 800,
+  n_runs = 10,
+  init_arc = pi / 2,
+  plot_what = c("reward", "hit", "a"),
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 123
+)
+```
+
+As expected, constant noise prevents convergence to a stable arc. Late-trial variability remains high because the noise floor $\sigma_w$ overwhelms the vanishing gradient step. This confirms the earlier finding from the logit-noise experiments. The model would be identifiable for estimation but generates unrealistic trajectories.
+
+# Proposal 2: Langevin noise scaling
+
+Use $\sqrt{\delta_t}$ scaling instead of $\delta_t$:
+
+$$
+x_{t+1} = x_t + \delta_t\, g_t(\tau) + \sqrt{\delta_t}\;\sigma_L\, \varepsilon_t
+$$
+
+The noise still decays (preserving convergence) but more slowly than the gradient step. Crucially, $\delta_0$ enters the mean **linearly** and the variance as $\delta_0^{1/2}$, so the variance ridge $\delta_0 \sigma_g = \text{const}$ is replaced by $\delta_0^{1/2} \sigma_L = \text{const}$ --- a much tighter constraint that breaks the three-way invariance.
+
+```{r}
+#| label: p2-langevin-ribbon
+#| fig-asp: 0.5
+ribbon_summary_runs(
+  alg_list = list(
+    deterministic  = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 0),
+    sigma_L_0.5    = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 0.5),
+    sigma_L_1      = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 1),
+    sigma_L_2      = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 2),
+    sigma_L_5      = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 5)
+  ),
+  cs = c(4, 8),
+  n_trials = 1000,
+  n_runs = 50,
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 1
+) + ggplot2::theme(legend.position = "bottom")
+```
+
+```{r}
+#| label: p2-langevin-spaghetti
+#| fig-width: 9
+#| fig-height: 15
+spaghetti_single_runs(
+  alg_list = list(langevin = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 2)),
+  cs = c(0, 2, 4, 8, 16),
+  n_trials = 800,
+  n_runs = 10,
+  init_arc = pi / 2,
+  plot_what = c("reward", "hit", "a"),
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 123
+)
+```
+
+## Direct comparison: noise scaling regimes
+
+Compare all three noise scalings at matched effective noise levels. For a fair comparison at a "typical" trial ($t = 100$, $\delta_0 = 0.1$): $\delta_t \approx 0.01$, so we match:
+
+- Gradient-scaled: $\delta_t \sigma_g = 0.01 \times 2 = 0.02$
+- Langevin: $\sqrt{\delta_t}\, \sigma_L = 0.1 \times 0.2 = 0.02$
+- Constant: $\sigma_w = 0.02$
+
+```{r}
+#| label: p2-comparison-ribbon
+#| fig-asp: 0.5
+ribbon_summary_runs(
+  alg_list = list(
+    `grad-scaled (sig_g=2)` = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2),
+    `langevin (sig_L=0.2)`  = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 0.2),
+    `constant (sig_w=0.02)` = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.02)
+  ),
+  cs = c(4, 8),
+  n_trials = 1000,
+  n_runs = 50,
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 1
+) + ggplot2::theme(legend.position = "bottom")
+```
+
+# Proposal 3: Reparametrize the existing model
+
+This proposal keeps the original generative model **exactly** but estimates $(\phi, \omega, \tau)$ instead of $(\tau, \delta_0, \sigma_g)$:
+
+$$
+\phi = \delta_0/\tau, \quad \omega = \delta_0 \cdot \sigma_g
+$$
+
+Since the generative model is identical, simulations are the same as the reference. What changes is the posterior geometry during estimation. The ridge direction $(\lambda\tau, \lambda\delta_0, \sigma_g/\lambda)$ maps to $(\lambda\tau, \phi, \omega)$ --- only $\tau$ moves while $\phi$ and $\omega$ stay fixed. This concentrates the degeneracy in one dimension.
+
+No simulation needed here --- we plot the original model's ridge structure instead.
+
+```{r}
+#| label: p3-ridge-visualization
+#| fig-width: 10
+#| fig-height: 4
+
+lambda_grid <- seq(0.2, 5, length.out = 200)
+
+tau0 <- 0.025; delta0_0 <- 0.1; sigma_g0 <- 2
+
+original <- tibble(
+  lambda = lambda_grid,
+  tau    = tau0 * lambda_grid,
+  delta0 = delta0_0 * lambda_grid,
+  sigma_g = sigma_g0 / lambda_grid,
+  phi    = delta0_0 / tau0,
+  omega  = delta0_0 * sigma_g0
+)
+
+p1 <- ggplot(original, aes(x = tau, y = delta0)) +
+  geom_line(linewidth = 1) +
+  geom_point(data = filter(original, lambda == 1), color = "red", size = 3) +
+  labs(title = "Original: tau-delta ridge", x = expression(tau), y = expression(delta[0]))
+
+p2 <- ggplot(original, aes(x = delta0, y = sigma_g)) +
+  geom_line(linewidth = 1) +
+  geom_point(data = filter(original, lambda == 1), color = "red", size = 3) +
+  labs(title = "Original: delta-sigma_g ridge", x = expression(delta[0]), y = expression(sigma[g]))
+
+p3 <- ggplot(original, aes(x = tau, y = phi)) +
+  geom_line(linewidth = 1) +
+  geom_point(data = filter(original, lambda == 1), color = "red", size = 3) +
+  labs(title = "Reparametrized: tau vs phi", x = expression(tau), y = expression(phi == delta[0]/tau))
+
+p4 <- ggplot(original, aes(x = tau, y = omega)) +
+  geom_line(linewidth = 1) +
+  geom_point(data = filter(original, lambda == 1), color = "red", size = 3) +
+  labs(title = "Reparametrized: tau vs omega", x = expression(tau), y = expression(omega == delta[0] %.% sigma[g]))
+
+library(patchwork)
+(p1 | p2) / (p3 | p4)
+```
+
+In the original parametrization, the ridge sweeps through both $\tau$--$\delta_0$ and $\delta_0$--$\sigma_g$ panels (top row). In the reparametrized space (bottom row), $\phi$ and $\omega$ are **flat** along the ridge --- MCMC only needs to marginalize over $\tau$.
+
+# Proposal 4: Fix $\tau$
+
+The temperature $\tau$ controls gradient smoothness but has little direct scientific meaning. Fixing it at a small value eliminates one parameter and the $\tau$--$\delta_0$ coupling entirely. The model reduces to a two-parameter arc transition $(c, \kappa, \delta_0, \sigma_g)$ with the same geometry as algo4.
+
+We verify that convergence behavior is insensitive to the choice of $\tau$:
+
+```{r}
+#| label: p4-fix-tau-ribbon
+#| fig-asp: 0.5
+ribbon_summary_runs(
+  alg_list = list(
+    `tau=0.005` = algo5_noisy_grad(tau = 0.005, delta0 = 0.1, sigma_g = 2),
+    `tau=0.01`  = algo5_noisy_grad(tau = 0.01,  delta0 = 0.1, sigma_g = 2),
+    `tau=0.025` = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2),
+    `tau=0.05`  = algo5_noisy_grad(tau = 0.05,  delta0 = 0.1, sigma_g = 2),
+    `tau=0.1`   = algo5_noisy_grad(tau = 0.1,   delta0 = 0.1, sigma_g = 2)
+  ),
+  cs = c(4, 8),
+  n_trials = 1000,
+  n_runs = 50,
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 1
+) + ggplot2::theme(legend.position = "bottom")
+```
+
+```{r}
+#| label: p4-fix-tau-spaghetti
+#| fig-width: 9
+#| fig-height: 15
+spaghetti_single_runs(
+  alg_list = list(
+    `tau=0.01`  = algo5_noisy_grad(tau = 0.01, delta0 = 0.1, sigma_g = 2),
+    `tau=0.025` = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2)
+  ),
+  cs = c(0, 2, 4, 8, 16),
+  n_trials = 800,
+  n_runs = 10,
+  init_arc = pi / 2,
+  plot_what = c("reward", "hit", "a"),
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 123
+)
+```
+
+If convergence and asymptotic behavior are similar across a range of $\tau$ values, the parameter adds little information and can safely be fixed.
+
+# Proposal 5: Simpler stochastic arc model
+
+Instead of computing the reward gradient via a smooth approximation, use an **error-correction** rule on the logit scale. The arc tracks toward the observed error magnitude:
+
+$$
+x_{t+1} = x_t + \delta_t\,\bigl[\operatorname{logit}(|y_t|/\pi) - x_t\bigr] + \sigma_w\,\varepsilon_t
+$$
+
+This is an exponential smoother (leaky integrator) on the logit scale. Parameters: $(\delta_0, \sigma_w)$ --- no $\tau$, no gradient. The agent adjusts its arc toward wherever the last error landed in logit space.
+
+The tracked target $E[\operatorname{logit}(|y|/\pi)]$ is not the reward-optimal arc, but the two are correlated through the SDM error distribution.
+
+```{r}
+#| label: p5-error-correction-ribbon
+#| fig-asp: 0.5
+ribbon_summary_runs(
+  alg_list = list(
+    deterministic  = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 0),
+    `ec_sw=0`      = algo_error_correction(delta0 = 0.1, sigma_w = 0),
+    `ec_sw=0.05`   = algo_error_correction(delta0 = 0.1, sigma_w = 0.05),
+    `ec_sw=0.1`    = algo_error_correction(delta0 = 0.1, sigma_w = 0.1),
+    `ec_sw=0.2`    = algo_error_correction(delta0 = 0.1, sigma_w = 0.2)
+  ),
+  cs = c(4, 8),
+  n_trials = 1000,
+  n_runs = 50,
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 1
+) + ggplot2::theme(legend.position = "bottom")
+```
+
+```{r}
+#| label: p5-error-correction-spaghetti
+#| fig-width: 9
+#| fig-height: 15
+spaghetti_single_runs(
+  alg_list = list(error_correction = algo_error_correction(delta0 = 0.1, sigma_w = 0.1)),
+  cs = c(0, 2, 4, 8, 16),
+  n_trials = 800,
+  n_runs = 10,
+  init_arc = pi / 2,
+  plot_what = c("reward", "hit", "a"),
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 123
+)
+```
+
+## Compare error-correction with algo4
+
+The error-correction model is conceptually similar to algo4 (both track $|y_t|$ rather than computing a gradient), but algo4 operates on the native scale while error-correction operates on the logit scale. Compare them head-to-head:
+
+```{r}
+#| label: p5-vs-algo4-ribbon
+#| fig-asp: 0.5
+ribbon_summary_runs(
+  alg_list = list(
+    algo4         = algo4(delta = 0.1),
+    `algo5 (det)` = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 0),
+    `ec (det)`    = algo_error_correction(delta0 = 0.1, sigma_w = 0)
+  ),
+  cs = c(2, 4, 8, 16),
+  n_trials = 1000,
+  n_runs = 50,
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 1
+) + ggplot2::theme(legend.position = "bottom")
+```
+
+# Comparison across all proposals: Langevin vs noise-gradient vs fixed-tau
+
+The proposals that maintain convergence (Langevin, reparametrize, fix-tau) produce identical or nearly identical forward trajectories --- they differ only in estimation geometry. Compare the two models with genuinely different dynamics:
+
+```{r}
+#| label: all-proposals-ribbon
+#| fig-asp: 0.5
+ribbon_summary_runs(
+  alg_list = list(
+    `noisy-grad`    = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2),
+    `langevin`      = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 2),
+    `const-noise`   = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.05),
+    `error-correct` = algo_error_correction(delta0 = 0.1, sigma_w = 0.1)
+  ),
+  cs = c(4, 8),
+  n_trials = 1000,
+  n_runs = 50,
+  add_oracle = TRUE,
+  oracle_fun = \(c) find_optimum_sdm(c, kappa = 3),
+  seed = 1
+) + ggplot2::theme(legend.position = "bottom")
+```
+
+# Summary
+
+| Variant | Noise SD | Converges? | Ridge broken? | Parameters |
+|---------|----------|-----------|--------------|------------|
+| Current (gradient-scaled) | $\delta_t \sigma_g$ | Yes | No — three-way ridge | $\tau, \delta_0, \sigma_g$ |
+| Proposal 1 (constant) | $\sigma_w$ | No | Yes — fully | $\tau, \delta_0, \sigma_w$ |
+| Proposal 2 (Langevin) | $\sqrt{\delta_t}\,\sigma_L$ | Yes | Partially — weakened | $\tau, \delta_0, \sigma_L$ |
+| Proposal 3 (reparametrize) | $\delta_t \sigma_g$ | Yes | Concentrated in $\tau$ | $\phi, \omega, \tau$ |
+| Proposal 4 (fix $\tau$) | $\delta_t \sigma_g$ | Yes | Yes — $\tau$ eliminated | $\delta_0, \sigma_g$ |
+| Proposal 5 (error-correction) | $\sigma_w$ | Depends on $\sigma_w$ | N/A — no $\tau$ | $\delta_0, \sigma_w$ |
+
+**Recommendations:**
+
+1. **Proposal 2 (Langevin)** is the best single change --- it preserves convergence and substantially weakens the ridge.
+2. **Proposal 4 (fix $\tau$)** is the simplest fix if $\tau$ sensitivity analysis confirms stability.
+3. **Proposal 3 (reparametrize)** can be combined with any noise variant to further improve estimation.
+4. **Proposal 5 (error-correction)** is worth exploring as a simpler alternative that avoids the gradient machinery entirely.

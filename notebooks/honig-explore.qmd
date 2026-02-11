@@ -13,7 +13,7 @@ Preprocessed data: `output/honig_data.csv` (produced by `R/data-functions.R`).
 :::
 
 ```{r warning=FALSE, message=FALSE}
-#| label: setup
+#| label: init
 library(tidyverse)
 ```
 

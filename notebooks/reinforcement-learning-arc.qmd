@@ -6,7 +6,7 @@ execute:
 ---
 
 ```{r cache = FALSE}
-#| label: setup
+#| label: init
 #| message: false
 #| cache: false
 # Load useful packages and custom functions

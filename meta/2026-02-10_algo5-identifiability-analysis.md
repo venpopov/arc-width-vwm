@@ -87,7 +87,9 @@ $$
 
 **Interpretation.** The noise represents trial-to-trial *execution* variability in setting the arc (motor noise, attentional fluctuation), which is plausibly constant across trials rather than proportional to the learning rate.
 
-**Downside.** Late-trial arcs will be as noisy as early-trial arcs. If the data show decreasing arc variability over time, this could be captured instead by letting the *systematic* step $\delta_t g_t$ shrink (which it does), while the residual noise σ_w stays constant — essentially the model predicts that late-trial variability converges to a floor of σ_w.
+**Downside — convergence failure in simulation.** This proposal is closely related to the "logit noise" variant tested in `reinforcement-learning-arc.qmd`, where constant noise on the logit scale was shown to drastically deteriorate algo5's convergence (but not algo4's). The logit noise variant differs only mechanically (gradient step inside vs outside the logit transform), but shares the critical property: constant noise feeds back into the gradient computation every trial, corrupting the gradient signal as δ_t → 0. So late-trial dynamics are noise-dominated, preventing convergence.
+
+This means Proposal 1 improves *estimation identifiability* but produces a model that cannot simulate convergent behavior — it is unsuitable as a generative model. For human data the persistent variability is arguably realistic, but the inability to generate converging trajectories is a conceptual limitation. **Proposal 2 (Langevin scaling) is preferred** because it decays the noise while still breaking the ridge.
 
 ---
 
@@ -179,7 +181,8 @@ These are more radical departures from the current model, but they trade mathema
 
 | Priority      | Action                                                                 | Rationale                                                                                          |
 |---------------|------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| **Now**       | Implement **Proposal 1** (constant noise σ_w) alongside current model | Minimal code change; breaks the three-way ridge; provides an anchor for comparison                |
+| **Now**       | Implement **Proposal 2** (Langevin noise $\sqrt{\delta_t}\,\sigma_L$) | Decaying noise preserves convergence; breaks the three-way ridge by weakening δ₀–σ coupling       |
 | **Now**       | Also implement **Proposal 3** (reparametrize to φ, ω, τ)             | Tests whether the original model can be estimated with better geometry                            |
 | **Short-term**| Try **Proposal 4** (fix τ) on real data                               | If results are stable across τ values, the parameter was never needed for fitting                 |
 | **Longer-term**| Consider **Proposal 5** (simpler stochastic rule)                    | The gradient formulation may be over-engineered for the amount of information in participant data  |
+| **Deprioritized** | Proposal 1 (constant noise σ_w)                                  | Breaks the ridge but prevents convergence in simulation (same issue as logit-noise in `reinforcement-learning-arc.qmd`) |

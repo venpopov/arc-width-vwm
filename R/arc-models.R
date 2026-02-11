@@ -94,6 +94,66 @@ algo5_noisy_grad <- function(tau = 0.05, delta0 = 0.1, delta_pow = 0.5, sigma_g 
   }
 }
 
+# --- Algo5 with constant (execution) noise on logit scale ---
+
+algo5_const_noise <- function(tau = 0.025, delta0 = 0.1, delta_pow = 0.5, sigma_w = 0.1) {
+  force(tau)
+  force(delta0)
+  force(delta_pow)
+  force(sigma_w)
+
+  \(a, y, i, ...) {
+    delta <- delta0 / (i + 1)^delta_pow
+    z <- (a - abs(y)) / tau
+    s <- 1 / (1 + exp(-z))
+    grad <- -s + (pi - a) * s * (1 - s) / tau
+
+    x <- logit(a / pi)
+    x_new <- x + delta * grad + rnorm(1, sd = sigma_w)
+    inv_logit(x_new) * pi
+  }
+}
+
+# --- Algo5 with Langevin noise scaling (sqrt(delta_t) * sigma_L) ---
+
+algo5_langevin <- function(tau = 0.025, delta0 = 0.1, delta_pow = 0.5, sigma_L = 1) {
+  force(tau)
+  force(delta0)
+  force(delta_pow)
+  force(sigma_L)
+
+  \(a, y, i, ...) {
+    delta <- delta0 / (i + 1)^delta_pow
+    z <- (a - abs(y)) / tau
+    s <- 1 / (1 + exp(-z))
+    grad <- -s + (pi - a) * s * (1 - s) / tau
+
+    x <- logit(a / pi)
+    x_new <- x + delta * grad + sqrt(delta) * sigma_L * rnorm(1)
+    inv_logit(x_new) * pi
+  }
+}
+
+# --- Algo5 with tau fixed (no tau parameter, supplied at construction) ---
+# Identical to algo5_noisy_grad but conceptually tau is not a free parameter.
+# Included for clarity.
+
+# --- Simpler stochastic arc: error-correction on logit scale ---
+
+algo_error_correction <- function(delta0 = 0.1, delta_pow = 0.5, sigma_w = 0.1) {
+  force(delta0)
+  force(delta_pow)
+  force(sigma_w)
+
+  \(a, y, i, ...) {
+    delta <- delta0 / (i + 1)^delta_pow
+    x <- logit(a / pi)
+    target_x <- logit(abs(y) / pi)
+    x_new <- x + delta * (target_x - x) + sigma_w * rnorm(1)
+    inv_logit(x_new) * pi
+  }
+}
+
 # --- Algo4 with logit-scale noise ---
 
 algo4_logit_noise <- function(delta = 0.1, sigma_e = 0.2) {

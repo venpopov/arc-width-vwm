@@ -3,7 +3,7 @@ title: "Sequential dependencies"
 ---
 
 ```{r}
-#| label: setup
+#| label: init
 #| code-overflow: wrap
 #| code-fold: true
 #| code-summary: "Load packages and define helper functions"
@@ -18,8 +18,9 @@ source("R/math.R")
 
 ```
 
-::: {.callout-note}
+::: callout-note
 ## Prerequisites
+
 This notebook tests empirical predictions of the RL algorithms developed in [RL Algorithms: Exploration](reinforcement-learning-arc.qmd). The arc-width task and optimality framework are introduced in [Optimal Arc Width (SDM)](optimal-arc-response.qmd).
 :::
 
