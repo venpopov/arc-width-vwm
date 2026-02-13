@@ -490,6 +490,20 @@ hier_fit <- brm(
   )
 ```
 
+Here's a diagnostic plot:
+
+```{r}
+plot(hier_fit, ask = FALSE)
+```
+
+Unfortunately this took an extremely long time because one chain got very confused. 
+
+::: callout-caution
+
+All the results below are not to be trusted due to the divergent chain found above
+
+:::
+
 ```{r}
 #| label: hier-recovery-summary
 summary(hier_fit)
