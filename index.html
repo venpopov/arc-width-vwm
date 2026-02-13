@@ -366,7 +366,7 @@ window.Quarto = {
 
 <section id="project-overview" class="level2">
 <h2 class="anchored" data-anchor-id="project-overview">Project overview</h2>
-<p>In the standard continuous reproduction paradigm, participants study a visual feature (e.g., a color) and later reproduce it on a continuous scale (e.g., a color wheel). The angular error between the response and the target is taken as a measure of memory precision — but a single trial’s error is just a sample from a distribution, not a direct measure of that trial’s memory quality.</p>
+<p>In the standard <a href="https://venpopov.github.io/bmm/articles/bmm_vwm_crt.html">continuous reproduction paradigm</a>, participants study a visual feature (e.g., a color) and later reproduce it on a continuous scale (e.g., a color wheel). The angular error between the response and the target is taken as a measure of memory precision — but a single trial’s error is just a sample from a distribution, not a direct measure of that trial’s memory quality.</p>
 <p>In the <strong>uncertainty estimation procedure</strong>, participants additionally draw a symmetric <strong>arc</strong> around their point response, indicating the range of plausible values consistent with their memory. Participants are incentivized to set the arc wisely: points are awarded as</p>
 <p><span class="math display">\[
 p = (\pi - \alpha) \cdot \mathbf{1}[|y| \le \alpha],
@@ -521,7 +521,7 @@ p = (\pi - \alpha) \cdot \mathbf{1}[|y| \le \alpha],
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/venpopov\.github\.io\/arc-width-vwm\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
