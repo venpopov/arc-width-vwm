@@ -484,7 +484,9 @@ hier_fit <- brm(
     ),
     prior = prior,
     data = hier_sim_data, family = sdm_algo5, stanvars = stanvars,
-    backend = "cmdstanr", cores = 4, init = init_algo5_brm, file = "output/algo5_bayes_hier_recovery.rds"
+    backend = "cmdstanr", cores = 4, init = init_algo5_brm, 
+    file = "output/algo5_bayes_hier_recovery.rds",
+    refresh = 0
   )
 ```
 
