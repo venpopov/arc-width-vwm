@@ -50,7 +50,8 @@ The sidebar groups notebooks into three sections. Here is the recommended readin
 
 ### Model Fits
 
-9. [**Algo4 Bayesian fit (Exp 1)**](notebooks/fit-algo4-bayes.qmd) — Fits the contraction-expansion model to Experiment 1 data using Bayesian inference with posterior predictive checks.
+9. [**Algo4 Bayesian fit (Exp 1)**](notebooks/fit-algo4-bayes.qmd) — Fits the contraction-expansion model to Experiment 1 data using Bayesian inference with posterior predictive checks. 
+10. [**Algo4 Bayesian fit (Honig)**](notebooks/fit-algo4-bayes-honig.qmd) — Fits the contraction-expansion model to Experiment 1 data using Bayesian inference with posterior predictive checks.
 
 ### Empirical Tests
 

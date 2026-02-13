@@ -61,6 +61,8 @@ website:
         contents:
           - text: "Algo4 Bayesian fit (Exp 1)"
             href: notebooks/fit-algo4-bayes.qmd
+          - text: "Algo4 Bayesian fit (Honig)"
+            href: notebooks/fit-algo4-bayes-honig.qmd
           - text: "Algo5 Bayesian fit (Exp 1)"
             href: notebooks/fit-algo5-bayes.qmd
       - section: "Empirical Tests"
