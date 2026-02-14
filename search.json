@@ -540,110 +540,6 @@
     ]
   },
   {
-    "objectID": "notebooks/algo5-noise-variants.html",
-    "href": "notebooks/algo5-noise-variants.html",
-    "title": "Algo5 noise variants: identifiability and convergence",
-    "section": "",
-    "text": "library(bmm)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(dplyr)\n\nsource(\"R/arc-models.R\")\nsource(\"R/utils.R\")\nsource(\"R/math.R\")",
-    "crumbs": [
-      "Home",
-      "Theory & Model derivations",
-      "Algo5 Noise Variants"
-    ]
-  },
-  {
-    "objectID": "notebooks/algo5-noise-variants.html#direct-comparison-noise-scaling-regimes",
-    "href": "notebooks/algo5-noise-variants.html#direct-comparison-noise-scaling-regimes",
-    "title": "Algo5 noise variants: identifiability and convergence",
-    "section": "Direct comparison: noise scaling regimes",
-    "text": "Direct comparison: noise scaling regimes\nCompare all three noise scalings at matched effective noise levels. For a fair comparison at a “typical” trial (\\(t = 100\\), \\(\\delta_0 = 0.1\\)): \\(\\delta_t \\approx 0.01\\), so we match:\n\nGradient-scaled: \\(\\delta_t \\sigma_g = 0.01 \\times 2 = 0.02\\)\n\nLangevin: \\(\\sqrt{\\delta_t}\\, \\sigma_L = 0.1 \\times 0.2 = 0.02\\)\n\nConstant: \\(\\sigma_w = 0.02\\)\n\n\nInterestingly, there is little difference between them, as the plot below shows. Perhaps constant noise might still work as long as we keep it low.\n\nribbon_summary_runs(\n  alg_list = list(\n    `grad-scaled (sig_g=2)` = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2),\n    `langevin (sig_L=0.2)`  = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 0.2),\n    `constant (sig_w=0.02)` = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.02)\n  ),\n  cs = c(4, 8),\n  n_trials = 1000,\n  n_runs = 50,\n  add_oracle = TRUE,\n  oracle_fun = \\(c) find_optimum_sdm(c, kappa = 3),\n  seed = 1\n) + ggplot2::theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nHere is how the resulting arc trajectory variance changes under the three models:\n\nsigma_grid &lt;- list(\n  `grad-scaled` = c(0.5, 1, 2, 5),\n  langevin      = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),\n  constant      = c(0, 0.01, 0.02, 0.03, 0.04, 0.05)\n)\n\nmake_alg &lt;- list(\n  `grad-scaled` = \\(s) algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = s),\n  langevin      = \\(s) algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = s),\n  constant      = \\(s) algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = s)\n)\n\nn_runs   &lt;- 200\nn_trials &lt;- 1000\ncs       &lt;- c(4, 8)\nkappa    &lt;- 3\n\nset.seed(42)\n\nvar_df &lt;- purrr::map_dfr(names(sigma_grid), \\(model) {\n  purrr::map_dfr(sigma_grid[[model]], \\(sig) {\n    purrr::map_dfr(cs, \\(c_val) {\n      within_vars &lt;- vapply(seq_len(n_runs), \\(r) {\n        a &lt;- run_arc_algorithm(\n          arc_update_fun = make_alg[[model]](sig),\n          c = c_val, kappa = kappa,\n          init_arc = pi / 2, n_trials = n_trials\n        )$a\n        var(a)\n      }, numeric(1))\n      tibble(\n        model = model,\n        sigma = sig,\n        c     = c_val,\n        var_a = within_vars\n      )\n    })\n  })\n})\n\nvar_df$sigma_label &lt;- factor(var_df$sigma)\nvar_df$c_label     &lt;- paste0(\"c = \", var_df$c)\n\n\nggplot(var_df, aes(x = sigma_label, y = var_a)) +\n  geom_boxplot(outlier.size = 0.8) +\n  facet_wrap(c_label ~ model, scales = \"free\") +\n  labs(\n    x = expression(sigma), y = \"Within-run Var(arc width)\",\n    title = \"Within-run arc variance by noise model and sigma\"\n  ) +\n  theme_minimal(base_size = 13) +\n  theme(legend.position = \"bottom\")",
-    "crumbs": [
-      "Home",
-      "Theory & Model derivations",
-      "Algo5 Noise Variants"
-    ]
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Arc width and continuous reproduction",
-    "section": "",
-    "text": "In the standard continuous reproduction paradigm, participants study a visual feature (e.g., a color) and later reproduce it on a continuous scale (e.g., a color wheel). The angular error between the response and the target is taken as a measure of memory precision — but a single trial’s error is just a sample from a distribution, not a direct measure of that trial’s memory quality.\nIn the uncertainty estimation procedure, participants additionally draw a symmetric arc around their point response, indicating the range of plausible values consistent with their memory. Participants are incentivized to set the arc wisely: points are awarded as\n\\[\np = (\\pi - \\alpha) \\cdot \\mathbf{1}[|y| \\le \\alpha],\n\\]\nwhere \\(y\\) is the signed response error and \\(\\alpha\\) is the half-width of the arc. Wider arcs are safer (more likely to capture the target) but earn fewer points, creating an accuracy–confidence tradeoff.\nThis website documents analyses, simulations, and model-fitting results.",
-    "crumbs": [
-      "Home"
-    ]
-  },
-  {
-    "objectID": "index.html#project-overview",
-    "href": "index.html#project-overview",
-    "title": "Arc width and continuous reproduction",
-    "section": "",
-    "text": "In the standard continuous reproduction paradigm, participants study a visual feature (e.g., a color) and later reproduce it on a continuous scale (e.g., a color wheel). The angular error between the response and the target is taken as a measure of memory precision — but a single trial’s error is just a sample from a distribution, not a direct measure of that trial’s memory quality.\nIn the uncertainty estimation procedure, participants additionally draw a symmetric arc around their point response, indicating the range of plausible values consistent with their memory. Participants are incentivized to set the arc wisely: points are awarded as\n\\[\np = (\\pi - \\alpha) \\cdot \\mathbf{1}[|y| \\le \\alpha],\n\\]\nwhere \\(y\\) is the signed response error and \\(\\alpha\\) is the half-width of the arc. Wider arcs are safer (more likely to capture the target) but earn fewer points, creating an accuracy–confidence tradeoff.\nThis website documents analyses, simulations, and model-fitting results.",
-    "crumbs": [
-      "Home"
-    ]
-  },
-  {
-    "objectID": "index.html#repository",
-    "href": "index.html#repository",
-    "title": "Arc width and continuous reproduction",
-    "section": "Repository",
-    "text": "Repository\nSource code and data is available on GitHub. Shared R functions live in R/, Stan model snippets in stan/, preprocessed data in output/, and raw data in data-raw/.",
-    "crumbs": [
-      "Home"
-    ]
-  },
-  {
-    "objectID": "index.html#datasets",
-    "href": "index.html#datasets",
-    "title": "Arc width and continuous reproduction",
-    "section": "Datasets",
-    "text": "Datasets\n\nExperiment 1 — 20 participants, manipulating set size (1–8 items) and encoding time / retention interval across two sessions.\nHonig et al. (2020) — 12 participants, set size 4, ~1200 trials across four sessions.",
-    "crumbs": [
-      "Home"
-    ]
-  },
-  {
-    "objectID": "index.html#guide-to-the-notebooks",
-    "href": "index.html#guide-to-the-notebooks",
-    "title": "Arc width and continuous reproduction",
-    "section": "Guide to the notebooks",
-    "text": "Guide to the notebooks\nThe sidebar groups notebooks into three sections. Here is the recommended reading order:\n\nExperiment Description\n\nExperiment Description & Data Codebook — Describes the experimental design of Experiment 1 and provides codebooks for both raw and preprocessed data files.\n\n\n\nData Exploration\n\nExp 1: Exploratory Analysis — Effects of set size, encoding time, and retention interval on point response error and arc width. Fits two-component mixture models and shows that arc width is affected by the same manipulations as response error.\nExp 1: By-Subject Diagnostics — Per-subject distributions of response error and arc width to inspect individual differences and outliers.\nHonig et al.: Data Exploration — Preliminary exploration of the Honig et al. dataset.\n\n\n\nTheory & Modeling\n\nOptimal Arc Width (SDM) — Derives the theoretically optimal arc width for any given memory error distribution. Fits the Signal Detection Model (SDM) and shows that empirical arc widths are remarkably close to optimal. Key notebook.\nRL Algorithms: Exploration — Develops and simulates five reinforcement learning algorithms (algo1–5) for trial-by-trial arc-width adaptation, progressing from simple heuristics to a noisy stochastic-gradient model. Key notebook.\nModel Diagnostics: contraction-expansion (algo4), MLE — Implements maximum-likelihood estimation for the contraction-expansion model (algo4) with logit-scale noise, validates identifiability via 10,000-iteration parameter recovery.\nModel Diagnostics: contraction-expansion (algo4), Bayesian — Full Bayesian inference for algo4 using brms/Stan, with simulation-based validation.\nModel Diagnostics: noisy-gradient (algo5), MLE — Implements maximum-likelihood estimation for the noisy-gradient model (algo5), validates identifiability via 10,000-iteration parameter recovery.\nModel Diagnostics: noisy-gradient (algo5), Bayesian — Full Bayesian inference for algo5 using brms/Stan, with simulation-based validation.\n\n\n\nModel Fits\n\nAlgo4 Bayesian fit (Exp 1) — Fits the contraction-expansion model to Experiment 1 data using Bayesian inference with posterior predictive checks.\nAlgo4 Bayesian fit (Honig) — Fits the contraction-expansion model to Experiment 1 data using Bayesian inference with posterior predictive checks.\n\n\n\nEmpirical Tests\n\nSequential Dependencies — Tests whether participants actually adapt arc width after hits/misses, as predicted by the RL models. Controls for regression to the mean via bootstrap shuffling.",
-    "crumbs": [
-      "Home"
-    ]
-  },
-  {
-    "objectID": "index.html#key-concepts",
-    "href": "index.html#key-concepts",
-    "title": "Arc width and continuous reproduction",
-    "section": "Key concepts",
-    "text": "Key concepts\n\nSDM (Signal Discrimination Model) — A model of memory where recall errors follow a distribution parameterized by memory strength \\(c\\) and precision \\(\\kappa\\).\nArc width — The confidence interval participants set around their response; \\(\\alpha\\) is the half-width in radians.\nAlgorithms 1–5 — A progression of reinforcement learning update rules, from simple multiplicative adjustments to a stochastic gradient ascent model operating on logit-transformed arcs.",
-    "crumbs": [
-      "Home"
-    ]
-  },
-  {
-    "objectID": "index.html#presentation",
-    "href": "index.html#presentation",
-    "title": "Arc width and continuous reproduction",
-    "section": "Presentation",
-    "text": "Presentation\nInitial empirical results were presented at Psychonomics 2021:",
-    "crumbs": [
-      "Home"
-    ]
-  },
-  {
-    "objectID": "index.html#people",
-    "href": "index.html#people",
-    "title": "Arc width and continuous reproduction",
-    "section": "People",
-    "text": "People\nVen Popov, Klaus Oberauer, Huichao Ji & Wanke Pan",
-    "crumbs": [
-      "Home"
-    ]
-  },
-  {
     "objectID": "notebooks/diagnostics-algo4-bayes.html",
     "href": "notebooks/diagnostics-algo4-bayes.html",
     "title": "Model diagnostics: contraction-expansion (algo4) with logit noise, Bayesian",
@@ -773,6 +669,110 @@
       "Home",
       "Model diagnostics",
       "Contraction-expansion (algo4), Bayesian"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Arc width and continuous reproduction",
+    "section": "",
+    "text": "In the standard continuous reproduction paradigm, participants study a visual feature (e.g., a color) and later reproduce it on a continuous scale (e.g., a color wheel). The angular error between the response and the target is taken as a measure of memory precision — but a single trial’s error is just a sample from a distribution, not a direct measure of that trial’s memory quality.\nIn the uncertainty estimation procedure, participants additionally draw a symmetric arc around their point response, indicating the range of plausible values consistent with their memory. Participants are incentivized to set the arc wisely: points are awarded as\n\\[\np = (\\pi - \\alpha) \\cdot \\mathbf{1}[|y| \\le \\alpha],\n\\]\nwhere \\(y\\) is the signed response error and \\(\\alpha\\) is the half-width of the arc. Wider arcs are safer (more likely to capture the target) but earn fewer points, creating an accuracy–confidence tradeoff.\nThis website documents analyses, simulations, and model-fitting results.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#project-overview",
+    "href": "index.html#project-overview",
+    "title": "Arc width and continuous reproduction",
+    "section": "",
+    "text": "In the standard continuous reproduction paradigm, participants study a visual feature (e.g., a color) and later reproduce it on a continuous scale (e.g., a color wheel). The angular error between the response and the target is taken as a measure of memory precision — but a single trial’s error is just a sample from a distribution, not a direct measure of that trial’s memory quality.\nIn the uncertainty estimation procedure, participants additionally draw a symmetric arc around their point response, indicating the range of plausible values consistent with their memory. Participants are incentivized to set the arc wisely: points are awarded as\n\\[\np = (\\pi - \\alpha) \\cdot \\mathbf{1}[|y| \\le \\alpha],\n\\]\nwhere \\(y\\) is the signed response error and \\(\\alpha\\) is the half-width of the arc. Wider arcs are safer (more likely to capture the target) but earn fewer points, creating an accuracy–confidence tradeoff.\nThis website documents analyses, simulations, and model-fitting results.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#repository",
+    "href": "index.html#repository",
+    "title": "Arc width and continuous reproduction",
+    "section": "Repository",
+    "text": "Repository\nSource code and data is available on GitHub. Shared R functions live in R/, Stan model snippets in stan/, preprocessed data in output/, and raw data in data-raw/.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#datasets",
+    "href": "index.html#datasets",
+    "title": "Arc width and continuous reproduction",
+    "section": "Datasets",
+    "text": "Datasets\n\nExperiment 1 — 20 participants, manipulating set size (1–8 items) and encoding time / retention interval across two sessions.\nHonig et al. (2020) — 12 participants, set size 4, ~1200 trials across four sessions.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#guide-to-the-notebooks",
+    "href": "index.html#guide-to-the-notebooks",
+    "title": "Arc width and continuous reproduction",
+    "section": "Guide to the notebooks",
+    "text": "Guide to the notebooks\nThe sidebar groups notebooks into three sections. Here is the recommended reading order:\n\nExperiment Description\n\nExperiment Description & Data Codebook — Describes the experimental design of Experiment 1 and provides codebooks for both raw and preprocessed data files.\n\n\n\nData Exploration\n\nExp 1: Exploratory Analysis — Effects of set size, encoding time, and retention interval on point response error and arc width. Fits two-component mixture models and shows that arc width is affected by the same manipulations as response error.\nExp 1: By-Subject Diagnostics — Per-subject distributions of response error and arc width to inspect individual differences and outliers.\nHonig et al.: Data Exploration — Preliminary exploration of the Honig et al. dataset.\n\n\n\nTheory & Modeling\n\nOptimal Arc Width (SDM) — Derives the theoretically optimal arc width for any given memory error distribution. Fits the Signal Detection Model (SDM) and shows that empirical arc widths are remarkably close to optimal. Key notebook.\nRL Algorithms: Exploration — Develops and simulates five reinforcement learning algorithms (algo1–5) for trial-by-trial arc-width adaptation, progressing from simple heuristics to a noisy stochastic-gradient model. Key notebook.\nModel Diagnostics: contraction-expansion (algo4), MLE — Implements maximum-likelihood estimation for the contraction-expansion model (algo4) with logit-scale noise, validates identifiability via 10,000-iteration parameter recovery.\nModel Diagnostics: contraction-expansion (algo4), Bayesian — Full Bayesian inference for algo4 using brms/Stan, with simulation-based validation.\nModel Diagnostics: noisy-gradient (algo5), MLE — Implements maximum-likelihood estimation for the noisy-gradient model (algo5), validates identifiability via 10,000-iteration parameter recovery.\nModel Diagnostics: noisy-gradient (algo5), Bayesian — Full Bayesian inference for algo5 using brms/Stan, with simulation-based validation.\n\n\n\nModel Fits\n\nAlgo4 Bayesian fit (Exp 1) — Fits the contraction-expansion model to Experiment 1 data using Bayesian inference with posterior predictive checks.\nAlgo4 Bayesian fit (Honig) — Fits the contraction-expansion model to Experiment 1 data using Bayesian inference with posterior predictive checks.\n\n\n\nEmpirical Tests\n\nSequential Dependencies — Tests whether participants actually adapt arc width after hits/misses, as predicted by the RL models. Controls for regression to the mean via bootstrap shuffling.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#key-concepts",
+    "href": "index.html#key-concepts",
+    "title": "Arc width and continuous reproduction",
+    "section": "Key concepts",
+    "text": "Key concepts\n\nSDM (Signal Discrimination Model) — A model of memory where recall errors follow a distribution parameterized by memory strength \\(c\\) and precision \\(\\kappa\\).\nArc width — The confidence interval participants set around their response; \\(\\alpha\\) is the half-width in radians.\nAlgorithms 1–5 — A progression of reinforcement learning update rules, from simple multiplicative adjustments to a stochastic gradient ascent model operating on logit-transformed arcs.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#presentation",
+    "href": "index.html#presentation",
+    "title": "Arc width and continuous reproduction",
+    "section": "Presentation",
+    "text": "Presentation\nInitial empirical results were presented at Psychonomics 2021:",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#people",
+    "href": "index.html#people",
+    "title": "Arc width and continuous reproduction",
+    "section": "People",
+    "text": "People\nVen Popov, Klaus Oberauer, Huichao Ji & Wanke Pan",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "notebooks/algo5-noise-variants.html",
+    "href": "notebooks/algo5-noise-variants.html",
+    "title": "Algo5 noise variants: identifiability and convergence",
+    "section": "",
+    "text": "library(bmm)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(dplyr)\n\nsource(\"R/arc-models.R\")\nsource(\"R/utils.R\")\nsource(\"R/math.R\")",
+    "crumbs": [
+      "Home",
+      "Theory & Model derivations",
+      "Algo5 Noise Variants"
+    ]
+  },
+  {
+    "objectID": "notebooks/algo5-noise-variants.html#direct-comparison-noise-scaling-regimes",
+    "href": "notebooks/algo5-noise-variants.html#direct-comparison-noise-scaling-regimes",
+    "title": "Algo5 noise variants: identifiability and convergence",
+    "section": "Direct comparison: noise scaling regimes",
+    "text": "Direct comparison: noise scaling regimes\nCompare all three noise scalings at matched effective noise levels. For a fair comparison at a “typical” trial (\\(t = 100\\), \\(\\delta_0 = 0.1\\)): \\(\\delta_t \\approx 0.01\\), so we match:\n\nGradient-scaled: \\(\\delta_t \\sigma_g = 0.01 \\times 2 = 0.02\\)\n\nLangevin: \\(\\sqrt{\\delta_t}\\, \\sigma_L = 0.1 \\times 0.2 = 0.02\\)\n\nConstant: \\(\\sigma_w = 0.02\\)\n\n\nInterestingly, there is little difference between them, as the plot below shows. Perhaps constant noise might still work as long as we keep it low.\n\nribbon_summary_runs(\n  alg_list = list(\n    `grad-scaled (sig_g=2)` = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2),\n    `langevin (sig_L=0.2)`  = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 0.2),\n    `constant (sig_w=0.02)` = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.02)\n  ),\n  cs = c(4, 8),\n  n_trials = 1000,\n  n_runs = 50,\n  add_oracle = TRUE,\n  oracle_fun = \\(c) find_optimum_sdm(c, kappa = 3),\n  seed = 1\n) + ggplot2::theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nHere is how the resulting arc trajectory variance changes under the three models:\n\nsigma_grid &lt;- list(\n  `grad-scaled` = c(0.5, 1, 2, 5),\n  langevin      = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),\n  constant      = c(0, 0.01, 0.02, 0.03, 0.04, 0.05)\n)\n\nmake_alg &lt;- list(\n  `grad-scaled` = \\(s) algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = s),\n  langevin      = \\(s) algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = s),\n  constant      = \\(s) algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = s)\n)\n\nn_runs   &lt;- 200\nn_trials &lt;- 1000\ncs       &lt;- c(4, 8)\nkappa    &lt;- 3\n\nset.seed(42)\n\nvar_df &lt;- purrr::map_dfr(names(sigma_grid), \\(model) {\n  purrr::map_dfr(sigma_grid[[model]], \\(sig) {\n    purrr::map_dfr(cs, \\(c_val) {\n      within_vars &lt;- vapply(seq_len(n_runs), \\(r) {\n        a &lt;- run_arc_algorithm(\n          arc_update_fun = make_alg[[model]](sig),\n          c = c_val, kappa = kappa,\n          init_arc = pi / 2, n_trials = n_trials\n        )$a\n        var(a)\n      }, numeric(1))\n      tibble(\n        model = model,\n        sigma = sig,\n        c     = c_val,\n        var_a = within_vars\n      )\n    })\n  })\n})\n\nvar_df$sigma_label &lt;- factor(var_df$sigma)\nvar_df$c_label     &lt;- paste0(\"c = \", var_df$c)\n\n\nggplot(var_df, aes(x = sigma_label, y = var_a)) +\n  geom_boxplot(outlier.size = 0.8) +\n  facet_wrap(c_label ~ model, scales = \"free\") +\n  labs(\n    x = expression(sigma), y = \"Within-run Var(arc width)\",\n    title = \"Within-run arc variance by noise model and sigma\"\n  ) +\n  theme_minimal(base_size = 13) +\n  theme(legend.position = \"bottom\")",
+    "crumbs": [
+      "Home",
+      "Theory & Model derivations",
+      "Algo5 Noise Variants"
     ]
   },
   {
@@ -1093,6 +1093,18 @@
     "title": "Fitting algo4 to experimental data (Bayesian)",
     "section": "Posterior predictive check",
     "text": "Posterior predictive check\n\nCodealgo4_sim_from_draws &lt;- function(draws, data) {\n  purrr::pmap(\n    draws,\n    \\(c, kappa, delta, asigma) {\n      run_arc_algorithm(\n        arc_update_fun = algo4_logit_noise(delta = delta, sigma_e = asigma),\n        c = c,\n        kappa = kappa,\n        init_arc = data$half_arc[1],\n        n_trials = nrow(data)\n      )\n    }\n  )\n}\n\nplot_algo4_ppc &lt;- function(fit, data, n_draws = 15, draws = NULL) {\n  if (is.null(draws)) draws &lt;- algo4_posterior_draws(fit, n_draws = n_draws)\n  sims &lt;- algo4_sim_from_draws(draws, data)\n  posterior_col &lt;- grDevices::adjustcolor(\"red\", alpha.f = 0.3)\n\n  obs_median &lt;- median(data$half_arc)\n  pred_medians &lt;- vapply(sims, \\(s) median(s$a), numeric(1))\n  pred_median_mid &lt;- median(pred_medians)\n  optima &lt;- purrr::pmap_dbl(draws, \\(c, kappa, ...) find_optimum_sdm(c, kappa)$alpha)\n  optimum_mid &lt;- median(optima)\n\n  oldpar &lt;- par(no.readonly = TRUE)\n  on.exit(par(oldpar), add = TRUE)\n  par(mfrow = c(1, 2))\n\n  plot(density(data$half_arc), main = \"Arc width distribution\")\n  for (sim in sims) {\n    lines(density(sim$a), col = posterior_col)\n  }\n  lines(density(data$half_arc), lwd = 2)\n  abline(v = optimum_mid, col = \"blue\", lwd = 2, lty = 2)\n  abline(v = obs_median, col = \"black\", lwd = 2, lty = 3)\n  abline(v = pred_median_mid, col = \"red\", lwd = 2, lty = 3)\n  legend(\"topright\",\n    c(\"Data\", \"Posterior draws\", \"Optimal\", \"Obs median\", \"Pred median\"),\n    col = c(\"black\", \"red\", \"blue\", \"black\", \"red\"),\n    lty = c(1, 1, 2, 3, 3), lwd = c(1, 1, 2, 2, 2), bty = \"n\")\n\n  plot(density(data$resperr), main = \"Response error distribution\")\n  for (sim in sims) {\n    lines(density(sim$y), col = posterior_col)\n  }\n  lines(density(data$resperr), lwd = 2)\n  legend(\"topright\", c(\"Data\", \"Posterior draws\"), col = c(\"black\", \"red\"), lty = 1, bty = \"n\")\n\n  invisible(sims)\n}\n\nplot_algo4_ppc_trajectories &lt;- function(fit, data, n_draws = 15) {\n  draws &lt;- algo4_posterior_draws(fit, n_draws = n_draws)\n  sims &lt;- algo4_sim_from_draws(draws, data)\n\n  oldpar &lt;- par(no.readonly = TRUE)\n  on.exit(par(oldpar), add = TRUE)\n  par(mfrow = c(4, 4))\n\n  plot(data$half_arc, type = \"l\", xlab = \"Trial\", ylab = \"Arc half-width\",\n       main = \"Data\", ylim = c(0, pi), col = \"blue\")\n\n  for (sim in sims) {\n    plot(sim$a, type = \"l\", xlab = \"Trial\", ylab = \"Arc half-width\",\n         main = \"Posterior\", ylim = c(0, pi))\n  }\n\n  invisible(sims)\n}\n\nsummarize_algo4_posterior &lt;- function(fit, subject_id) {\n  algo4_posterior_draws(fit) |&gt;\n    pivot_longer(cols = everything(), names_to = \"parameter\", values_to = \"est\") |&gt;\n    group_by(parameter) |&gt;\n    summarise(\n      median = median(est),\n      lower = quantile(est, 0.025),\n      upper = quantile(est, 0.975),\n      .groups = \"drop\"\n    ) |&gt;\n    mutate(subject = subject_id, .before = 1)\n}\n\n\nWe plot 15 posterior predictive distributions for response error and half arc-width. While the response distribution fits with the posterior prediction, the arc distribution from the model has too much variance.\n\nplot_algo4_ppc(fit_s1, s1, n_draws = 15)\n\nWarning: Dropping 'draws_df' class as required metadata was removed.\n\n\n\n\n\n\n\n\nHere are different predicted arc trajectories with parameters drawn from the posterior vs the data (top left panel):\n\nplot_algo4_ppc_trajectories(fit_s1, s1, n_draws = 15)\n\nWarning: Dropping 'draws_df' class as required metadata was removed.",
+    "crumbs": [
+      "Home",
+      "Model Fits",
+      "Algo4 Bayesian fit (Exp 1)"
+    ]
+  },
+  {
+    "objectID": "notebooks/fit-algo4-bayes.html#posterior-predictives-of-an1---an",
+    "href": "notebooks/fit-algo4-bayes.html#posterior-predictives-of-an1---an",
+    "title": "Fitting algo4 to experimental data (Bayesian)",
+    "section": "Posterior predictives of a(n+1) - a(n)",
+    "text": "Posterior predictives of a(n+1) - a(n)\n\nplot_algo4_ppc_trial_diff &lt;- function(fit, data, n_draws = 15, draws = NULL) {\n  if (is.null(draws)) draws &lt;- algo4_posterior_draws(fit, n_draws = n_draws)\n  sims &lt;- algo4_sim_from_draws(draws, data)\n  posterior_col &lt;- grDevices::adjustcolor(\"red\", alpha.f = 0.3)\n\n  oldpar &lt;- par(no.readonly = TRUE)\n  on.exit(par(oldpar), add = TRUE)\n\n  plot(density(data$half_arc - lag(data$half_arc), na.rm = TRUE), main = \"Trial difference in arc width distribution - arc(n+1) - arc(n)\")\n  for (sim in sims) {\n    lines(density(sim$a - lag(sim$a), na.rm = TRUE), col = posterior_col)\n  }\n  legend(\"topright\",\n    c(\"Data\", \"Posterior draws\"),\n    col = c(\"black\", \"red\"),\n    lty = c(1, 1), lwd = c(1, 1), bty = \"n\")\n\n  invisible(sims)\n}\n\nplot_algo4_ppc_trial_diff(fit_s1, s1, n_draws = 15)\n\nLoading required namespace: rstan\n\n\nWarning: Dropping 'draws_df' class as required metadata was removed.",
     "crumbs": [
       "Home",
       "Model Fits",
