@@ -230,6 +230,35 @@ Here are different predicted arc trajectories with parameters drawn from the pos
 plot_algo4_ppc_trajectories(fit_s1, s1, n_draws = 15)
 ```
 
+## Posterior predictives of a(n+1) - a(n)
+
+```{r}
+#| label: pp-arc-diff-plot
+#| fig-width: 10
+#| fig-height: 4
+plot_algo4_ppc_trial_diff <- function(fit, data, n_draws = 15, draws = NULL) {
+  if (is.null(draws)) draws <- algo4_posterior_draws(fit, n_draws = n_draws)
+  sims <- algo4_sim_from_draws(draws, data)
+  posterior_col <- grDevices::adjustcolor("red", alpha.f = 0.3)
+
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar), add = TRUE)
+
+  plot(density(data$half_arc - lag(data$half_arc), na.rm = TRUE), main = "Trial difference in arc width distribution - arc(n+1) - arc(n)")
+  for (sim in sims) {
+    lines(density(sim$a - lag(sim$a), na.rm = TRUE), col = posterior_col)
+  }
+  legend("topright",
+    c("Data", "Posterior draws"),
+    col = c("black", "red"),
+    lty = c(1, 1), lwd = c(1, 1), bty = "n")
+
+  invisible(sims)
+}
+
+plot_algo4_ppc_trial_diff(fit_s1, s1, n_draws = 15)
+```
+
 
 ## Unpooled fits to all subjects individually
 

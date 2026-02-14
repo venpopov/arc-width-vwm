@@ -1,0 +1,29 @@
+---
+title: "Model diagnostics: why does algo4 misfit real data?"
+format: html
+draft: true
+---
+
+```{r cache = FALSE}
+#| label: init
+#| message: false
+library(tidyverse)
+library(bmm)
+source("R/arc-models.R")
+source("R/utils.R")
+source("R/math.R")
+```
+
+::: {.callout-note}
+## Prerequisites
+This notebook explores why the contraction-expansion model (algo4) with logit-scale noise, developed in [RL Algorithms: Exploration](reinforcement-learning-arc.qmd), overpredicts variance of the arc width when [applied to real data](fit-algo4-bayes.qmd). 
+:::
+
+When we simulate data from Algorithm 4, fitting the model to the simulated data recovers the parameters well and posterior predictive checks show good match between the model predicted arc distribution and the generated data. Based on [these diagnostics](diagnostics-algo4-mle.qmd), we know that the model performs well when applied to data generated from it.
+
+Unfortunately, when we estimate parameters from the model from [real data](fit-algo4-bayes.qmd), and then simulate an arc distribution from the model, the resulting predictive distribution does not match the data distribution.
+
+
+## Simulate data from a different model
+
+Let's see what happens when we fit algo4 to data where response error and arc are sampled independently, not from the model.
