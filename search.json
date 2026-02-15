@@ -672,6 +672,30 @@
     ]
   },
   {
+    "objectID": "notebooks/algo5-noise-variants.html",
+    "href": "notebooks/algo5-noise-variants.html",
+    "title": "Algo5 noise variants: identifiability and convergence",
+    "section": "",
+    "text": "library(bmm)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(dplyr)\n\nsource(\"R/arc-models.R\")\nsource(\"R/utils.R\")\nsource(\"R/math.R\")",
+    "crumbs": [
+      "Home",
+      "Theory & Model derivations",
+      "Algo5 Noise Variants"
+    ]
+  },
+  {
+    "objectID": "notebooks/algo5-noise-variants.html#direct-comparison-noise-scaling-regimes",
+    "href": "notebooks/algo5-noise-variants.html#direct-comparison-noise-scaling-regimes",
+    "title": "Algo5 noise variants: identifiability and convergence",
+    "section": "Direct comparison: noise scaling regimes",
+    "text": "Direct comparison: noise scaling regimes\nCompare all three noise scalings at matched effective noise levels. For a fair comparison at a “typical” trial (\\(t = 100\\), \\(\\delta_0 = 0.1\\)): \\(\\delta_t \\approx 0.01\\), so we match:\n\nGradient-scaled: \\(\\delta_t \\sigma_g = 0.01 \\times 2 = 0.02\\)\n\nLangevin: \\(\\sqrt{\\delta_t}\\, \\sigma_L = 0.1 \\times 0.2 = 0.02\\)\n\nConstant: \\(\\sigma_w = 0.02\\)\n\n\nInterestingly, there is little difference between them, as the plot below shows. Perhaps constant noise might still work as long as we keep it low.\n\nribbon_summary_runs(\n  alg_list = list(\n    `grad-scaled (sig_g=2)` = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2),\n    `langevin (sig_L=0.2)`  = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 0.2),\n    `constant (sig_w=0.02)` = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.02)\n  ),\n  cs = c(4, 8),\n  n_trials = 1000,\n  n_runs = 50,\n  add_oracle = TRUE,\n  oracle_fun = \\(c) find_optimum_sdm(c, kappa = 3),\n  seed = 1\n) + ggplot2::theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nHere is how the resulting arc trajectory variance changes under the three models:\n\nsigma_grid &lt;- list(\n  `grad-scaled` = c(0.5, 1, 2, 5),\n  langevin      = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),\n  constant      = c(0, 0.01, 0.02, 0.03, 0.04, 0.05)\n)\n\nmake_alg &lt;- list(\n  `grad-scaled` = \\(s) algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = s),\n  langevin      = \\(s) algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = s),\n  constant      = \\(s) algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = s)\n)\n\nn_runs   &lt;- 200\nn_trials &lt;- 1000\ncs       &lt;- c(4, 8)\nkappa    &lt;- 3\n\nset.seed(42)\n\nvar_df &lt;- purrr::map_dfr(names(sigma_grid), \\(model) {\n  purrr::map_dfr(sigma_grid[[model]], \\(sig) {\n    purrr::map_dfr(cs, \\(c_val) {\n      within_vars &lt;- vapply(seq_len(n_runs), \\(r) {\n        a &lt;- run_arc_algorithm(\n          arc_update_fun = make_alg[[model]](sig),\n          c = c_val, kappa = kappa,\n          init_arc = pi / 2, n_trials = n_trials\n        )$a\n        var(a)\n      }, numeric(1))\n      tibble(\n        model = model,\n        sigma = sig,\n        c     = c_val,\n        var_a = within_vars\n      )\n    })\n  })\n})\n\nvar_df$sigma_label &lt;- factor(var_df$sigma)\nvar_df$c_label     &lt;- paste0(\"c = \", var_df$c)\n\n\nggplot(var_df, aes(x = sigma_label, y = var_a)) +\n  geom_boxplot(outlier.size = 0.8) +\n  facet_wrap(c_label ~ model, scales = \"free\") +\n  labs(\n    x = expression(sigma), y = \"Within-run Var(arc width)\",\n    title = \"Within-run arc variance by noise model and sigma\"\n  ) +\n  theme_minimal(base_size = 13) +\n  theme(legend.position = \"bottom\")",
+    "crumbs": [
+      "Home",
+      "Theory & Model derivations",
+      "Algo5 Noise Variants"
+    ]
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Arc width and continuous reproduction",
@@ -752,27 +776,75 @@
     ]
   },
   {
-    "objectID": "notebooks/algo5-noise-variants.html",
-    "href": "notebooks/algo5-noise-variants.html",
-    "title": "Algo5 noise variants: identifiability and convergence",
+    "objectID": "notebooks/counterfactual-rl.html",
+    "href": "notebooks/counterfactual-rl.html",
+    "title": "Counterfactual Q-Learning for Arc Width",
     "section": "",
     "text": "library(bmm)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(dplyr)\n\nsource(\"R/arc-models.R\")\nsource(\"R/utils.R\")\nsource(\"R/math.R\")",
     "crumbs": [
       "Home",
       "Theory & Model derivations",
-      "Algo5 Noise Variants"
+      "Counterfactual Q-Learning"
     ]
   },
   {
-    "objectID": "notebooks/algo5-noise-variants.html#direct-comparison-noise-scaling-regimes",
-    "href": "notebooks/algo5-noise-variants.html#direct-comparison-noise-scaling-regimes",
-    "title": "Algo5 noise variants: identifiability and convergence",
-    "section": "Direct comparison: noise scaling regimes",
-    "text": "Direct comparison: noise scaling regimes\nCompare all three noise scalings at matched effective noise levels. For a fair comparison at a “typical” trial (\\(t = 100\\), \\(\\delta_0 = 0.1\\)): \\(\\delta_t \\approx 0.01\\), so we match:\n\nGradient-scaled: \\(\\delta_t \\sigma_g = 0.01 \\times 2 = 0.02\\)\n\nLangevin: \\(\\sqrt{\\delta_t}\\, \\sigma_L = 0.1 \\times 0.2 = 0.02\\)\n\nConstant: \\(\\sigma_w = 0.02\\)\n\n\nInterestingly, there is little difference between them, as the plot below shows. Perhaps constant noise might still work as long as we keep it low.\n\nribbon_summary_runs(\n  alg_list = list(\n    `grad-scaled (sig_g=2)` = algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = 2),\n    `langevin (sig_L=0.2)`  = algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = 0.2),\n    `constant (sig_w=0.02)` = algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = 0.02)\n  ),\n  cs = c(4, 8),\n  n_trials = 1000,\n  n_runs = 50,\n  add_oracle = TRUE,\n  oracle_fun = \\(c) find_optimum_sdm(c, kappa = 3),\n  seed = 1\n) + ggplot2::theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nHere is how the resulting arc trajectory variance changes under the three models:\n\nsigma_grid &lt;- list(\n  `grad-scaled` = c(0.5, 1, 2, 5),\n  langevin      = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),\n  constant      = c(0, 0.01, 0.02, 0.03, 0.04, 0.05)\n)\n\nmake_alg &lt;- list(\n  `grad-scaled` = \\(s) algo5_noisy_grad(tau = 0.025, delta0 = 0.1, sigma_g = s),\n  langevin      = \\(s) algo5_langevin(tau = 0.025, delta0 = 0.1, sigma_L = s),\n  constant      = \\(s) algo5_const_noise(tau = 0.025, delta0 = 0.1, sigma_w = s)\n)\n\nn_runs   &lt;- 200\nn_trials &lt;- 1000\ncs       &lt;- c(4, 8)\nkappa    &lt;- 3\n\nset.seed(42)\n\nvar_df &lt;- purrr::map_dfr(names(sigma_grid), \\(model) {\n  purrr::map_dfr(sigma_grid[[model]], \\(sig) {\n    purrr::map_dfr(cs, \\(c_val) {\n      within_vars &lt;- vapply(seq_len(n_runs), \\(r) {\n        a &lt;- run_arc_algorithm(\n          arc_update_fun = make_alg[[model]](sig),\n          c = c_val, kappa = kappa,\n          init_arc = pi / 2, n_trials = n_trials\n        )$a\n        var(a)\n      }, numeric(1))\n      tibble(\n        model = model,\n        sigma = sig,\n        c     = c_val,\n        var_a = within_vars\n      )\n    })\n  })\n})\n\nvar_df$sigma_label &lt;- factor(var_df$sigma)\nvar_df$c_label     &lt;- paste0(\"c = \", var_df$c)\n\n\nggplot(var_df, aes(x = sigma_label, y = var_a)) +\n  geom_boxplot(outlier.size = 0.8) +\n  facet_wrap(c_label ~ model, scales = \"free\") +\n  labs(\n    x = expression(sigma), y = \"Within-run Var(arc width)\",\n    title = \"Within-run arc variance by noise model and sigma\"\n  ) +\n  theme_minimal(base_size = 13) +\n  theme(legend.position = \"bottom\")",
+    "objectID": "notebooks/counterfactual-rl.html#why-counterfactual",
+    "href": "notebooks/counterfactual-rl.html#why-counterfactual",
+    "title": "Counterfactual Q-Learning for Arc Width",
+    "section": "Why “counterfactual”?",
+    "text": "Why “counterfactual”?\nAfter observing the response error \\(y_t\\), the agent knows the true target location. This means it can compute the reward it would have received for any arc width \\(\\alpha\\), not just the one it chose. This is the counterfactual: “what if I had set my arc to \\(\\alpha\\)?”",
     "crumbs": [
       "Home",
       "Theory & Model derivations",
-      "Algo5 Noise Variants"
+      "Counterfactual Q-Learning"
+    ]
+  },
+  {
+    "objectID": "notebooks/counterfactual-rl.html#discretization",
+    "href": "notebooks/counterfactual-rl.html#discretization",
+    "title": "Counterfactual Q-Learning for Arc Width",
+    "section": "Discretization",
+    "text": "Discretization\nThe continuous action space \\([0, \\pi]\\) is discretized into \\(N\\) equally spaced values \\((0, \\pi/N, 2\\pi/N, \\dots, z_k, \\dots, \\pi)\\) where \\(z_k = k\\,\\pi/N\\)",
+    "crumbs": [
+      "Home",
+      "Theory & Model derivations",
+      "Counterfactual Q-Learning"
+    ]
+  },
+  {
+    "objectID": "notebooks/counterfactual-rl.html#update-rule",
+    "href": "notebooks/counterfactual-rl.html#update-rule",
+    "title": "Counterfactual Q-Learning for Arc Width",
+    "section": "Update rule",
+    "text": "Update rule\nAfter observing error \\(y_t\\), the agent updates the value of all arc widths:\n\\[\nQ_{t+1}(k) = Q_t(k) + \\eta \\Big[ \\underbrace{(\\pi - z_k) \\cdot \\mathbb{I}(|y_t| \\le z_k)}_{\\text{counterfactual reward}} - Q_t(k) \\Big]\n\\]\n\nIf \\(|y_t|\\) was small (precise memory), small arcs \\(z_k \\ge |y_t|\\) get a large positive signal.\nIf \\(|y_t|\\) was large (poor memory), small arcs \\(z_k &lt; |y_t|\\) get a signal of 0 (missed target), driving their value down.",
+    "crumbs": [
+      "Home",
+      "Theory & Model derivations",
+      "Counterfactual Q-Learning"
+    ]
+  },
+  {
+    "objectID": "notebooks/counterfactual-rl.html#action-selection-softmax",
+    "href": "notebooks/counterfactual-rl.html#action-selection-softmax",
+    "title": "Counterfactual Q-Learning for Arc Width",
+    "section": "Action selection (softmax)",
+    "text": "Action selection (softmax)\nThe agent selects the next arc width from a softmax policy over Q-values:\n\\[\nP(\\alpha_t = z_k \\mid Q_t) = \\frac{\\exp(Q_t(k) / \\tau)}{\\sum_{j=1}^N \\exp(Q_t(j) / \\tau)}\n\\]\nwhere \\(\\tau\\) is the temperature parameter — lower values make the policy more greedy (deterministic), higher values more exploratory (uniform).",
+    "crumbs": [
+      "Home",
+      "Theory & Model derivations",
+      "Counterfactual Q-Learning"
+    ]
+  },
+  {
+    "objectID": "notebooks/counterfactual-rl.html#parameters",
+    "href": "notebooks/counterfactual-rl.html#parameters",
+    "title": "Counterfactual Q-Learning for Arc Width",
+    "section": "Parameters",
+    "text": "Parameters\n\n\nParameter\nDescription\nRange\n\n\n\n\\(\\eta\\)\nLearning rate\n\\((0, 1]\\)\n\n\n\\(\\tau\\)\nTemperature (softmax)\n\\((0, \\infty)\\)",
+    "crumbs": [
+      "Home",
+      "Theory & Model derivations",
+      "Counterfactual Q-Learning"
     ]
   },
   {
