@@ -287,3 +287,57 @@ neg_loglik <- function(theta, y, a) {
   }
   -ll
 }
+
+# --- Log-likelihood for Counterfactual Q-Learning (CRL) ---
+
+crl_loglik <- function(y, a, c, kappa, eta, tau, K = 180) {
+  T_ <- length(y)
+  z <- seq(0, pi, length.out = K)
+
+  ll_y <- sum(dsdm(y, mu = 0, c = c, kappa = kappa, log = TRUE))
+
+  Q <- rep(0, K)
+  ll_a <- 0
+
+  for (t in seq_len(T_)) {
+    log_probs <- Q / tau - max(Q / tau)
+    log_probs <- log_probs - log(sum(exp(log_probs)))
+
+    k <- which.min(abs(z - a[t]))
+    ll_a <- ll_a + log_probs[k]
+
+    cf_reward <- (pi - z) * (abs(y[t]) <= z)
+    Q <- Q + eta * (cf_reward - Q)
+  }
+
+  ll_y + ll_a
+}
+
+par_to_unconstrained_crl <- function(pars) {
+  c(log(pars$c), log(pars$kappa), logit(pars$eta), log(pars$tau))
+}
+
+par_from_unconstrained_crl <- function(theta) {
+  list(
+    c = exp(theta[1]),
+    kappa = exp(theta[2]),
+    eta = inv_logit(theta[3]),
+    tau = exp(theta[4])
+  )
+}
+
+neg_loglik_crl <- function(theta, y, a, K = 180) {
+  pars <- par_from_unconstrained_crl(theta)
+  ll <- tryCatch(
+    crl_loglik(y, a,
+      c = pars$c, kappa = pars$kappa,
+      eta = pars$eta, tau = pars$tau, K = K
+    ),
+    error = \(e) -Inf,
+    warning = \(w) -Inf
+  )
+  if (!is.finite(ll)) {
+    return(1e10)
+  }
+  -ll
+}

@@ -59,6 +59,8 @@ website:
             href: notebooks/diagnostics-algo5-mle.qmd
           - text: "Stochastic gradient ascent (algo5), Bayesian"
             href: notebooks/diagnostics-algo5-bayes.qmd
+          - text: "Counterfactual Q-Learning (CRL), MLE"
+            href: notebooks/diagnostics-crl-mle.qmd
       - section: "Model Fits"
         contents:
           - text: "Algo4 Bayesian fit (Exp 1)"
@@ -67,6 +69,8 @@ website:
             href: notebooks/fit-algo4-bayes-honig.qmd
           - text: "Algo5 Bayesian fit (Exp 1)"
             href: notebooks/fit-algo5-bayes.qmd
+          - text: "CRL MLE fit (Exp 1)"
+            href: notebooks/fit-crl-mle.qmd
       - section: "Empirical Tests"
         contents:
           - text: "Sequential Dependencies"

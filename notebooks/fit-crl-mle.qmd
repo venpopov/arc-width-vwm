@@ -1,0 +1,211 @@
+---
+title: "Fitting CRL to experimental data (MLE)"
+format: html
+---
+
+```{r cache = FALSE}
+#| label: init
+#| message: false
+library(tidyverse)
+library(patchwork)
+library(bmm)
+source("R/arc-models.R")
+source("R/utils.R")
+source("R/math.R")
+```
+
+::: {.callout-note}
+## Prerequisites
+This notebook fits the Counterfactual Q-Learning model (CRL) to real data via
+MLE. The model is developed in [Counterfactual RL](counterfactual-rl.qmd);
+simulation-based diagnostics are in [CRL MLE diagnostics](diagnostics-crl-mle.qmd).
+:::
+
+## Load data
+
+```{r}
+#| label: load-data
+exp1 <- read_csv("output/exp1_data.csv", show_col_types = FALSE)
+dat <- exp1 |>
+  filter(exp_type == "Time", experimentorder == 1) |>
+  select(subject, blocknumber, trialnumber, setsize, resperr, arc, points) |>
+  arrange(subject, blocknumber, trialnumber) |>
+  mutate(half_arc = arc / 2, half_arc = if_else(half_arc > 0, half_arc, 1e-6))
+
+subject_ids <- sort(unique(dat$subject))
+subject_data <- split(dat, dat$subject)
+```
+
+## Fit individual participants
+
+```{r}
+#| label: fit-one-subject
+fit_crl_mle <- function(data, n_restarts = 3) {
+  y <- data$resperr
+  a <- data$half_arc
+
+  best <- list(value = Inf)
+
+  for (r in seq_len(n_restarts)) {
+    theta0 <- par_to_unconstrained_crl(list(
+      c = runif(1, 2, 8),
+      kappa = runif(1, 1, 6),
+      eta = runif(1, 0.02, 0.3),
+      tau = runif(1, 0.02, 0.2)
+    ))
+
+    fit <- tryCatch(
+      optim(par = theta0, fn = neg_loglik_crl, y = y, a = a,
+            method = "Nelder-Mead",
+            control = list(maxit = 15000, reltol = 1e-10)),
+      error = \(e) list(par = rep(NA_real_, 4), value = Inf, convergence = 99)
+    )
+
+    if (fit$value < best$value) best <- fit
+  }
+
+  est <- par_from_unconstrained_crl(best$par)
+  tibble(
+    c = est$c, kappa = est$kappa, eta = est$eta, tau = est$tau,
+    loglik = -best$value, converged = best$convergence == 0
+  )
+}
+```
+
+```{r}
+#| label: fit-all-subjects
+set.seed(2026)
+
+fits <- with_cache("output/crl_mle_fits.rds", {
+  imap_dfr(subject_data, \(data, sid) {
+    fit_crl_mle(data) |> mutate(subject = sid, .before = 1)
+  })
+})
+
+fits
+```
+
+## Parameter estimates across participants
+
+```{r}
+#| label: fig-param-estimates
+#| fig-width: 10
+#| fig-height: 5
+fits |>
+  pivot_longer(cols = c(c, kappa, eta, tau),
+               names_to = "parameter", values_to = "estimate") |>
+  ggplot(aes(x = subject, y = estimate)) +
+  geom_point(size = 2, color = "steelblue") +
+  facet_wrap(~parameter, scales = "free_y") +
+  labs(x = "Subject", y = "MLE estimate") +
+  theme_minimal()
+```
+
+## Posterior predictive checks
+
+Simulate data from each participant's fitted parameters and compare arc-width
+and response-error distributions.
+
+```{r}
+#| label: ppc-helpers
+crl_sim_from_pars <- function(pars, n_trials, init_arc = pi / 2) {
+  run_arc_algorithm(
+    arc_update_fun = algo_crl(eta = pars$eta, tau = pars$tau),
+    c = pars$c, kappa = pars$kappa,
+    init_arc = init_arc, n_trials = n_trials
+  )
+}
+
+plot_crl_ppc <- function(pars, data, n_sims = 15, title = "") {
+  sims <- replicate(n_sims,
+    crl_sim_from_pars(pars, n_trials = nrow(data), init_arc = data$half_arc[1]),
+    simplify = FALSE
+  )
+  sim_col <- adjustcolor("red", alpha.f = 0.3)
+
+  optim_arc <- find_optimum_sdm(pars$c, pars$kappa)$alpha
+  obs_median <- median(data$half_arc)
+  pred_medians <- vapply(sims, \(s) median(s$a), numeric(1))
+
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar), add = TRUE)
+  par(mfrow = c(1, 2))
+
+  plot(density(data$half_arc), main = paste0("Arc width – ", title))
+  for (s in sims) lines(density(s$a), col = sim_col)
+  lines(density(data$half_arc), lwd = 2)
+  abline(v = optim_arc, col = "blue", lwd = 2, lty = 2)
+  abline(v = obs_median, col = "black", lwd = 2, lty = 3)
+  abline(v = median(pred_medians), col = "red", lwd = 2, lty = 3)
+  legend("topright",
+    c("Data", "Simulated", "Optimal", "Obs med", "Pred med"),
+    col = c("black", "red", "blue", "black", "red"),
+    lty = c(1, 1, 2, 3, 3), lwd = c(1, 1, 2, 2, 2), bty = "n", cex = 0.8)
+
+  plot(density(data$resperr), main = paste0("Response error – ", title))
+  for (s in sims) lines(density(s$y), col = sim_col)
+  lines(density(data$resperr), lwd = 2)
+  legend("topright", c("Data", "Simulated"), col = c("black", "red"), lty = 1, bty = "n")
+}
+```
+
+```{r}
+#| label: ppc-all
+#| fig-width: 10
+#| fig-height: 4
+#| fig-show: hold
+iwalk(subject_data, \(data, sid) {
+  pars <- fits |> filter(subject == sid)
+  plot_crl_ppc(pars, data, n_sims = 15, title = paste("Subject", sid))
+})
+```
+
+## Predicted vs observed arc summary statistics
+
+```{r}
+#| label: ppc-summary-stats
+#| fig-width: 10
+#| fig-height: 5
+ppc_summary <- imap_dfr(subject_data, \(data, sid) {
+  pars <- fits |> filter(subject == sid)
+  sims <- replicate(50,
+    crl_sim_from_pars(pars, n_trials = nrow(data), init_arc = data$half_arc[1]),
+    simplify = FALSE
+  )
+  tibble(
+    subject = sid,
+    obs_median = median(data$half_arc),
+    obs_mad = mad(data$half_arc),
+    pred_median = map_dbl(sims, \(s) median(s$a)),
+    pred_mad = map_dbl(sims, \(s) mad(s$a))
+  )
+})
+
+ppc_smry <- ppc_summary |>
+  group_by(subject, obs_median, obs_mad) |>
+  summarise(
+    pred_median_mid = median(pred_median),
+    pred_median_lo = quantile(pred_median, 0.025),
+    pred_median_hi = quantile(pred_median, 0.975),
+    pred_mad_mid = median(pred_mad),
+    pred_mad_lo = quantile(pred_mad, 0.025),
+    pred_mad_hi = quantile(pred_mad, 0.975),
+    .groups = "drop"
+  )
+
+p1 <- ggplot(ppc_smry, aes(x = obs_median, y = pred_median_mid)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  geom_pointrange(aes(ymin = pred_median_lo, ymax = pred_median_hi)) +
+  labs(x = "Observed median arc", y = "Predicted median arc",
+       title = "Median arc width") +
+  theme_minimal()
+
+p2 <- ggplot(ppc_smry, aes(x = obs_mad, y = pred_mad_mid)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  geom_pointrange(aes(ymin = pred_mad_lo, ymax = pred_mad_hi)) +
+  labs(x = "Observed MAD arc", y = "Predicted MAD arc",
+       title = "MAD of arc width") +
+  theme_minimal()
+
+p1 + p2
+```

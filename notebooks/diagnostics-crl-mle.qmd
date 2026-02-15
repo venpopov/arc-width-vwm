@@ -1,0 +1,354 @@
+---
+title: "Model diagnostics: Counterfactual Q-Learning (CRL), MLE"
+format: html
+---
+
+```{r cache = FALSE}
+#| label: init
+#| message: false
+library(tidyverse)
+library(bmm)
+source("R/arc-models.R")
+source("R/utils.R")
+source("R/math.R")
+```
+
+::: {.callout-note}
+## Prerequisites
+This notebook fits the Counterfactual Q-Learning model (CRL), developed in [Counterfactual RL](counterfactual-rl.qmd). The SDM model and optimality derivation are described in [Optimal Arc Width (SDM)](optimal-arc-response.qmd).
+:::
+
+## Task and model summary
+
+On each trial a participant reports a remembered color and sets a symmetric **arc** of half-width $a_t \in (0,\pi)$. Points are awarded as $p_t = (\pi - a_t)\,\mathbf{1}[|y_t| \le a_t]$. **Response errors** follow the SDM: $y_t \sim \text{SDM}(c,\kappa)$.
+
+**Counterfactual Q-Learning.** The agent discretizes $[0,\pi]$ into $K$ bins $z_1,\dots,z_K$ and maintains Q-values updated on every trial using the counterfactual reward for *all* actions:
+$$
+Q_{t+1}(k) = Q_t(k) + \eta\bigl[(\pi - z_k)\,\mathbf{1}[|y_t| \le z_k] - Q_t(k)\bigr].
+$$
+
+Action selection uses a softmax policy:
+$$
+P(\alpha_t = z_k \mid Q_t) = \frac{\exp(Q_t(k)/\tau)}{\sum_j \exp(Q_t(j)/\tau)}.
+$$
+
+**Joint log-likelihood.** Because Q-values evolve deterministically from observed errors:
+$$
+\ell(\theta) = \sum_t \log f_{\text{SDM}}(y_t \mid c,\kappa) + \sum_t \log P(\alpha_t \mid Q_t, \tau).
+$$
+
+Parameters: $\theta = (c, \kappa, \eta, \tau)$.
+
+## Simulate data
+
+```{r}
+#| label: simulate-data
+true_pars <- list(c = 6, kappa = 3, eta = 0.1, tau = 0.05)
+
+set.seed(4233)
+sim <- run_arc_algorithm(
+  arc_update_fun = algo_crl(eta = true_pars$eta, tau = true_pars$tau),
+  c = true_pars$c,
+  kappa = true_pars$kappa,
+  init_arc = pi / 2,
+  n_trials = 1000
+)
+
+par(mfrow = c(1, 3))
+plot(sim$a, type = "l", xlab = "Trial", ylab = "Arc width")
+hist(sim$a, xlab = "Arc width")
+hist(sim$y, xlab = "Response error")
+par(mfrow = c(1, 1))
+```
+
+## Fit with `optim`
+
+```{r}
+#| label: fit-optim
+init_pars <- list(c = 3, kappa = 5, eta = 0.05, tau = 0.1)
+theta0 <- par_to_unconstrained_crl(init_pars)
+
+fit <- optim(
+  par = theta0,
+  fn = neg_loglik_crl,
+  y = sim$y,
+  a = sim$a,
+  method = "Nelder-Mead",
+  control = list(maxit = 10000, reltol = 1e-10)
+)
+
+fit$convergence
+```
+
+## Compare estimated vs true parameters
+
+```{r}
+#| label: compare-params
+estimated <- par_from_unconstrained_crl(fit$par)
+
+comparison <- tibble(
+  parameter = names(true_pars),
+  initial = unlist(init_pars),
+  true_value = unlist(true_pars),
+  estimated = unlist(estimated)
+)
+comparison
+```
+
+## Likelihood profiles at the MLE
+
+```{r}
+#| label: likelihood-profile
+#| fig-width: 9
+#| fig-height: 6
+best_theta <- fit$par
+par_names <- c("c", "kappa", "eta", "tau")
+
+profiles <- purrr::map_dfr(seq_along(par_names), \(j) {
+  grid <- seq(best_theta[j] - 1.5, best_theta[j] + 1.5, length.out = 60)
+  ll_vals <- sapply(grid, \(v) {
+    theta_tmp <- best_theta
+    theta_tmp[j] <- v
+    -neg_loglik_crl(theta_tmp, y = sim$y, a = sim$a)
+  })
+
+  if (par_names[j] == "eta") {
+    value <- inv_logit(grid)
+  } else {
+    value <- exp(grid)
+  }
+
+  tibble(
+    parameter = par_names[j],
+    value = value,
+    loglik = ll_vals
+  )
+})
+
+ggplot(profiles, aes(x = value, y = loglik)) +
+  geom_line() +
+  geom_vline(data = comparison, aes(xintercept = estimated),
+             linetype = "dashed", color = "blue") +
+  geom_vline(data = comparison, aes(xintercept = true_value),
+             linetype = "dotted", color = "red") +
+  facet_wrap(~parameter, scales = "free") +
+  labs(x = "Parameter value", y = "Log-likelihood",
+       caption = "Blue dashed = MLE, Red dotted = true value")
+```
+
+## Sanity-check recovery across a few parameter sets
+
+Fit a handful of parameter combinations to verify recovery without running a full grid.
+
+```{r}
+#| label: sanity-recovery
+recovery_sets <- tibble(
+  c     = c(2, 4, 8, 6, 10, 3),
+  kappa = c(3, 3, 3, 5, 2,  8),
+  eta   = c(0.05, 0.1, 0.2, 0.15, 0.1, 0.05),
+  tau   = c(0.1, 0.05, 0.05, 0.1, 0.02, 0.2)
+)
+
+set.seed(2026)
+
+fit_one_crl <- function(c, kappa, eta, tau, n_trials = 1000) {
+  sim <- run_arc_algorithm(
+    arc_update_fun = algo_crl(eta = eta, tau = tau),
+    c = c, kappa = kappa, init_arc = pi / 2, n_trials = n_trials
+  )
+
+  theta0 <- par_to_unconstrained_crl(list(
+    c = 4, kappa = 4, eta = 0.1, tau = 0.1
+  ))
+
+  fit <- tryCatch(
+    optim(par = theta0, fn = neg_loglik_crl, y = sim$y, a = sim$a,
+          method = "Nelder-Mead",
+          control = list(maxit = 10000, reltol = 1e-10)),
+    error = \(e) list(par = rep(NA_real_, 4), convergence = 99)
+  )
+
+  est <- par_from_unconstrained_crl(fit$par)
+  tibble(
+    c_true = c, kappa_true = kappa, eta_true = eta, tau_true = tau,
+    c_est = est$c, kappa_est = est$kappa, eta_est = est$eta, tau_est = est$tau,
+    converged = fit$convergence == 0
+  )
+}
+
+recovery_results <- purrr::pmap_dfr(recovery_sets, fit_one_crl)
+```
+
+```{r}
+#| label: recovery-table
+recovery_long <- recovery_results |>
+  mutate(set = row_number()) |>
+  pivot_longer(
+    cols = -c(set, converged),
+    names_to = c("parameter", ".value"),
+    names_pattern = "(.+)_(true|est)"
+  )
+
+recovery_long |>
+  mutate(error = est - true, rel_error = error / true) |>
+  select(set, parameter, true, est, error, rel_error, converged)
+```
+
+```{r}
+#| label: fig-sanity-recovery
+#| fig-width: 9
+#| fig-height: 6
+#| fig-cap: "Sanity-check parameter recovery for CRL. Each point is one parameter set."
+recovery_long |>
+  ggplot(aes(x = true, y = est)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  geom_point(size = 3, color = "steelblue") +
+  geom_text(aes(label = set), nudge_y = 0.02, size = 3) +
+  facet_wrap(~parameter, scales = "free") +
+  labs(x = "True value", y = "Estimated value")
+```
+
+## Shuffled-trial diagnostics
+
+Shuffling trial order destroys the sequential Q-learning structure. If the model still "recovers" $\eta$ and $\tau$ from shuffled data, those parameters are not identified by temporal dependencies.
+
+### Single-dataset shuffle test
+
+Shuffle the original simulated data 200 times and refit.
+
+```{r}
+#| label: shuffled-fits
+set.seed(2027)
+n_shuffle <- 10
+
+fit_shuffled_crl <- function(y, a) {
+  idx <- sample.int(length(y))
+  y_s <- y[idx]
+  a_s <- a[idx]
+
+  theta0 <- par_to_unconstrained_crl(init_pars)
+  fit <- tryCatch(
+    optim(par = theta0, fn = neg_loglik_crl, y = y_s, a = a_s,
+          method = "Nelder-Mead",
+          control = list(maxit = 10000, reltol = 1e-10)),
+    error = \(e) list(par = rep(NA_real_, 4), convergence = 99)
+  )
+
+  est <- par_from_unconstrained_crl(fit$par)
+  tibble(
+    c = est$c, kappa = est$kappa,
+    eta = est$eta, tau = est$tau,
+    converged = fit$convergence == 0
+  )
+}
+
+shuffle_fits <- with_cache("output/crl_shuffle_fits.rds", {
+  purrr::map_dfr(seq_len(n_shuffle), \(i) fit_shuffled_crl(sim$y, sim$a))
+})
+
+shuffle_long <- shuffle_fits |>
+  pivot_longer(cols = c(c, kappa, eta, tau),
+               names_to = "parameter", values_to = "estimated")
+
+ggplot(shuffle_long, aes(x = estimated)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+  geom_vline(
+    data = tibble(parameter = names(true_pars), true_value = unlist(true_pars)),
+    aes(xintercept = true_value), color = "red", linetype = "dashed"
+  ) +
+  facet_wrap(~parameter, scales = "free") +
+  labs(x = "Estimated value", y = "Count",
+       caption = "Red dashed = generating parameter (unshuffled data)")
+```
+
+### Arc density: original vs shuffled-fit simulations
+
+For each shuffled fit, simulate new data from the recovered parameters and compare the arc-width density to the original data.
+
+```{r}
+#| label: shuffled-arc-density
+#| fig-width: 9
+#| fig-height: 5
+shuffled_sims <- purrr::pmap_dfr(
+  shuffle_fits |> filter(converged),
+  \(c, kappa, eta, tau, ...) {
+    out <- run_arc_algorithm(
+      algo_crl(eta = eta, tau = tau),
+      c = c, kappa = kappa, init_arc = pi / 2, n_trials = 1000
+    )
+    tibble(arc = out$a)
+  },
+  .id = "run"
+)
+
+original_df <- tibble(arc = sim$a, source = "Original data")
+
+ggplot() +
+  geom_density(data = shuffled_sims, aes(x = arc, group = run),
+               color = "steelblue", alpha = 0.3, linewidth = 0.4) +
+  geom_density(data = original_df, aes(x = arc),
+               color = "red", linewidth = 1.2) +
+  labs(x = "Arc half-width (rad)", y = "Density",
+       title = "Arc density: original (red) vs simulated from shuffled-fit parameters (blue)") +
+  theme_minimal()
+```
+
+<!-- ### Shuffled recovery across parameter sets
+
+Repeat the sanity-check recovery but with shuffled trials.
+
+```{r}
+#| label: shuffled-recovery
+set.seed(2028)
+
+fit_one_crl_shuffled <- function(c, kappa, eta, tau, n_trials = 1000) {
+  sim <- run_arc_algorithm(
+    arc_update_fun = algo_crl(eta = eta, tau = tau),
+    c = c, kappa = kappa, init_arc = pi / 2, n_trials = n_trials
+  )
+
+  idx <- sample.int(length(sim$y))
+  sim$y <- sim$y[idx]
+  sim$a <- sim$a[idx]
+
+  theta0 <- par_to_unconstrained_crl(list(
+    c = 4, kappa = 4, eta = 0.1, tau = 0.1
+  ))
+
+  fit <- tryCatch(
+    optim(par = theta0, fn = neg_loglik_crl, y = sim$y, a = sim$a,
+          method = "Nelder-Mead",
+          control = list(maxit = 10000, reltol = 1e-10)),
+    error = \(e) list(par = rep(NA_real_, 4), convergence = 99)
+  )
+
+  est <- par_from_unconstrained_crl(fit$par)
+  tibble(
+    c_true = c, kappa_true = kappa, eta_true = eta, tau_true = tau,
+    c_est = est$c, kappa_est = est$kappa, eta_est = est$eta, tau_est = est$tau,
+    converged = fit$convergence == 0
+  )
+}
+
+recovery_shuffled <- purrr::pmap_dfr(recovery_sets, fit_one_crl_shuffled)
+```
+
+```{r}
+#| label: fig-shuffled-recovery
+#| fig-width: 9
+#| fig-height: 6
+#| fig-cap: "Shuffled-trial recovery for CRL. Departure from the identity line for eta/tau indicates those parameters rely on temporal structure."
+recovery_shuffled |>
+  mutate(set = row_number()) |>
+  pivot_longer(
+    cols = -c(set, converged),
+    names_to = c("parameter", ".value"),
+    names_pattern = "(.+)_(true|est)"
+  ) |>
+  ggplot(aes(x = true, y = est)) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  geom_point(size = 3, color = "steelblue") +
+  geom_text(aes(label = set), nudge_y = 0.02, size = 3) +
+  facet_wrap(~parameter, scales = "free") +
+  labs(x = "True value", y = "Estimated value")
+``` -->
