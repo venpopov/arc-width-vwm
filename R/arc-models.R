@@ -29,7 +29,7 @@ run_arc_algorithm <- function(arc_update_fun, c = 4, kappa = 3, init_arc = pi / 
 # a convenience function to show how the algorithm performs on a single run
 plot_algorithm_run <- function(out) {
   par(mfrow = c(1, 2))
-  plot(out$a, type = "l", xlab = "trial", ylab = "Arc half-width")
+  plot(out$a, type = "l", xlab = "trial", ylab = "Arc half-width", ylim = c(0, pi))
   plot(cummean(abs(out$y) <= out$a), type = "l", xlab = "trial", ylab = "Cummulative hit rate")
   par(mfrow = c(1, 1))
 }
@@ -155,6 +155,30 @@ algo_error_correction <- function(delta0 = 0.1, delta_pow = 0.5, sigma_w = 0.1) 
 }
 
 # --- Algo4 with logit-scale noise ---
+
+# --- Counterfactual Q-learning with softmax policy ---
+
+algo_crl <- function(eta = 0.1, tau = 0.2, K = 180) {
+  force(eta)
+  force(tau)
+  force(K)
+
+  z <- seq(0, pi, length.out = K)
+
+  state <- new.env(parent = emptyenv())
+  state$Q <- rep(0, K)
+
+  \(a, y, ...) {
+    cf_reward <- (pi - z) * (abs(y) <= z)
+    state$Q <- state$Q + eta * (cf_reward - state$Q)
+
+    log_probs <- state$Q / tau - max(state$Q / tau)
+    probs <- exp(log_probs) / sum(exp(log_probs))
+
+    chosen <- sample.int(K, size = 1, prob = probs)
+    z[chosen]
+  }
+}
 
 algo4_logit_noise <- function(delta = 0.1, sigma_e = 0.2) {
   force(delta)
