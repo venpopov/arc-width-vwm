@@ -45,6 +45,8 @@ website:
             href: notebooks/optimal-arc-response.qmd
           - text: "RL Algorithms: Exploration"
             href: notebooks/reinforcement-learning-arc.qmd
+          - text: "Counterfactual Q-Learning"
+            href: notebooks/counterfactual-rl.qmd
           - text: "Algo5 Noise Variants"
             href: notebooks/algo5-noise-variants.qmd
       - section: Model diagnostics
