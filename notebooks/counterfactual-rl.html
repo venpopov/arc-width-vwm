@@ -373,7 +373,12 @@ window.Quarto = {
   <li><a href="#learned-q-value-landscape" id="toc-learned-q-value-landscape" class="nav-link" data-scroll-target="#learned-q-value-landscape">Learned Q-Value Landscape</a></li>
   <li><a href="#comparison-with-algorithm-4-and-algorithm-5" id="toc-comparison-with-algorithm-4-and-algorithm-5" class="nav-link" data-scroll-target="#comparison-with-algorithm-4-and-algorithm-5">Comparison with Algorithm 4 and Algorithm 5</a></li>
   <li><a href="#arc-width-distribution" id="toc-arc-width-distribution" class="nav-link" data-scroll-target="#arc-width-distribution">Arc Width Distribution</a></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  <li>
+<a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a>
+  <ul class="collapse">
+<li><a href="#postscript-how-the-q-profile-changes-over-trials" id="toc-postscript-how-the-q-profile-changes-over-trials" class="nav-link" data-scroll-target="#postscript-how-the-q-profile-changes-over-trials">Postscript: how the Q profile changes over trials</a></li>
+  </ul>
+</li>
   </ul><div class="toc-actions"><ul><li><a href="https://github.com/venpopov/arc-width-vwm/edit/main/notebooks/counterfactual-rl.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/blob/main/notebooks/counterfactual-rl.qmd" class="toc-action"><i class="bi empty"></i>View source</a></li><li><a href="https://github.com/venpopov/arc-width-vwm/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
@@ -686,9 +691,33 @@ P(\alpha_t = z_k \mid Q_t) = \frac{\exp(Q_t(k) / \tau)}{\sum_{j=1}^N \exp(Q_t(j)
 <li>Joint with memory: <span class="math inline">\(c\)</span>, <span class="math inline">\(\kappa\)</span>, <span class="math inline">\(\eta\)</span>, <span class="math inline">\(\tau\)</span>
 </li>
 </ul>
+<section id="postscript-how-the-q-profile-changes-over-trials" class="level2"><h2 class="anchored" data-anchor-id="postscript-how-the-q-profile-changes-over-trials">Postscript: how the Q profile changes over trials</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">crl</span> <span class="op">&lt;-</span> <span class="fu">algo_crl</span><span class="op">(</span>eta <span class="op">=</span> <span class="fl">0.1</span>, tau <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">ys</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">pi</span><span class="op">/</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">0.5</span>, <span class="fl">0.1</span>, <span class="fl">3</span>, <span class="fl">1</span>, <span class="fl">0.2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">Q</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html">environment</a></span><span class="op">(</span><span class="va">crl</span><span class="op">)</span><span class="op">$</span><span class="va">state</span><span class="op">$</span><span class="va">Q</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">pi</span>, length.out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">Q</span><span class="op">)</span><span class="op">)</span>, <span class="va">Q</span>, type <span class="op">=</span> <span class="st">"l"</span>, xlab <span class="op">=</span> <span class="st">"Arc width"</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">ys</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">choice</span> <span class="op">&lt;-</span> <span class="fu">crl</span><span class="op">(</span>a <span class="op">=</span> <span class="fl">2</span>, y <span class="op">=</span> <span class="va">ys</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="va">Q</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html">environment</a></span><span class="op">(</span><span class="va">crl</span><span class="op">)</span><span class="op">$</span><span class="va">state</span><span class="op">$</span><span class="va">Q</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">pi</span>, length.out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">Q</span><span class="op">)</span><span class="op">)</span>, <span class="va">Q</span>, </span>
+<span>  type <span class="op">=</span> <span class="st">"l"</span>, xlab <span class="op">=</span> <span class="st">"Arc width"</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>, </span>
+<span>  main <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html">glue</a></span><span class="op">(</span><span class="st">"Step {i}, y = {round(ys[i],2)}"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="counterfactual-rl_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
 
 
-</section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</section></section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
